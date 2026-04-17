@@ -111,7 +111,7 @@ const {
       </el-form>
 
       <PureTableBar
-        title="用户管理（仅演示，操作后不生效）"
+        title="用户管理"
         :columns="columns"
         @refresh="onSearch"
       >

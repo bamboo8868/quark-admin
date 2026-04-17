@@ -11,5 +11,5 @@ type Result = {
 
 /** 卡片列表 */
 export const getCardList = (data?: object) => {
-  return http.request<Result>("post", "/get-card-list", { data });
+  return http.request<Result>("post", "/api/get-card-list", { data });
 };
