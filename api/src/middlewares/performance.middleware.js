@@ -221,15 +221,14 @@ export function createPaginationLimitMiddleware(maxLimit = 100) {
  */
 export async function responseTimeTracker(request, reply) {
   const start = process.hrtime.bigint();
+  reply._startTime = start; // Store for response logging
   
   reply.then(() => {
     const end = process.hrtime.bigint();
-    const duration = Number(end - start) / 1000000; // Convert to milliseconds
+    const duration = Number(end - start) / 1000000;
     
-    // Add response time header
     reply.header('X-Response-Time', `${duration.toFixed(2)}ms`);
     
-    // Log slow queries
     if (duration > 1000) {
       log.warn('Slow query detected', {
         method: request.method,

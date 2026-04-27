@@ -150,6 +150,23 @@ export const updateUserRole = (userId: number, roleIds: number[]) => {
   return http.request<Result>("put", `/api/user/${userId}/roles`, { data: { roleIds } });
 };
 
+// ==================== Menu Management ====================
+
+/** 创建菜单 */
+export const createMenu = (data?: object) => {
+  return http.request<Result>("post", "/api/menu/create", { data });
+};
+
+/** 更新菜单 */
+export const updateMenu = (id: number, data?: object) => {
+  return http.request<Result>("put", `/api/menu/${id}`, { data });
+};
+
+/** 删除菜单 */
+export const deleteMenu = (id: number) => {
+  return http.request<Result>("delete", `/api/menu/${id}`);
+};
+
 // ==================== Department Management ====================
 
 /** 获取部门树结构 */
@@ -175,4 +192,41 @@ export const updateDept = (id: number, data?: object) => {
 /** 删除部门 */
 export const deleteDept = (id: number) => {
   return http.request<Result>("delete", `/api/dept/${id}`);
+};
+
+// ==================== System Monitor ====================
+
+/** 强制用户下线 */
+export const forceOffline = (id: number) => {
+  return http.request<Result>("post", "/api/force-offline", { data: { id } });
+};
+
+/** 批量删除登录日志 */
+export const batchDeleteLoginLogs = (ids: number[]) => {
+  return http.request<Result>("post", "/api/login-logs/batch-delete", { data: { ids } });
+};
+
+/** 清空登录日志 */
+export const clearLoginLogs = () => {
+  return http.request<Result>("post", "/api/login-logs/clear");
+};
+
+/** 批量删除操作日志 */
+export const batchDeleteOperationLogs = (ids: number[]) => {
+  return http.request<Result>("post", "/api/operation-logs/batch-delete", { data: { ids } });
+};
+
+/** 清空操作日志 */
+export const clearOperationLogs = () => {
+  return http.request<Result>("post", "/api/operation-logs/clear");
+};
+
+/** 批量删除系统日志 */
+export const batchDeleteSystemLogs = (ids: number[]) => {
+  return http.request<Result>("post", "/api/system-logs/batch-delete", { data: { ids } });
+};
+
+/** 清空系统日志 */
+export const clearSystemLogs = () => {
+  return http.request<Result>("post", "/api/system-logs/clear");
 };

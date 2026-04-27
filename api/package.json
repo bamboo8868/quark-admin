@@ -11,6 +11,7 @@
     "migrate:prod": "set NODE_ENV=production&& knex migrate:latest",
     "migrate:rollback": "set NODE_ENV=development&& knex migrate:rollback",
     "migrate:rollback:prod": "set NODE_ENV=production&& knex migrate:rollback",
+    "create-admin": "node scripts/create-super-admin.js",
     "seed": "set NODE_ENV=development&& knex seed:run",
     "seed:prod": "set NODE_ENV=production&& knex seed:run",
     "test": "node --test tests/**/*.test.js",

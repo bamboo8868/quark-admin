@@ -1,5 +1,6 @@
 import knex from 'knex';
 import { config } from './env.js';
+import { log } from '../utils/logger.js';
 
 /**
  * Database connection instance
@@ -26,16 +27,22 @@ export function getDatabase() {
       },
       migrations: config.database.migrations,
       seeds: config.database.seeds,
-      debug: config.app.env === 'dev'
+      debug: config.app.env === 'dev',
+      log: {
+        warn: (msg) => log.warn(msg, { source: 'knex' }),
+        error: (msg) => log.error(msg, null, { source: 'knex' }),
+        deprecate: (msg) => log.warn(msg, { source: 'knex', type: 'deprecation' }),
+        debug: (msg) => log.info(msg.sql || '')
+      }
     });
 
     // Test connection
     db.raw('SELECT 1')
       .then(() => {
-        console.log('Database connected successfully');
+        log.info('Database connected successfully');
       })
       .catch((error) => {
-        console.error('Database connection failed:', error.message);
+        log.error('Database connection failed', error);
         throw error;
       });
   }
@@ -50,7 +57,7 @@ export async function closeDatabase() {
   if (db) {
     await db.destroy();
     db = null;
-    console.log('Database connection closed');
+    log.info('Database connection closed');
   }
 }
 
@@ -60,7 +67,7 @@ export async function closeDatabase() {
 export async function runMigrations() {
   const database = getDatabase();
   await database.migrate.latest();
-  console.log('Migrations completed');
+  log.info('Migrations completed');
 }
 
 /**
@@ -69,7 +76,7 @@ export async function runMigrations() {
 export async function rollbackMigrations() {
   const database = getDatabase();
   await database.migrate.rollback();
-  console.log('Migrations rolled back');
+  log.info('Migrations rolled back');
 }
 
 /**
@@ -78,7 +85,7 @@ export async function rollbackMigrations() {
 export async function runSeeds() {
   const database = getDatabase();
   await database.seed.run();
-  console.log('Seeds completed');
+  log.info('Seeds completed');
 }
 
 export default getDatabase;

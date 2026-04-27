@@ -18,16 +18,6 @@ export {
   rateLimitKeyGenerator
 } from './auth.middleware.js';
 
-// Validation
-export {
-  validateBody,
-  validateQuery,
-  validateParams,
-  ValidationSchema,
-  v,
-  compose
-} from './validation.middleware.js';
-
 // Security
 export {
   securityHeaders,

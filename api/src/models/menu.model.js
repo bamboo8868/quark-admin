@@ -68,6 +68,71 @@ export class MenuModel extends BaseModel {
   }
 
   /**
+   * Create menu with camelCase-to-snake_case mapping
+   */
+  async createMenu(data) {
+    const dbData = this.toDbFormat(data);
+    const [id] = await this.query().insert(dbData);
+    return this.findById(id);
+  }
+
+  /**
+   * Update menu with camelCase-to-snake_case mapping
+   */
+  async updateMenu(id, data) {
+    const dbData = this.toDbFormat(data);
+    await this.query().where('id', id).update({
+      ...dbData,
+      updated_at: new Date()
+    });
+    return this.findById(id);
+  }
+
+  /**
+   * Delete menu by ID (hard delete)
+   */
+  async deleteMenu(id) {
+    return await this.query().where('id', id).del();
+  }
+
+  /**
+   * Convert camelCase frontend data to snake_case for database
+   */
+  toDbFormat(data) {
+    const mapping = {
+      parentId: 'parent_id',
+      menuType: 'menu_type',
+      title: 'title',
+      name: 'name',
+      path: 'path',
+      component: 'component',
+      rank: 'rank',
+      redirect: 'redirect',
+      icon: 'icon',
+      extraIcon: 'extra_icon',
+      enterTransition: 'enter_transition',
+      leaveTransition: 'leave_transition',
+      activePath: 'active_path',
+      auths: 'auths',
+      frameSrc: 'frame_src',
+      frameLoading: 'frame_loading',
+      keepAlive: 'keep_alive',
+      hiddenTag: 'hidden_tag',
+      fixedTag: 'fixed_tag',
+      showLink: 'show_link',
+      showParent: 'show_parent'
+    };
+
+    const result = {};
+    for (const [key, dbKey] of Object.entries(mapping)) {
+      if (data[key] !== undefined) {
+        result[dbKey] = data[key];
+      }
+    }
+    return result;
+  }
+
+  /**
    * Format menu for response
    */
   formatMenu(menu) {

@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { message } from "@/utils/message";
 import { getKeyList } from "@pureadmin/utils";
-import { getLoginLogsList } from "@/api/system";
+import { getLoginLogsList, batchDeleteLoginLogs, clearLoginLogs } from "@/api/system";
 import { usePublicHooks } from "@/views/system/hooks";
 import type { PaginationProps } from "@pureadmin/table";
 import { type Ref, reactive, ref, onMounted, toRaw } from "vue";
@@ -10,7 +10,7 @@ export function useRole(tableRef: Ref) {
   const form = reactive({
     username: "",
     status: "",
-    loginTime: ""
+    loginTime: [] as string[]
   });
   const dataList = ref([]);
   const loading = ref(true);
@@ -85,11 +85,13 @@ export function useRole(tableRef: Ref) {
   ];
 
   function handleSizeChange(val: number) {
-    console.log(`${val} items per page`);
+    pagination.pageSize = val;
+    onSearch();
   }
 
   function handleCurrentChange(val: number) {
-    console.log(`current page: ${val}`);
+    pagination.currentPage = val;
+    onSearch();
   }
 
   /** 当CheckBox选择项发生变化时会触发该事件 */
@@ -106,40 +108,47 @@ export function useRole(tableRef: Ref) {
     tableRef.value.getTableRef().clearSelection();
   }
 
-  /** 批量删除 */
-  function onbatchDel() {
-    // 返回当前选中的行
+  async function onbatchDel() {
     const curSelected = tableRef.value.getTableRef().getSelectionRows();
-    // 接下来根据实际业务，通过选中行的某项数据，比如下面的id，调用接口进行批量删除
-    message(`已删除序号为 ${getKeyList(curSelected, "id")} 的数据`, {
-      type: "success"
-    });
-    tableRef.value.getTableRef().clearSelection();
-    onSearch();
+    const ids = getKeyList(curSelected, "id");
+    const { code } = await batchDeleteLoginLogs(ids);
+    if (code === 0) {
+      message(`\u5DF2\u5220\u9664\u5E8F\u53F7\u4E3A ${ids} \u7684\u6570\u636E`, { type: "success" });
+      tableRef.value.getTableRef().clearSelection();
+      onSearch();
+    }
   }
-
-  /** 清空日志 */
-  function clearAll() {
-    // 根据实际业务，调用接口删除所有日志数据
-    message("已删除所有日志数据", {
-      type: "success"
-    });
-    onSearch();
+  
+  async function clearAll() {
+    const { code } = await clearLoginLogs();
+    if (code === 0) {
+      message("\u5DF2\u5220\u9664\u6240\u6709\u65E5\u5FD7\u6570\u636E", { type: "success" });
+      onSearch();
+    }
   }
 
   async function onSearch() {
     loading.value = true;
-    const { code, data } = await getLoginLogsList(toRaw(form));
+    const params = {
+      ...toRaw(form),
+      page: pagination.currentPage,
+      limit: pagination.pageSize
+    };
+    // Convert date range
+    if (form.loginTime && form.loginTime.length === 2) {
+      params.loginTime = [
+        dayjs(form.loginTime[0]).format("YYYY-MM-DD HH:mm:ss"),
+        dayjs(form.loginTime[1]).format("YYYY-MM-DD HH:mm:ss")
+      ];
+    }
+    const { code, data } = await getLoginLogsList(params);
     if (code === 0) {
       dataList.value = data.list;
       pagination.total = data.total;
       pagination.pageSize = data.pageSize;
       pagination.currentPage = data.currentPage;
     }
-
-    setTimeout(() => {
-      loading.value = false;
-    }, 500);
+    loading.value = false;
   }
 
   const resetForm = formEl => {

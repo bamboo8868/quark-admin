@@ -47,13 +47,13 @@ export const systemController = {
     const accessToken = jwt.sign(
       { userId: user.id, username: user.username, roles: user.roles?.map(r => r.code) || [] },
       config.jwt.secret,
-      { expiresIn: config.jwt.accessExpiresIn }
+      { expiresIn: config.jwt.expiresIn }
     );
     
     const refreshToken = jwt.sign(
       { userId: user.id, type: 'refresh' },
       config.jwt.secret,
-      { expiresIn: config.jwt.refreshExpiresIn }
+      { expiresIn: config.jwt.expiresIn }
     );
 
     // Get permissions from roles
@@ -68,6 +68,7 @@ export const systemController = {
         username: user.username,
         nickname: user.nickname,
         roles: user.roles?.map(r => r.code) || [],
+        // roles: ['admin'],
         permissions,
         accessToken,
         refreshToken,
@@ -790,23 +791,22 @@ export const systemController = {
     const page = body.page || 1;
     const limit = body.limit || 10;
     
-    const filters = {
-      username: body.username
-    };
+    const filters = { username: body.username };
 
     const result = await systemService.getOnlineUsers(filters, page, limit);
     
-    return {
-      code: 0,
-      message: '操作成功',
-      data: result
-    };
+    return { code: 0, message: '操作成功', data: result };
   },
 
-  /**
-   * Get Login Logs
-   * POST /login-logs
-   */
+  forceOffline: async (request, reply) => {
+    const { id } = request.body || {};
+    if (!id) {
+      return reply.code(400).send({ code: 10001, message: '缺少用户ID', data: null });
+    }
+    await systemService.forceOffline(id);
+    return { code: 0, message: '已强制下线', data: null };
+  },
+
   getLoginLogs: async (request, reply) => {
     const body = request.body || {};
     const page = body.page || 1;
@@ -814,22 +814,14 @@ export const systemController = {
     
     const filters = {
       username: body.username,
-      status: body.status
+      status: body.status,
+      loginTime: body.loginTime
     };
 
     const result = await systemService.getLoginLogs(filters, page, limit);
-    
-    return {
-      code: 0,
-      message: '操作成功',
-      data: result
-    };
+    return { code: 0, message: '操作成功', data: result };
   },
 
-  /**
-   * Get Operation Logs
-   * POST /operation-logs
-   */
   getOperationLogs: async (request, reply) => {
     const body = request.body || {};
     const page = body.page || 1;
@@ -837,66 +829,71 @@ export const systemController = {
     
     const filters = {
       module: body.module,
-      status: body.status
+      status: body.status,
+      operatingTime: body.operatingTime
     };
 
     const result = await systemService.getOperationLogs(filters, page, limit);
-    
-    return {
-      code: 0,
-      message: '操作成功',
-      data: result
-    };
+    return { code: 0, message: '操作成功', data: result };
   },
 
-  /**
-   * Get System Logs
-   * POST /system-logs
-   */
   getSystemLogs: async (request, reply) => {
     const body = request.body || {};
     const page = body.page || 1;
     const limit = body.limit || 10;
     
     const filters = {
-      module: body.module
+      module: body.module,
+      requestTime: body.requestTime
     };
 
     const result = await systemService.getSystemLogs(filters, page, limit);
-    
-    return {
-      code: 0,
-      message: '操作成功',
-      data: result
-    };
+    return { code: 0, message: '操作成功', data: result };
   },
 
-  /**
-   * Get System Log Detail
-   * POST /system-logs-detail
-   */
   getSystemLogDetail: async (request, reply) => {
     const { id } = request.body || {};
-    
     if (!id) {
-      return reply.code(400).send({
-        code: 10001,
-        message: '请求参数缺失或格式不正确',
-        data: null
-      });
+      return reply.code(400).send({ code: 10001, message: '请求参数缺失或格式不正确', data: null });
     }
-
     const detail = await systemService.getSystemLogDetail(id);
-    
     if (!detail) {
-      return reply.code(404).send({
-        code: 10001,
-        message: '日志不存在',
-        data: null
-      });
+      return reply.code(404).send({ code: 10001, message: '日志不存在', data: null });
     }
+    return { code: 0, message: '操作成功', data: detail };
+  },
 
-    return detail;
+  batchDeleteLoginLogs: async (request, reply) => {
+    const { ids } = request.body || {};
+    await systemService.batchDeleteLoginLogs(ids);
+    return { code: 0, message: '删除成功', data: null };
+  },
+
+  clearLoginLogs: async (request, reply) => {
+    await systemService.clearLoginLogs();
+    return { code: 0, message: '清空成功', data: null };
+  },
+
+  batchDeleteOperationLogs: async (request, reply) => {
+    const { ids } = request.body || {};
+    await systemService.batchDeleteOperationLogs(ids);
+    return { code: 0, message: '删除成功', data: null };
+  },
+
+  clearOperationLogs: async (request, reply) => {
+    await systemService.clearOperationLogs();
+    return { code: 0, message: '清空成功', data: null };
+  },
+
+  batchDeleteSystemLogs: async (request, reply) => {
+    const { ids } = request.body || {};
+    await systemService.batchDeleteSystemLogs(ids);
+    return { code: 0, message: '删除成功', data: null };
+  },
+
+  clearSystemLogs: async (request, reply) => {
+    await systemService.clearSystemLogs();
+    return { code: 0, message: '清空成功', data: null };
   },
 
   // ==================== User Profile ====================

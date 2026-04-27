@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { message } from "@/utils/message";
-import { getOnlineLogsList } from "@/api/system";
+import { getOnlineLogsList, forceOffline } from "@/api/system";
 import { reactive, ref, onMounted, toRaw } from "vue";
 import type { PaginationProps } from "@pureadmin/table";
 
@@ -18,79 +18,85 @@ export function useRole() {
   });
   const columns: TableColumnList = [
     {
-      label: "序号",
+      label: "\u5E8F\u53F7",
       prop: "id",
       minWidth: 60
     },
     {
-      label: "用户名",
+      label: "\u7528\u6237\u540D",
       prop: "username",
       minWidth: 100
     },
     {
-      label: "登录 IP",
+      label: "\u767B\u5F55 IP",
       prop: "ip",
       minWidth: 140
     },
     {
-      label: "登录地点",
+      label: "\u767B\u5F55\u5730\u70B9",
       prop: "address",
       minWidth: 140
     },
     {
-      label: "操作系统",
+      label: "\u64CD\u4F5C\u7CFB\u7EDF",
       prop: "system",
       minWidth: 100
     },
     {
-      label: "浏览器类型",
+      label: "\u6D4F\u89C8\u5668\u7C7B\u578B",
       prop: "browser",
       minWidth: 100
     },
     {
-      label: "登录时间",
+      label: "\u767B\u5F55\u65F6\u95F4",
       prop: "loginTime",
       minWidth: 180,
       formatter: ({ loginTime }) =>
         dayjs(loginTime).format("YYYY-MM-DD HH:mm:ss")
     },
     {
-      label: "操作",
+      label: "\u64CD\u4F5C",
       fixed: "right",
       slot: "operation"
     }
   ];
 
   function handleSizeChange(val: number) {
-    console.log(`${val} items per page`);
+    pagination.pageSize = val;
+    onSearch();
   }
 
   function handleCurrentChange(val: number) {
-    console.log(`current page: ${val}`);
+    pagination.currentPage = val;
+    onSearch();
   }
 
   function handleSelectionChange(val) {
     console.log("handleSelectionChange", val);
   }
 
-  function handleOffline(row) {
-    message(`${row.username}已被强制下线`, { type: "success" });
-    onSearch();
+  async function handleOffline(row) {
+    const { code } = await forceOffline(row.id);
+    if (code === 0) {
+      message(`${row.username}\u5DF2\u88AB\u5F3A\u5236\u4E0B\u7EBF`, { type: "success" });
+      onSearch();
+    }
   }
 
   async function onSearch() {
     loading.value = true;
-    const { code, data } = await getOnlineLogsList(toRaw(form));
+    const { code, data } = await getOnlineLogsList({
+      ...toRaw(form),
+      page: pagination.currentPage,
+      limit: pagination.pageSize
+    });
     if (code === 0) {
       dataList.value = data.list;
       pagination.total = data.total;
       pagination.pageSize = data.pageSize;
       pagination.currentPage = data.currentPage;
     }
-
-    setTimeout(() => {
-      loading.value = false;
-    }, 500);
+    loading.value = false;
   }
 
   const resetForm = formEl => {

@@ -262,21 +262,21 @@ export const systemService = {
    * Create menu
    */
   async createMenu(data) {
-    return await menuModel.create(data);
+    return await menuModel.createMenu(data);
   },
 
   /**
    * Update menu
    */
   async updateMenu(id, data) {
-    return await menuModel.update(id, data);
+    return await menuModel.updateMenu(id, data);
   },
 
   /**
    * Delete menu
    */
   async deleteMenu(id) {
-    return await menuModel.delete(id);
+    return await menuModel.deleteMenu(id);
   },
 
   // ==================== Department Management ====================
@@ -358,6 +358,34 @@ export const systemService = {
    */
   async getOnlineUsers(filters, page, limit) {
     return await onlineUserModel.getUsers(filters, page, limit);
+  },
+
+  async forceOffline(id) {
+    return await onlineUserModel.query().where('id', id).del();
+  },
+
+  async batchDeleteLoginLogs(ids) {
+    return await loginLogModel.batchDelete(ids);
+  },
+
+  async clearLoginLogs() {
+    return await loginLogModel.clearAll();
+  },
+
+  async batchDeleteOperationLogs(ids) {
+    return await operationLogModel.batchDelete(ids);
+  },
+
+  async clearOperationLogs() {
+    return await operationLogModel.clearAll();
+  },
+
+  async batchDeleteSystemLogs(ids) {
+    return await systemLogModel.batchDelete(ids);
+  },
+
+  async clearSystemLogs() {
+    return await systemLogModel.clearAll();
   }
 };
 

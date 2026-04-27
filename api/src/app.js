@@ -99,27 +99,25 @@ function registerErrorHandlers(app) {
   // 404 handler
   app.setNotFoundHandler(notFoundHandler);
 
-  // Security and performance hooks
+  // Performance tracking (must run early to measure full duration)
   app.addHook('onRequest', async (request, reply) => {
     await requestId(request, reply);
     await responseTimeTracker(request, reply);
     await connectionPoolMonitor(request, reply);
-    log.req(request);
   });
-  
+
   // Pre-validation hook for security checks
   app.addHook('preValidation', async (request, reply) => {
-    // Detect threats
     await detectThreats(request, reply);
-    
-    // Sanitize input
     await sanitizeInput(request, reply);
   });
   
-  // Pre-handler hook for security headers
+  // Log request with body (body is parsed after preValidation)
   app.addHook('preHandler', async (request, reply) => {
     await securityHeaders(request, reply);
   });
+
+
 }
 
 /**

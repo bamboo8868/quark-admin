@@ -1,6 +1,4 @@
-import { authRoutes } from './auth.routes.js';
-import { userRoutes } from './user.routes.js';
-import { mockRoutes } from './mock.routes.js';
+import { systemRoutes } from './system.routes.js';
 import { queryOptimizer, memoryOptimizer } from '../utils/optimizer.js';
 import { cache } from '../utils/cache.js';
 import { authenticate, authorize } from '../middlewares/auth.middleware.js';
@@ -17,9 +15,8 @@ export async function registerRoutes(app) {
   // API info endpoint
   app.get('/', async (request, reply) => {
     return {
-      name: 'Node.js Fastify MVC API',
-      version: '1.0.0',
-      documentation: '/documentation'
+      name: 'Quark Admin API',
+      version: '1.0.0'
     };
   });
 
@@ -43,9 +40,7 @@ export async function registerRoutes(app) {
   });
 
   // Register route groups
-  await app.register(authRoutes, { prefix: '/api/auth' });
-  await app.register(userRoutes, { prefix: '/api/users' });
-  await app.register(mockRoutes, { prefix: '/api' });
+  await app.register(systemRoutes, { prefix: '/api' });
 }
 
 export default registerRoutes;

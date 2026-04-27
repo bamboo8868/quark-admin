@@ -53,7 +53,9 @@ export function useUser(tableRef: Ref, treeRef: Ref) {
     deptId: "",
     username: "",
     phone: "",
-    status: ""
+    status: null as number | null,
+    page: 1,
+    limit: 10
   });
   const formRef = ref();
   const ruleFormRef = ref();
@@ -246,11 +248,13 @@ export function useUser(tableRef: Ref, treeRef: Ref) {
   }
 
   function handleSizeChange(val: number) {
-    console.log(`${val} items per page`);
+    pagination.pageSize = val;
+    onSearch();
   }
 
   function handleCurrentChange(val: number) {
-    console.log(`current page: ${val}`);
+    pagination.currentPage = val;
+    onSearch();
   }
 
   /** 当CheckBox选择项发生变化时会触发该事件 */
@@ -290,6 +294,8 @@ export function useUser(tableRef: Ref, treeRef: Ref) {
 
   async function onSearch() {
     loading.value = true;
+    form.page = pagination.currentPage;
+    form.limit = pagination.pageSize;
     const { code, data } = await getUserList(toRaw(form));
     if (code === 0) {
       dataList.value = data.list;

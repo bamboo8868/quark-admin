@@ -71,7 +71,6 @@ export function globalErrorHandler(error, request, reply) {
     ip: request.ip,
     userId: request.user?.id
   });
-
   // Handle known operational errors
   if (error instanceof AppError) {
     return reply.status(error.statusCode).send(

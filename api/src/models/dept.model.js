@@ -41,8 +41,6 @@ export class DeptModel extends BaseModel {
    */
   async create(data) {
     const dbData = this.toDbFormat(data);
-    console.log('DeptModel.create - Input:', data);
-    console.log('DeptModel.create - DB Format:', dbData);
     return await super.create(dbData);
   }
 

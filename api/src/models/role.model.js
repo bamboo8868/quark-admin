@@ -51,7 +51,6 @@ export class RoleModel extends BaseModel {
    * Get roles with filters and pagination
    */
   async getRolesWithFilters(filters = {}, page = 1, limit = 10) {
-    console.log('RoleModel.getRolesWithFilters - filters:', filters, 'page:', page, 'limit:', limit);
     const { name, status, code } = filters;
     
     let query = this.query();
@@ -59,7 +58,7 @@ export class RoleModel extends BaseModel {
     if (name) {
       query = query.where('name', 'like', `%${name}%`);
     }
-    if (status) {
+    if (status !== undefined && status !== null && status !== '') {
       query = query.where('status', status);
     }
     if (code) {
@@ -69,12 +68,11 @@ export class RoleModel extends BaseModel {
     // Get total count
     const countQuery = this.query();
     if (name) countQuery.where('name', 'like', `%${name}%`);
-    if (status !== undefined) countQuery.where('status', status);
+    if (status !== undefined && status !== null && status !== '') countQuery.where('status', status);
     if (code) countQuery.where('code', code);
     
     const [{ count }] = await countQuery.count('* as count');
     const total = parseInt(count, 10);
-    console.log('RoleModel.getRolesWithFilters - total:', total);
 
     // Get paginated results
     const list = await query

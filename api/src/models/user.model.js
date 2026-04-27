@@ -107,22 +107,22 @@ export class UserModel extends BaseModel {
     if (username) {
       query = query.where('users.username', 'like', `%${username}%`);
     }
-    if (status) {
+    if (status !== undefined && status !== null && status !== '') {
       query = query.where('users.status', status);
     }
     if (phone) {
       query = query.where('users.phone', phone);
     }
-    if (deptId) {
+    if (deptId !== undefined && deptId !== null && deptId !== '') {
       query = query.where('users.dept_id', deptId);
     }
 
     // Get total count
     const countQuery = this.query();
     if (username) countQuery.where('username', 'like', `%${username}%`);
-    if (status !== undefined) countQuery.where('status', status);
+    if (status !== undefined && status !== null && status !== '') countQuery.where('status', status);
     if (phone) countQuery.where('phone', phone);
-    if (deptId) countQuery.where('dept_id', deptId);
+    if (deptId !== undefined && deptId !== null && deptId !== '') countQuery.where('dept_id', deptId);
     
     const [{ count }] = await countQuery.count('* as count');
     const total = parseInt(count, 10);

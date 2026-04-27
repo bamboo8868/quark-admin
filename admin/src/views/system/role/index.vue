@@ -118,8 +118,8 @@ onMounted(() => {
           clearable
           class="w-45!"
         >
-          <el-option label="已启用" value="1" />
-          <el-option label="已停用" value="0" />
+          <el-option label="已启用" :value="1" />
+          <el-option label="已停用" :value="0" />
         </el-select>
       </el-form-item>
       <el-form-item>

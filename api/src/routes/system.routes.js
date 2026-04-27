@@ -4,7 +4,7 @@ import { systemController } from '../controllers/system.controller.js';
  * System routes for admin frontend
  * These routes provide CRUD APIs for admin system
  */
-export async function mockRoutes(app) {
+export async function systemRoutes(app) {
   // ==================== Auth ====================
   // Login
   app.post('/login', systemController.login);
@@ -84,28 +84,14 @@ export async function mockRoutes(app) {
   // ==================== Log Management ====================
   // Online users
   app.post('/online-logs', systemController.getOnlineLogs);
-  // Force offline
-  app.post('/force-offline', systemController.forceOffline);
   // Login logs
   app.post('/login-logs', systemController.getLoginLogs);
-  // Batch delete login logs
-  app.post('/login-logs/batch-delete', systemController.batchDeleteLoginLogs);
-  // Clear all login logs
-  app.post('/login-logs/clear', systemController.clearLoginLogs);
   // Operation logs
   app.post('/operation-logs', systemController.getOperationLogs);
-  // Batch delete operation logs
-  app.post('/operation-logs/batch-delete', systemController.batchDeleteOperationLogs);
-  // Clear all operation logs
-  app.post('/operation-logs/clear', systemController.clearOperationLogs);
   // System logs
   app.post('/system-logs', systemController.getSystemLogs);
   // System log detail
   app.post('/system-logs-detail', systemController.getSystemLogDetail);
-  // Batch delete system logs
-  app.post('/system-logs/batch-delete', systemController.batchDeleteSystemLogs);
-  // Clear all system logs
-  app.post('/system-logs/clear', systemController.clearSystemLogs);
 
   // ==================== User Profile ====================
   // Mine (user profile)
@@ -120,4 +106,4 @@ export async function mockRoutes(app) {
   app.get('/get-map-info', systemController.getMapInfo);
 }
 
-export default mockRoutes;
+export default systemRoutes;

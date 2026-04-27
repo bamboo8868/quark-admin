@@ -12,26 +12,27 @@ export class LoginLogModel extends BaseModel {
    * Get login logs with filters
    */
   async getLogs(filters = {}, page = 1, limit = 10) {
-    const { username, status } = filters;
+    const { username, status, loginTime } = filters;
     
     let query = this.query();
+    let countQuery = this.query();
 
     if (username) {
       query = query.where('username', 'like', `%${username}%`);
+      countQuery = countQuery.where('username', 'like', `%${username}%`);
     }
-    if (status !== undefined) {
+    if (status !== undefined && status !== '') {
       query = query.where('status', status);
+      countQuery = countQuery.where('status', status);
     }
-
-    // Get total count
-    const countQuery = this.query();
-    if (username) countQuery.where('username', 'like', `%${username}%`);
-    if (status !== undefined) countQuery.where('status', status);
+    if (loginTime && loginTime.length === 2) {
+      query = query.whereBetween('login_time', [loginTime[0], loginTime[1]]);
+      countQuery = countQuery.whereBetween('login_time', [loginTime[0], loginTime[1]]);
+    }
     
     const [{ count }] = await countQuery.count('* as count');
     const total = parseInt(count, 10);
 
-    // Get paginated results
     const list = await query
       .orderBy('login_time', 'desc')
       .limit(limit)
@@ -49,12 +50,15 @@ export class LoginLogModel extends BaseModel {
       loginTime: log.login_time
     }));
 
-    return {
-      list: formattedList,
-      total,
-      pageSize: limit,
-      currentPage: page
-    };
+    return { list: formattedList, total, pageSize: limit, currentPage: page };
+  }
+
+  async batchDelete(ids) {
+    return await this.query().whereIn('id', ids).del();
+  }
+
+  async clearAll() {
+    return await this.query().del();
   }
 }
 
@@ -70,26 +74,27 @@ export class OperationLogModel extends BaseModel {
    * Get operation logs with filters
    */
   async getLogs(filters = {}, page = 1, limit = 10) {
-    const { module, status } = filters;
+    const { module, status, operatingTime } = filters;
     
     let query = this.query();
+    let countQuery = this.query();
 
     if (module) {
       query = query.where('module', 'like', `%${module}%`);
+      countQuery = countQuery.where('module', 'like', `%${module}%`);
     }
-    if (status !== undefined) {
+    if (status !== undefined && status !== '') {
       query = query.where('status', status);
+      countQuery = countQuery.where('status', status);
     }
-
-    // Get total count
-    const countQuery = this.query();
-    if (module) countQuery.where('module', 'like', `%${module}%`);
-    if (status !== undefined) countQuery.where('status', status);
+    if (operatingTime && operatingTime.length === 2) {
+      query = query.whereBetween('operating_time', [operatingTime[0], operatingTime[1]]);
+      countQuery = countQuery.whereBetween('operating_time', [operatingTime[0], operatingTime[1]]);
+    }
     
     const [{ count }] = await countQuery.count('* as count');
     const total = parseInt(count, 10);
 
-    // Get paginated results
     const list = await query
       .orderBy('operating_time', 'desc')
       .limit(limit)
@@ -108,12 +113,15 @@ export class OperationLogModel extends BaseModel {
       operatingTime: log.operating_time
     }));
 
-    return {
-      list: formattedList,
-      total,
-      pageSize: limit,
-      currentPage: page
-    };
+    return { list: formattedList, total, pageSize: limit, currentPage: page };
+  }
+
+  async batchDelete(ids) {
+    return await this.query().whereIn('id', ids).del();
+  }
+
+  async clearAll() {
+    return await this.query().del();
   }
 }
 
@@ -129,22 +137,23 @@ export class SystemLogModel extends BaseModel {
    * Get system logs with filters
    */
   async getLogs(filters = {}, page = 1, limit = 10) {
-    const { module } = filters;
+    const { module, requestTime } = filters;
     
     let query = this.query();
+    let countQuery = this.query();
 
     if (module) {
       query = query.where('module', 'like', `%${module}%`);
+      countQuery = countQuery.where('module', 'like', `%${module}%`);
     }
-
-    // Get total count
-    const countQuery = this.query();
-    if (module) countQuery.where('module', 'like', `%${module}%`);
+    if (requestTime && requestTime.length === 2) {
+      query = query.whereBetween('request_time', [requestTime[0], requestTime[1]]);
+      countQuery = countQuery.whereBetween('request_time', [requestTime[0], requestTime[1]]);
+    }
     
     const [{ count }] = await countQuery.count('* as count');
     const total = parseInt(count, 10);
 
-    // Get paginated results
     const list = await query
       .orderBy('request_time', 'desc')
       .limit(limit)
@@ -164,12 +173,7 @@ export class SystemLogModel extends BaseModel {
       requestTime: log.request_time
     }));
 
-    return {
-      list: formattedList,
-      total,
-      pageSize: limit,
-      currentPage: page
-    };
+    return { list: formattedList, total, pageSize: limit, currentPage: page };
   }
 
   /**
