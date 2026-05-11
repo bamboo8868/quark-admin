@@ -8,6 +8,8 @@ interface FormItemProps {
   email: string;
   sort: number;
   status: number;
+  roleIds: number[];
+  roleOptions: any[];
   remark: string;
 }
 interface FormProps {

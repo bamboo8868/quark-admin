@@ -17,6 +17,7 @@ export async function seed(knex) {
       email: 'hangzhou@company.com',
       status: 1,
       type: 1,
+      role_ids: '[1]',
       remark: '总公司',
       created_at: new Date(),
       updated_at: new Date()
@@ -31,6 +32,7 @@ export async function seed(knex) {
       email: 'zhengzhou@company.com',
       status: 1,
       type: 2,
+      role_ids: '[1, 2]',
       remark: '分公司',
       created_at: new Date(),
       updated_at: new Date()
@@ -59,6 +61,7 @@ export async function seed(knex) {
       email: 'dev@company.com',
       status: 1,
       type: 3,
+      role_ids: '[1]',
       remark: '研发部门',
       created_at: new Date(),
       updated_at: new Date()
@@ -87,6 +90,7 @@ export async function seed(knex) {
       email: 'test@company.com',
       status: 1,
       type: 3,
+      role_ids: '[2]',
       remark: '测试部门',
       created_at: new Date(),
       updated_at: new Date()

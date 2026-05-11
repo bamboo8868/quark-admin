@@ -1,0 +1,17 @@
+{
+  "name": "quark-rpc",
+  "version": "1.0.0",
+  "description": "RPC protocol with routing, compression and serialization",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "client": "node src/client.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "msgpack-lite": "^0.1.26",
+    "ws": "^8.16.0",
+    "zlib": "^1.0.5"
+  }
+}

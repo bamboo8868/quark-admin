@@ -54,16 +54,42 @@ export class UserModel extends BaseModel {
   }
 
   /**
-   * Find user with roles
+   * Find user with roles (including dept roles)
    */
   async findWithRoles(id) {
     const user = await this.findById(id);
     if (!user) return null;
 
-    const roles = await getDatabase()('user_roles as ur')
+    // Get roles directly assigned to user via user_roles
+    const directRoles = await getDatabase()('user_roles as ur')
       .join('roles as r', 'ur.role_id', 'r.id')
       .where('ur.user_id', id)
       .select('r.id', 'r.name', 'r.code');
+
+    // Get roles from user's department via dept.role_ids
+    let deptRoles = [];
+    if (user.dept_id) {
+      const dept = await getDatabase()('depts').where('id', user.dept_id).first();
+      if (dept && dept.role_ids) {
+        try {
+          const deptRoleIds = JSON.parse(dept.role_ids);
+          if (Array.isArray(deptRoleIds) && deptRoleIds.length > 0) {
+            deptRoles = await getDatabase()('roles')
+              .whereIn('id', deptRoleIds)
+              .select('id', 'name', 'code');
+          }
+        } catch {
+          // Invalid JSON in role_ids, skip
+        }
+      }
+    }
+
+    // Merge roles, deduplicate by id
+    const roleMap = new Map();
+    for (const r of [...directRoles, ...deptRoles]) {
+      roleMap.set(r.id, r);
+    }
+    const roles = Array.from(roleMap.values());
 
     return { ...user, roles };
   }
@@ -76,16 +102,42 @@ export class UserModel extends BaseModel {
   }
 
   /**
-   * Find user by username with roles
+   * Find user by username with roles (including dept roles)
    */
   async findByUsernameWithRoles(username) {
     const user = await this.findByUsername(username);
     if (!user) return null;
 
-    const roles = await getDatabase()('user_roles as ur')
+    // Get roles directly assigned to user via user_roles
+    const directRoles = await getDatabase()('user_roles as ur')
       .join('roles as r', 'ur.role_id', 'r.id')
       .where('ur.user_id', user.id)
       .select('r.id', 'r.name', 'r.code');
+
+    // Get roles from user's department via dept.role_ids
+    let deptRoles = [];
+    if (user.dept_id) {
+      const dept = await getDatabase()('depts').where('id', user.dept_id).first();
+      if (dept && dept.role_ids) {
+        try {
+          const deptRoleIds = JSON.parse(dept.role_ids);
+          if (Array.isArray(deptRoleIds) && deptRoleIds.length > 0) {
+            deptRoles = await getDatabase()('roles')
+              .whereIn('id', deptRoleIds)
+              .select('id', 'name', 'code');
+          }
+        } catch {
+          // Invalid JSON in role_ids, skip
+        }
+      }
+    }
+
+    // Merge roles, deduplicate by id
+    const roleMap = new Map();
+    for (const r of [...directRoles, ...deptRoles]) {
+      roleMap.set(r.id, r);
+    }
+    const roles = Array.from(roleMap.values());
 
     return { ...user, roles };
   }

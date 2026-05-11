@@ -26,13 +26,18 @@ export class DeptModel extends BaseModel {
       type: 'type',
       remark: 'remark'
     };
-    
+
     for (const [key, dbKey] of Object.entries(fieldMap)) {
       if (data[key] !== undefined) {
         dbData[dbKey] = data[key];
       }
     }
-    
+
+    // Handle roleIds: array -> JSON string for database
+    if (data.roleIds !== undefined) {
+      dbData.role_ids = JSON.stringify(data.roleIds);
+    }
+
     return dbData;
   }
 
@@ -98,6 +103,12 @@ export class DeptModel extends BaseModel {
    * Format department for response
    */
   formatDept(dept) {
+    let roleIds = [];
+    try {
+      roleIds = JSON.parse(dept.role_ids || '[]');
+    } catch {
+      roleIds = [];
+    }
     return {
       id: dept.id,
       name: dept.name,
@@ -108,6 +119,7 @@ export class DeptModel extends BaseModel {
       email: dept.email,
       status: dept.status,
       type: dept.type,
+      roleIds,
       remark: dept.remark,
       createTime: new Date(dept.created_at).getTime()
     };

@@ -15,6 +15,8 @@ const props = withDefaults(defineProps<FormProps>(), {
     email: "",
     sort: 0,
     status: 1,
+    roleIds: [],
+    roleOptions: [],
     remark: ""
   })
 });
@@ -122,6 +124,25 @@ defineExpose({ getRef });
             inactive-text="停用"
             :style="switchStyle"
           />
+        </el-form-item>
+      </re-col>
+
+      <re-col :value="12" :xs="24" :sm="24">
+        <el-form-item label="绑定角色">
+          <el-select
+            v-model="newFormInline.roleIds"
+            multiple
+            clearable
+            placeholder="请选择绑定的角色"
+            class="w-full!"
+          >
+            <el-option
+              v-for="item in newFormInline.roleOptions"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+            />
+          </el-select>
         </el-form-item>
       </re-col>
 

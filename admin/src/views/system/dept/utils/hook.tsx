@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import editForm from "../form.vue";
 import { handleTree } from "@/utils/tree";
 import { message } from "@/utils/message";
-import { getDeptList, createDept, updateDept, deleteDept } from "@/api/system";
+import { getDeptList, createDept, updateDept, deleteDept, getAllRoleList } from "@/api/system";
 import { usePublicHooks } from "../../hooks";
 import { addDialog } from "@/components/ReDialog";
 import { reactive, ref, onMounted, h } from "vue";
@@ -19,6 +19,7 @@ export function useDept() {
   const dataList = ref([]);
   const loading = ref(true);
   const { tagStyle } = usePublicHooks();
+  const roleOptions = ref([]);
 
   const columns: TableColumnList = [
     {
@@ -41,6 +42,26 @@ export function useDept() {
           {row.status === 1 ? "启用" : "停用"}
         </el-tag>
       )
+    },
+    {
+      label: "绑定角色",
+      prop: "roleIds",
+      minWidth: 150,
+      cellRenderer: ({ row }) => {
+        if (!row.roleIds || row.roleIds.length === 0) return <span>-</span>;
+        return (
+          <div class="flex flex-wrap gap-1">
+            {row.roleIds.map(id => {
+              const role = roleOptions.value.find(r => r.id === id);
+              return role ? (
+                <el-tag size="small" type="info" effect="plain">
+                  {role.name}
+                </el-tag>
+              ) : null;
+            })}
+          </div>
+        );
+      }
     },
     {
       label: "创建时间",
@@ -118,6 +139,8 @@ export function useDept() {
           email: row?.email ?? "",
           sort: row?.sort ?? 0,
           status: row?.status ?? 1,
+          roleIds: row?.roleIds ?? [],
+          roleOptions: roleOptions.value,
           remark: row?.remark ?? ""
         }
       },
@@ -168,8 +191,10 @@ export function useDept() {
     }
   }
 
-  onMounted(() => {
+  onMounted(async () => {
     onSearch();
+    // 加载角色列表
+    roleOptions.value = (await getAllRoleList()).data ?? [];
   });
 
   return {
