@@ -12,6 +12,7 @@ export async function up(knex) {
     table.string('email', 100).notNullable().defaultTo('');
     table.tinyint('status').notNullable().defaultTo(1).comment('0: disabled, 1: enabled');
     table.tinyint('type').notNullable().defaultTo(3).comment('1: company, 2: branch, 3: dept');
+    table.text('role_ids').notNullable().defaultTo('[]').comment('JSON array of role IDs bound to this department');
     table.text('remark').notNullable().defaultTo('');
     table.timestamp('created_at').defaultTo(knex.fn.now());
     table.timestamp('updated_at').defaultTo(knex.fn.now());

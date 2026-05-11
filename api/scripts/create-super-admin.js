@@ -12,7 +12,7 @@
  *   1. Check if the super admin role exists, create if not
  *   2. Check if the user exists, update password if yes, create if not
  *   3. Assign super admin role to the user
- *   4. Assign all menus to the super admin role
+ *   4. Assign all menus (from static config) to the super admin role
  */
 
 import dotenv from 'dotenv';
@@ -151,9 +151,10 @@ async function main() {
       console.log('[✓] Super admin role assigned to user');
     }
 
-    // Step 4: Assign all menus to super admin role
+    // Step 4: Assign all menus (from static config) to super admin role
     console.log('\n[4/4] Assigning all menus to super admin role...');
-    const allMenus = await db('menus').select('id');
+    const { getFlatMenuList } = await import('../src/config/menu.config.js');
+    const allMenus = getFlatMenuList();
     const menuIds = allMenus.map(m => m.id);
 
     // Delete existing role menus for this role
@@ -169,7 +170,7 @@ async function main() {
       await db('role_menus').insert(inserts);
       console.log(`[✓] Assigned ${menuIds.length} menus to super admin role`);
     } else {
-      console.log('[!] No menus found in database. Run seed first: npm run seed');
+      console.log('[!] No menus found in config');
     }
 
     console.log('\n========================================');

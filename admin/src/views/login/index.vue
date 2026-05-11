@@ -82,7 +82,7 @@ const onLogin = async (formEl: FormInstance | undefined) => {
           });
         })
         .catch(_err => {
-          message(t("login.pureLoginFail"), { type: "error" });
+          // Error message already displayed by HTTP interceptor
         })
         .finally(() => {
           disabled.value = false;

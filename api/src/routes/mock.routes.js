@@ -53,20 +53,6 @@ export async function mockRoutes(app) {
   // Update role menus
   app.put('/role/:id/menus', systemController.updateRoleMenus);
 
-  // ==================== Menu Management ====================
-  // Get menus list
-  app.post('/menu', systemController.getMenus);
-  // Get menu tree
-  app.get('/menu/tree', systemController.getMenuTree);
-  // Get menu by ID
-  app.get('/menu/:id', systemController.getMenuById);
-  // Create menu
-  app.post('/menu/create', systemController.createMenu);
-  // Update menu
-  app.put('/menu/:id', systemController.updateMenu);
-  // Delete menu
-  app.delete('/menu/:id', systemController.deleteMenu);
-
   // ==================== Department Management ====================
   // Get depts list
   app.post('/dept', systemController.getDepts);

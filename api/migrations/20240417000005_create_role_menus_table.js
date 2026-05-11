@@ -1,13 +1,13 @@
 /**
- * Create role_menus junction table
+ * Create role_menus table
+ * Used for binding roles to menus (menu IDs reference static menu config, not a menus table)
  */
 export async function up(knex) {
   await knex.schema.createTable('role_menus', (table) => {
     table.increments('id').primary();
-    table.integer('role_id').unsigned().notNullable().references('id').inTable('roles').onDelete('CASCADE');
-    table.integer('menu_id').unsigned().notNullable().references('id').inTable('menus').onDelete('CASCADE');
+    table.integer('role_id').unsigned().notNullable();
+    table.integer('menu_id').unsigned().notNullable().comment('References menu ID from static config');
     table.timestamp('created_at').defaultTo(knex.fn.now());
-    
     table.unique(['role_id', 'menu_id']);
   });
 

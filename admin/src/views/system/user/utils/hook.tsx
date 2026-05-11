@@ -379,8 +379,10 @@ export function useUser(tableRef: Ref, treeRef: Ref) {
                 onSearch(); // 刷新表格数据
               }
             } else {
+              // 修改时不提交 password 字段，防止密码被置空
+              const { password: _, ...updateData } = submitData;
               // 调用修改接口
-              const { code } = await updateUser(row.id, submitData);
+              const { code } = await updateUser(row.id, updateData);
               if (code === 0) {
                 message(`您修改了用户名称为${curData.username}的这条数据`, {
                   type: "success"

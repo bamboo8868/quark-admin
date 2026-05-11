@@ -21,7 +21,6 @@ export class UserModel extends BaseModel {
       email: 'email',
       phone: 'phone',
       avatar: 'avatar',
-      password: 'password',
       sex: 'sex',
       status: 'status',
       deptId: 'dept_id',
@@ -42,14 +41,24 @@ export class UserModel extends BaseModel {
    */
   async create(data) {
     const dbData = this.toDbFormat(data);
+    // Include password separately (not in toDbFormat to avoid overwrite on update)
+    if (data.password !== undefined) {
+      dbData.password = data.password;
+    }
     return await super.create(dbData);
   }
 
   /**
    * Update user with data mapping
+   * Password is excluded from toDbFormat to prevent accidental overwrite;
+   * use resetPassword() or pass { password } explicitly for password changes.
    */
   async update(id, data) {
     const dbData = this.toDbFormat(data);
+    // Allow password update only when explicitly provided (e.g. reset-password endpoint)
+    if (data.password !== undefined) {
+      dbData.password = data.password;
+    }
     return await super.update(id, dbData);
   }
 
@@ -60,13 +69,14 @@ export class UserModel extends BaseModel {
     const user = await this.findById(id);
     if (!user) return null;
 
-    // Get roles directly assigned to user via user_roles
+    // Get roles directly assigned to user via user_roles (only active roles)
     const directRoles = await getDatabase()('user_roles as ur')
       .join('roles as r', 'ur.role_id', 'r.id')
       .where('ur.user_id', id)
+      .where('r.status', 1)
       .select('r.id', 'r.name', 'r.code');
 
-    // Get roles from user's department via dept.role_ids
+    // Get roles from user's department via dept.role_ids (only active roles)
     let deptRoles = [];
     if (user.dept_id) {
       const dept = await getDatabase()('depts').where('id', user.dept_id).first();
@@ -76,6 +86,7 @@ export class UserModel extends BaseModel {
           if (Array.isArray(deptRoleIds) && deptRoleIds.length > 0) {
             deptRoles = await getDatabase()('roles')
               .whereIn('id', deptRoleIds)
+              .where('status', 1)
               .select('id', 'name', 'code');
           }
         } catch {
@@ -108,13 +119,14 @@ export class UserModel extends BaseModel {
     const user = await this.findByUsername(username);
     if (!user) return null;
 
-    // Get roles directly assigned to user via user_roles
+    // Get roles directly assigned to user via user_roles (only active roles)
     const directRoles = await getDatabase()('user_roles as ur')
       .join('roles as r', 'ur.role_id', 'r.id')
       .where('ur.user_id', user.id)
+      .where('r.status', 1)
       .select('r.id', 'r.name', 'r.code');
 
-    // Get roles from user's department via dept.role_ids
+    // Get roles from user's department via dept.role_ids (only active roles)
     let deptRoles = [];
     if (user.dept_id) {
       const dept = await getDatabase()('depts').where('id', user.dept_id).first();
@@ -124,6 +136,7 @@ export class UserModel extends BaseModel {
           if (Array.isArray(deptRoleIds) && deptRoleIds.length > 0) {
             deptRoles = await getDatabase()('roles')
               .whereIn('id', deptRoleIds)
+              .where('status', 1)
               .select('id', 'name', 'code');
           }
         } catch {

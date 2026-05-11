@@ -1,24 +1,20 @@
 /**
  * Seed role menus
+ * Uses menu IDs from static menu config
  */
 export async function seed(knex) {
   // Deletes ALL existing entries
   await knex('role_menus').del();
 
-  // Admin role (id: 1) - all menus
-  const adminMenus = [
-    100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 
-    200, 201, 202, 203, 204, 210, 211, 212, 220, 221, 222,
-    300, 301, 302, 303, 304,
-    400, 401, 402, 403, 404,
-    500, 501, 502, 503
-  ];
+  // Menu IDs from static config (api/src/config/menu.config.js)
+  // System Management: 1000 (parent), 1001 (User), 1002 (Role), 1003 (Dept)
+  // System Monitor: 2000 (parent), 2001 (OnlineUser), 2002 (LoginLog), 2003 (OperationLog), 2004 (SystemLog)
 
-  // Common role (id: 2) - limited menus
-  const commonMenus = [
-    100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110,
-    404, 500, 501, 502, 503
-  ];
+  // Admin role (id: 1) - all menus
+  const adminMenus = [1000, 1001, 1002, 1003, 2000, 2001, 2002, 2003, 2004];
+
+  // Common role (id: 2) - limited menus (monitor only)
+  const commonMenus = [2000, 2001, 2002, 2003, 2004];
 
   const inserts = [];
   

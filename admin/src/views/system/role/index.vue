@@ -314,6 +314,7 @@ onMounted(() => {
           :height="treeHeight"
           :check-strictly="!isLinkage"
           :filter-method="filterMethod"
+          default-expand-all
         >
           <template #default="{ node }">
             <span>{{ transformI18n(node.label) }}</span>

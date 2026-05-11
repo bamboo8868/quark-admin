@@ -2,10 +2,7 @@ import { systemService } from '../services/system.service.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { config } from '../config/env.js';
-
-// System rank constants
-const SYSTEM_RANK = 10;
-const MONITOR_RANK = 11;
+import { buildAsyncRoutes, buildAsyncRoutesByMenuIds, getFlatMenuList, getMenuTree } from '../config/menu.config.js';
 
 /**
  * System Controller - Admin system CRUD operations
@@ -26,26 +23,35 @@ export const systemController = {
       null;
     
     if (!user) {
-      return reply.code(401).send({
+      return {
         code: 10001,
         message: '用户名或密码错误',
         data: null
-      });
+      };
+    }
+
+    // Check if account is disabled
+    if (user.status === 0) {
+      return {
+        code: 10002,
+        message: '账号已被禁用',
+        data: null
+      };
     }
 
     // Verify password
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
-      return reply.code(401).send({
+      return {
         code: 10001,
         message: '用户名或密码错误',
         data: null
-      });
+      };
     }
 
     // Generate tokens
     const accessToken = jwt.sign(
-      { userId: user.id, username: user.username, roles: user.roles?.map(r => r.code) || [] },
+      { userId: user.id, username: user.username, roles: user.roles?.map(r => r.code) || [], roleIds: user.roles?.map(r => r.id) || [] },
       config.jwt.secret,
       { expiresIn: config.jwt.expiresIn }
     );
@@ -85,18 +91,23 @@ export const systemController = {
     const { refreshToken } = request.body;
 
     if (!refreshToken) {
-      return reply.code(400).send({
+      return {
         code: 10001,
         message: '请求参数缺失或格式不正确',
         data: {}
-      });
+      };
     }
 
     try {
       const decoded = jwt.verify(refreshToken, config.jwt.secret);
       
+      // Re-fetch user roles for the new access token
+      const user = await systemService.getUserById(decoded.userId);
+      const userRoles = user?.roles?.map(r => r.code) || [];
+      const userRoleIds = user?.roles?.map(r => r.id) || [];
+      
       const newAccessToken = jwt.sign(
-        { userId: decoded.userId },
+        { userId: decoded.userId, username: user?.username, roles: userRoles, roleIds: userRoleIds },
         config.jwt.secret,
         { expiresIn: config.jwt.accessExpiresIn }
       );
@@ -117,121 +128,55 @@ export const systemController = {
         }
       };
     } catch (error) {
-      return reply.code(401).send({
+      return {
         code: 10001,
         message: 'Token无效或已过期',
         data: {}
-      });
+      };
     }
   },
 
   /**
    * Get Async Routes
    * GET /get-async-routes
+   * Uses static menu config, filtered by user's role_menus assignments
    */
   getAsyncRoutes: async (request, reply) => {
-    const systemManagementRouter = {
-      path: '/system',
-      meta: {
-        icon: 'ri:settings-3-line',
-        title: 'menus.pureSysManagement',
-        rank: SYSTEM_RANK
-      },
-      children: [
-        {
-          path: '/system/user/index',
-          name: 'SystemUser',
-          meta: {
-            icon: 'ri:admin-line',
-            title: 'menus.pureUser',
-            roles: ['admin']
-          }
-        },
-        {
-          path: '/system/role/index',
-          name: 'SystemRole',
-          meta: {
-            icon: 'ri:admin-fill',
-            title: 'menus.pureRole',
-            roles: ['admin']
-          }
-        },
-        {
-          path: '/system/menu/index',
-          name: 'SystemMenu',
-          meta: {
-            icon: 'ep:menu',
-            title: 'menus.pureSystemMenu',
-            roles: ['admin']
-          }
-        },
-        {
-          path: '/system/dept/index',
-          name: 'SystemDept',
-          meta: {
-            icon: 'ri:git-branch-line',
-            title: 'menus.pureDept',
-            roles: ['admin']
-          }
-        }
-      ]
-    };
+    let roleIds = [];
+    let isAdmin = false;
+    try {
+      const authHeader = request.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.substring(7);
+        const decoded = jwt.verify(token, config.jwt.secret);
+        const roles = decoded.roles || [];
+        isAdmin = roles.includes('admin');
+        roleIds = decoded.roleIds || [];
+      }
+    } catch {
+      // No valid token
+    }
 
-    const systemMonitorRouter = {
-      path: '/monitor',
-      meta: {
-        icon: 'ep:monitor',
-        title: 'menus.pureSysMonitor',
-        rank: MONITOR_RANK
-      },
-      children: [
-        {
-          path: '/monitor/online-user',
-          component: 'monitor/online/index',
-          name: 'OnlineUser',
-          meta: {
-            icon: 'ri:user-voice-line',
-            title: 'menus.pureOnlineUser',
-            roles: ['admin']
-          }
-        },
-        {
-          path: '/monitor/login-logs',
-          component: 'monitor/logs/login/index',
-          name: 'LoginLog',
-          meta: {
-            icon: 'ri:window-line',
-            title: 'menus.pureLoginLog',
-            roles: ['admin']
-          }
-        },
-        {
-          path: '/monitor/operation-logs',
-          component: 'monitor/logs/operation/index',
-          name: 'OperationLog',
-          meta: {
-            icon: 'ri:history-fill',
-            title: 'menus.pureOperationLog',
-            roles: ['admin']
-          }
-        },
-        {
-          path: '/monitor/system-logs',
-          component: 'monitor/logs/system/index',
-          name: 'SystemLog',
-          meta: {
-            icon: 'ri:file-search-line',
-            title: 'menus.pureSystemLog',
-            roles: ['admin']
-          }
-        }
-      ]
-    };
+    let routes;
+    if (isAdmin) {
+      // Admin sees all routes
+      routes = buildAsyncRoutes([]);
+    } else if (roleIds.length > 0) {
+      // Non-admin: query role_menus to get allowed menu IDs, then filter
+      const allMenuIds = new Set();
+      for (const roleId of roleIds) {
+        const ids = await systemService.getRoleMenuIds(roleId);
+        ids.forEach(id => allMenuIds.add(id));
+      }
+      routes = buildAsyncRoutesByMenuIds([...allMenuIds]);
+    } else {
+      routes = [];
+    }
 
     return {
       code: 0,
       message: '操作成功',
-      data: [systemManagementRouter, systemMonitorRouter]
+      data: routes
     };
   },
 
@@ -271,11 +216,11 @@ export const systemController = {
     const user = await systemService.getUserById(id);
     
     if (!user) {
-      return reply.code(404).send({
+      return {
         code: 10001,
         message: '用户不存在',
         data: null
-      });
+      };
     }
 
     return {
@@ -337,11 +282,11 @@ export const systemController = {
     const { ids } = request.body || {};
     
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return reply.code(400).send({
+      return {
         code: 10001,
         message: '请选择要删除的用户',
         data: null
-      });
+      };
     }
     
     await systemService.batchDeleteUsers(ids);
@@ -362,11 +307,11 @@ export const systemController = {
     const { password } = request.body || {};
     
     if (!password) {
-      return reply.code(400).send({
+      return {
         code: 10001,
         message: '请输入新密码',
         data: null
-      });
+      };
     }
     
     await systemService.resetUserPassword(id, password);
@@ -417,11 +362,11 @@ export const systemController = {
     const { userId } = request.body || {};
     
     if (!userId) {
-      return reply.code(400).send({
+      return {
         code: 10001,
         message: '请求参数缺失或格式不正确',
         data: []
-      });
+      };
     }
 
     const roleIds = await systemService.getUserRoleIds(userId);
@@ -468,11 +413,11 @@ export const systemController = {
     const role = await systemService.getRoleById(id);
     
     if (!role) {
-      return reply.code(404).send({
+      return {
         code: 10001,
         message: '角色不存在',
         data: null
-      });
+      };
     }
 
     return {
@@ -527,21 +472,16 @@ export const systemController = {
   },
 
   /**
-   * Get Role Menu
+   * Get Role Menu (menu tree from static config)
    * POST /role-menu
    */
   getRoleMenu: async (request, reply) => {
-    const menus = await systemService.getMenus();
-    
+    const data = getMenuTree();
+
     return {
       code: 0,
       message: '操作成功',
-      data: menus.map(menu => ({
-        parentId: menu.parentId,
-        id: menu.id,
-        menuType: menu.menuType,
-        title: menu.title
-      }))
+      data
     };
   },
 
@@ -578,103 +518,6 @@ export const systemController = {
     const { menuIds } = request.body || {};
     
     await systemService.updateRoleMenus(id, menuIds || []);
-    
-    return {
-      code: 0,
-      message: '操作成功',
-      data: null
-    };
-  },
-
-  // ==================== Menu Management ====================
-
-  /**
-   * Get Menus
-   * POST /menu
-   */
-  getMenus: async (request, reply) => {
-    const menus = await systemService.getMenus();
-    
-    return {
-      code: 0,
-      message: '操作成功',
-      data: menus
-    };
-  },
-
-  /**
-   * Get Menu Tree
-   * GET /menu/tree
-   */
-  getMenuTree: async (request, reply) => {
-    const tree = await systemService.getMenuTree();
-    
-    return {
-      code: 0,
-      message: '操作成功',
-      data: tree
-    };
-  },
-
-  /**
-   * Get Menu by ID
-   * GET /menu/:id
-   */
-  getMenuById: async (request, reply) => {
-    const { id } = request.params;
-    const menu = await systemService.getMenuById(id);
-    
-    if (!menu) {
-      return reply.code(404).send({
-        code: 10001,
-        message: '菜单不存在',
-        data: null
-      });
-    }
-
-    return {
-      code: 0,
-      message: '操作成功',
-      data: menu
-    };
-  },
-
-  /**
-   * Create Menu
-   * POST /menu/create
-   */
-  createMenu: async (request, reply) => {
-    const menu = await systemService.createMenu(request.body);
-    
-    return {
-      code: 0,
-      message: '操作成功',
-      data: menu
-    };
-  },
-
-  /**
-   * Update Menu
-   * PUT /menu/:id
-   */
-  updateMenu: async (request, reply) => {
-    const { id } = request.params;
-    const menu = await systemService.updateMenu(id, request.body);
-    
-    return {
-      code: 0,
-      message: '操作成功',
-      data: menu
-    };
-  },
-
-  /**
-   * Delete Menu
-   * DELETE /menu/:id
-   */
-  deleteMenu: async (request, reply) => {
-    const { id } = request.params;
-    await systemService.deleteMenu(id);
     
     return {
       code: 0,
@@ -722,11 +565,11 @@ export const systemController = {
     const dept = await systemService.getDeptById(id);
     
     if (!dept) {
-      return reply.code(404).send({
+      return {
         code: 10001,
         message: '部门不存在',
         data: null
-      });
+      };
     }
 
     return {
@@ -801,7 +644,7 @@ export const systemController = {
   forceOffline: async (request, reply) => {
     const { id } = request.body || {};
     if (!id) {
-      return reply.code(400).send({ code: 10001, message: '缺少用户ID', data: null });
+      return { code: 10001, message: '缺少用户ID', data: null };
     }
     await systemService.forceOffline(id);
     return { code: 0, message: '已强制下线', data: null };
@@ -854,11 +697,11 @@ export const systemController = {
   getSystemLogDetail: async (request, reply) => {
     const { id } = request.body || {};
     if (!id) {
-      return reply.code(400).send({ code: 10001, message: '请求参数缺失或格式不正确', data: null });
+      return { code: 10001, message: '请求参数缺失或格式不正确', data: null };
     }
     const detail = await systemService.getSystemLogDetail(id);
     if (!detail) {
-      return reply.code(404).send({ code: 10001, message: '日志不存在', data: null });
+      return { code: 10001, message: '日志不存在', data: null };
     }
     return { code: 0, message: '操作成功', data: detail };
   },
@@ -907,11 +750,11 @@ export const systemController = {
     const userId = request.user?.userId;
     
     if (!userId) {
-      return reply.code(401).send({
+      return {
         code: 10001,
         message: '未登录',
         data: null
-      });
+      };
     }
 
     const user = await systemService.getUserById(userId);

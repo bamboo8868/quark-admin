@@ -35,15 +35,6 @@ const systemManagementRouter = {
       }
     },
     {
-      path: "/system/menu/index",
-      name: "SystemMenu",
-      meta: {
-        icon: "ep:menu",
-        title: "menus.pureSystemMenu",
-        roles: ["admin"]
-      }
-    },
-    {
       path: "/system/dept/index",
       name: "SystemDept",
       meta: {

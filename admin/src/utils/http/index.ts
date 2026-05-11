@@ -127,6 +127,14 @@ class PureHttp {
     instance.interceptors.response.use(
       (response: PureHttpResponse) => {
         const $config = response.config;
+        const data = response.data;
+
+        // Business error handling: code > 0 means error with message
+        if (data && typeof data.code === "number" && data.code > 0) {
+          message(data.message || "请求错误", { type: "error" });
+          return Promise.reject(data);
+        }
+
         // 优先判断post/get等方法是否传入回调，否则执行初始化设置等回调
         if (typeof $config.beforeResponseCallback === "function") {
           $config.beforeResponseCallback(response);
@@ -141,7 +149,11 @@ class PureHttp {
       (error: PureHttpError) => {
         const $error = error;
         $error.isCancelRequest = Axios.isCancel($error);
-        // 所有的响应异常 区分来源为取消请求/非取消请求
+        // Handle HTTP error responses (4xx, 5xx) that have a JSON body with code/message
+        const errData = $error.response?.data as { code?: number; message?: string } | undefined;
+        if (errData?.message) {
+          message(errData.message, { type: "error" });
+        }
         return Promise.reject($error);
       }
     );

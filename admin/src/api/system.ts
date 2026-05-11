@@ -41,11 +41,6 @@ export const getRoleList = (data?: object) => {
   return http.request<ResultTable>("post", "/api/role", { data });
 };
 
-/** 获取系统管理-菜单管理列表 */
-export const getMenuList = (data?: object) => {
-  return http.request<Result>("post", "/api/menu", { data });
-};
-
 /** 获取系统管理-部门管理列表 */
 export const getDeptList = (data?: object) => {
   return http.request<Result>("post", "/api/dept", { data });
@@ -148,23 +143,6 @@ export const resetUserPassword = (id: number, password: string) => {
 /** 更新用户角色 */
 export const updateUserRole = (userId: number, roleIds: number[]) => {
   return http.request<Result>("put", `/api/user/${userId}/roles`, { data: { roleIds } });
-};
-
-// ==================== Menu Management ====================
-
-/** 创建菜单 */
-export const createMenu = (data?: object) => {
-  return http.request<Result>("post", "/api/menu/create", { data });
-};
-
-/** 更新菜单 */
-export const updateMenu = (id: number, data?: object) => {
-  return http.request<Result>("put", `/api/menu/${id}`, { data });
-};
-
-/** 删除菜单 */
-export const deleteMenu = (id: number) => {
-  return http.request<Result>("delete", `/api/menu/${id}`);
 };
 
 // ==================== Department Management ====================

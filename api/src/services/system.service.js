@@ -1,6 +1,5 @@
 import { UserModel } from '../models/user.model.js';
 import { RoleModel } from '../models/role.model.js';
-import { MenuModel } from '../models/menu.model.js';
 import { DeptModel } from '../models/dept.model.js';
 import { LoginLogModel, OperationLogModel, SystemLogModel, OnlineUserModel } from '../models/log.model.js';
 import bcrypt from 'bcryptjs';
@@ -10,7 +9,6 @@ import { config } from '../config/env.js';
 // Initialize models
 const userModel = new UserModel();
 const roleModel = new RoleModel();
-const menuModel = new MenuModel();
 const deptModel = new DeptModel();
 const loginLogModel = new LoginLogModel();
 const operationLogModel = new OperationLogModel();
@@ -233,50 +231,6 @@ export const systemService = {
    */
   async updateRoleMenus(roleId, menuIds) {
     return await roleModel.assignMenus(roleId, menuIds);
-  },
-
-  // ==================== Menu Management ====================
-  
-  /**
-   * Get all menus
-   */
-  async getMenus() {
-    return await menuModel.getAllMenus();
-  },
-
-  /**
-   * Get menu tree
-   */
-  async getMenuTree() {
-    return await menuModel.getMenuTree();
-  },
-
-  /**
-   * Get menu by ID
-   */
-  async getMenuById(id) {
-    return await menuModel.findById(id);
-  },
-
-  /**
-   * Create menu
-   */
-  async createMenu(data) {
-    return await menuModel.createMenu(data);
-  },
-
-  /**
-   * Update menu
-   */
-  async updateMenu(id, data) {
-    return await menuModel.updateMenu(id, data);
-  },
-
-  /**
-   * Delete menu
-   */
-  async deleteMenu(id) {
-    return await menuModel.deleteMenu(id);
   },
 
   // ==================== Department Management ====================

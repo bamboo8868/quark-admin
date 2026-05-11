@@ -10,7 +10,7 @@ import type { FormItemProps } from "../utils/types";
 import type { PaginationProps } from "@pureadmin/table";
 import { getKeyList, deviceDetection } from "@pureadmin/utils";
 import { getRoleList, getRoleMenu, getRoleMenuIds, createRole, updateRole, deleteRole, updateRoleMenu } from "@/api/system";
-import { type Ref, reactive, ref, onMounted, h, toRaw, watch } from "vue";
+import { type Ref, reactive, ref, onMounted, h, toRaw, watch, nextTick } from "vue";
 
 export function useRole(treeRef: Ref) {
   const form = reactive({
@@ -248,12 +248,38 @@ export function useRole(treeRef: Ref) {
       isShow.value = true;
       const { code, data } = await getRoleMenuIds({ id });
       if (code === 0) {
-        treeRef.value.setCheckedKeys(data);
+        // Wait for el-tree-v2 virtual rendering to complete
+        await nextTick();
+        setTimeout(() => {
+          if (isLinkage.value) {
+            // When parent-child linked, setCheckedKeys only works with leaf nodes
+            const leafIds = data.filter(menuId => {
+              const node = findNode(treeData.value, menuId);
+              return node && !node.children?.length;
+            });
+            treeRef.value.setCheckedKeys(leafIds);
+          } else {
+            // When strict mode, set all keys directly
+            treeRef.value.setCheckedKeys(data);
+          }
+        }, 100);
       }
     } else {
       curRow.value = null;
       isShow.value = false;
     }
+  }
+
+  /** Find node in tree by id */
+  function findNode(tree, id) {
+    for (const node of tree) {
+      if (node.id === id) return node;
+      if (node.children) {
+        const found = findNode(node.children, id);
+        if (found) return found;
+      }
+    }
+    return null;
   }
 
   /** 高亮当前权限选中行 */
@@ -267,7 +293,10 @@ export function useRole(treeRef: Ref) {
   /** 菜单权限-保存 */
   async function handleSave() {
     const { id, name } = curRow.value;
-    const menuIds = treeRef.value.getCheckedKeys();
+    // Include both fully checked and half-checked (indeterminate) keys
+    const checkedKeys = treeRef.value.getCheckedKeys();
+    const halfCheckedKeys = treeRef.value.getHalfCheckedKeys();
+    const menuIds = [...checkedKeys, ...halfCheckedKeys];
     const { code } = await updateRoleMenu(id, menuIds);
     if (code === 0) {
       message(`角色名称为${name}的菜单权限修改成功`, {

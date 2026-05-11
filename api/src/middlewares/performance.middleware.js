@@ -165,12 +165,10 @@ export function createTimeoutMiddleware(timeoutMs = 30000) {
         url: request.url,
         timeout: timeoutMs 
       });
-      reply.status(504).send({
-        success: false,
-        error: {
-          code: 'REQUEST_TIMEOUT',
-          message: 'Request timeout'
-        }
+      reply.send({
+        code: 10001,
+        message: 'Request timeout',
+        data: null
       });
     }, timeoutMs);
 
@@ -247,22 +245,18 @@ export function createBatchMiddleware(maxBatchSize = 10) {
     const { requests } = request.body;
     
     if (!Array.isArray(requests)) {
-      return reply.status(400).send({
-        success: false,
-        error: {
-          code: 'INVALID_BATCH',
-          message: 'Batch requests must be an array'
-        }
+      return reply.send({
+        code: 10001,
+        message: 'Batch requests must be an array',
+        data: null
       });
     }
     
     if (requests.length > maxBatchSize) {
-      return reply.status(400).send({
-        success: false,
-        error: {
-          code: 'BATCH_TOO_LARGE',
-          message: `Maximum batch size is ${maxBatchSize}`
-        }
+      return reply.send({
+        code: 10001,
+        message: `Maximum batch size is ${maxBatchSize}`,
+        data: null
       });
     }
     

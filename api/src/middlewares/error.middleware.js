@@ -73,53 +73,49 @@ export function globalErrorHandler(error, request, reply) {
   });
   // Handle known operational errors
   if (error instanceof AppError) {
-    return reply.status(error.statusCode).send(
-      errorResponse(error.message, error.code, error.details)
+    return reply.send(
+      { code: 10001, message: error.message, data: null }
     );
   }
 
   // Handle Fastify validation errors
   if (error.validation) {
-    return reply.status(HttpStatus.BAD_REQUEST).send(
-      errorResponse('Validation failed', 'VALIDATION_ERROR', error.message)
+    return reply.send(
+      { code: 10001, message: 'Validation failed', data: null }
     );
   }
 
   // Handle JWT errors
   if (error.name === 'JsonWebTokenError') {
-    return reply.status(HttpStatus.UNAUTHORIZED).send(
-      errorResponse('Invalid token', 'UNAUTHORIZED')
+    return reply.send(
+      { code: 10001, message: 'Invalid token', data: null }
     );
   }
 
   if (error.name === 'TokenExpiredError') {
-    return reply.status(HttpStatus.UNAUTHORIZED).send(
-      errorResponse('Token expired', 'UNAUTHORIZED')
+    return reply.send(
+      { code: 10001, message: 'Token expired', data: null }
     );
   }
 
   // Handle database errors
   if (error.code === 'ER_DUP_ENTRY' || error.code === '23505') {
-    return reply.status(HttpStatus.CONFLICT).send(
-      errorResponse('Resource already exists', 'CONFLICT')
+    return reply.send(
+      { code: 10001, message: 'Resource already exists', data: null }
     );
   }
 
   if (error.code === 'ER_NO_REFERENCED_ROW' || error.code === '23503') {
-    return reply.status(HttpStatus.BAD_REQUEST).send(
-      errorResponse('Referenced resource not found', 'VALIDATION_ERROR')
+    return reply.send(
+      { code: 10001, message: 'Referenced resource not found', data: null }
     );
   }
 
   // Default: internal server error
   const isDev = process.env.NODE_ENV === 'dev';
   
-  return reply.status(HttpStatus.INTERNAL_SERVER_ERROR).send(
-    errorResponse(
-      isDev ? error.message : 'Internal server error',
-      'INTERNAL_ERROR',
-      isDev ? { stack: error.stack } : null
-    )
+  return reply.send(
+    { code: 10001, message: isDev ? error.message : 'Internal server error', data: null }
   );
 }
 
@@ -127,7 +123,7 @@ export function globalErrorHandler(error, request, reply) {
  * Not found handler
  */
 export function notFoundHandler(request, reply) {
-  return reply.status(HttpStatus.NOT_FOUND).send(
-    errorResponse(`Route ${request.method} ${request.url} not found`, 'NOT_FOUND')
+  return reply.send(
+    { code: 10001, message: `Route ${request.method} ${request.url} not found`, data: null }
   );
 }

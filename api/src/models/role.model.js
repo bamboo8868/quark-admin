@@ -145,20 +145,21 @@ export class RoleModel extends BaseModel {
   }
 
   /**
-   * Get role menus with details
+   * Get role menus with details (from static config)
    */
   async getRoleMenus(roleId) {
-    const menus = await getDatabase()('role_menus as rm')
-      .join('menus as m', 'rm.menu_id', 'm.id')
-      .where('rm.role_id', roleId)
-      .select('m.*');
+    const { getFlatMenuList } = await import('../config/menu.config.js');
+    const allMenus = getFlatMenuList();
+    const menuIds = await this.getRoleMenuIds(roleId);
     
-    return menus.map(menu => ({
-      parentId: menu.parent_id,
-      id: menu.id,
-      menuType: menu.menu_type,
-      title: menu.title
-    }));
+    return allMenus
+      .filter(m => menuIds.includes(m.id))
+      .map(m => ({
+        id: m.id,
+        parentId: m.parentId,
+        menuType: m.menuType,
+        title: m.title
+      }));
   }
 }
 
