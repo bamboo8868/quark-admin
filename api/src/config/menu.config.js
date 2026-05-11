@@ -26,7 +26,6 @@ export const menuConfig = [
         name: 'SystemUser',
         path: '/system/user/index',
         icon: 'ri:admin-line',
-        roles: ['admin']
       },
       {
         id: 1002,
@@ -36,7 +35,6 @@ export const menuConfig = [
         name: 'SystemRole',
         path: '/system/role/index',
         icon: 'ri:admin-fill',
-        roles: ['admin']
       },
       {
         id: 1003,
@@ -46,7 +44,6 @@ export const menuConfig = [
         name: 'SystemDept',
         path: '/system/dept/index',
         icon: 'ri:git-branch-line',
-        roles: ['admin']
       }
     ]
   },
@@ -69,7 +66,6 @@ export const menuConfig = [
         path: '/monitor/online-user',
         component: 'monitor/online/index',
         icon: 'ri:user-voice-line',
-        roles: ['admin']
       },
       {
         id: 2002,
@@ -80,7 +76,6 @@ export const menuConfig = [
         path: '/monitor/login-logs',
         component: 'monitor/logs/login/index',
         icon: 'ri:window-line',
-        roles: ['admin']
       },
       {
         id: 2003,
@@ -91,7 +86,6 @@ export const menuConfig = [
         path: '/monitor/operation-logs',
         component: 'monitor/logs/operation/index',
         icon: 'ri:history-fill',
-        roles: ['admin']
       },
       {
         id: 2004,
@@ -102,7 +96,6 @@ export const menuConfig = [
         path: '/monitor/system-logs',
         component: 'monitor/logs/system/index',
         icon: 'ri:file-search-line',
-        roles: ['admin']
       }
     ]
   }
@@ -155,6 +148,9 @@ export function buildAsyncRoutes(userRoles = []) {
           meta: {
             icon: menu.icon,
             title: menu.title,
+            // Directory items with children should always show as sub-menu,
+            // never flatten into parent level even if only one child
+            ...(menu.menuType === 0 && menu.children?.length > 0 && { alwaysShow: true }),
             ...(menu.rank !== undefined && { rank: menu.rank }),
             ...(menu.roles && { roles: menu.roles })
           }
@@ -189,6 +185,9 @@ export function buildAsyncRoutesByMenuIds(menuIds = []) {
           meta: {
             icon: menu.icon,
             title: menu.title,
+            // Directory items with children should always show as sub-menu,
+            // never flatten into parent level even if only one child
+            ...(menu.menuType === 0 && menu.children?.length > 0 && { alwaysShow: true }),
             ...(menu.rank !== undefined && { rank: menu.rank })
           }
         };

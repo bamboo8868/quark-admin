@@ -98,6 +98,11 @@ function hasOneShowingChild(children: menuType[] = [], parent: menuType) {
     return false;
   }
 
+  // If parent has alwaysShow, always render as sub-menu (never flatten)
+  if (parent.meta?.alwaysShow) {
+    return false;
+  }
+
   if (showingChildren.length === 1) {
     return true;
   }
