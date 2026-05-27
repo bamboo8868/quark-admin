@@ -6,6 +6,7 @@
 
 const SYSTEM_RANK = 10;
 const MONITOR_RANK = 11;
+const EMAIL_RANK = 12;
 
 export const menuConfig = [
   {
@@ -98,6 +99,38 @@ export const menuConfig = [
         icon: 'ri:file-search-line',
       }
     ]
+  },
+  {
+    id: 3000,
+    parentId: 0,
+    menuType: 0,
+    title: 'menus.pureEmailManagement',
+    name: 'Email',
+    path: '/email',
+    icon: 'ri:mail-line',
+    rank: EMAIL_RANK,
+    children: [
+      {
+        id: 3001,
+        parentId: 3000,
+        menuType: 0,
+        title: 'menus.pureMailManage',
+        name: 'MailManage',
+        path: '/email/mail/index',
+        component: 'email/mail/index',
+        icon: 'ri:inbox-line'
+      },
+      {
+        id: 3002,
+        parentId: 3000,
+        menuType: 0,
+        title: 'menus.pureAccountManage',
+        name: 'AccountManage',
+        path: '/email/account/index',
+        component: 'email/account/index',
+        icon: 'ri:account-circle-line'
+      }
+    ]
   }
 ];
 
@@ -134,6 +167,8 @@ export function buildAsyncRoutes(userRoles = []) {
   function filterByRoles(menus, roles) {
     return menus
       .filter(menu => {
+        // Skip button-level items (menuType: 2) — they are permission markers, not routes
+        if (menu.menuType === 2) return false;
         // Empty roles array means no filtering (admin sees all)
         if (roles.length === 0) return true;
         // If no roles restriction on menu, allow all
@@ -158,8 +193,10 @@ export function buildAsyncRoutes(userRoles = []) {
         if (menu.component) {
           route.component = menu.component;
         }
-        if (menu.children && menu.children.length > 0) {
-          route.children = filterByRoles(menu.children, roles);
+        // Filter button-level children, then only set children if non-empty
+        const filteredChildren = menu.children?.filter(c => c.menuType !== 2);
+        if (filteredChildren && filteredChildren.length > 0) {
+          route.children = filterByRoles(filteredChildren, roles);
         }
         return route;
       });
@@ -177,7 +214,11 @@ export function buildAsyncRoutesByMenuIds(menuIds = []) {
 
   function filterByMenuIds(menus) {
     return menus
-      .filter(menu => menuIdSet.has(menu.id))
+      .filter(menu => {
+        // Skip button-level items (menuType: 2) — they are permission markers, not routes
+        if (menu.menuType === 2) return false;
+        return menuIdSet.has(menu.id);
+      })
       .map(menu => {
         const route = {
           path: menu.path,
@@ -194,8 +235,10 @@ export function buildAsyncRoutesByMenuIds(menuIds = []) {
         if (menu.component) {
           route.component = menu.component;
         }
-        if (menu.children && menu.children.length > 0) {
-          route.children = filterByMenuIds(menu.children);
+        // Filter button-level children, then only set children if non-empty
+        const filteredChildren = menu.children?.filter(c => c.menuType !== 2);
+        if (filteredChildren && filteredChildren.length > 0) {
+          route.children = filterByMenuIds(filteredChildren);
         }
         return route;
       });
@@ -214,6 +257,7 @@ export function getMenuTree() {
     id: m.id,
     parentId: m.parentId,
     menuType: m.menuType,
-    title: m.title
+    title: m.title,
+    ...(m.permission && { permission: m.permission })
   }));
 }

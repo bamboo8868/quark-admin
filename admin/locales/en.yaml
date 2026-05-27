@@ -82,6 +82,9 @@ menus:
   pureLoginLog: Login Log
   pureOperationLog: Operation Log
   pureSystemLog: System Log
+  pureEmailManagement: Email Management
+  pureMailManage: Mail Management
+  pureAccountManage: Account Management
   pureCodeMirror: CodeMirror
   pureMarkdown: Markdown
   pureEditor: Editor

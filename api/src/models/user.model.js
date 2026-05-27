@@ -120,11 +120,11 @@ export class UserModel extends BaseModel {
     if (!user) return null;
 
     // Get roles directly assigned to user via user_roles (only active roles)
-    const directRoles = await getDatabase()('user_roles as ur')
-      .join('roles as r', 'ur.role_id', 'r.id')
-      .where('ur.user_id', user.id)
-      .where('r.status', 1)
-      .select('r.id', 'r.name', 'r.code');
+    // const directRoles = await getDatabase()('user_roles as ur')
+    //   .join('roles as r', 'ur.role_id', 'r.id')
+    //   .where('ur.user_id', user.id)
+    //   .where('r.status', 1)
+    //   .select('r.id', 'r.name', 'r.code');
 
     // Get roles from user's department via dept.role_ids (only active roles)
     let deptRoles = [];
@@ -147,7 +147,7 @@ export class UserModel extends BaseModel {
 
     // Merge roles, deduplicate by id
     const roleMap = new Map();
-    for (const r of [...directRoles, ...deptRoles]) {
+    for (const r of [ ...deptRoles]) {
       roleMap.set(r.id, r);
     }
     const roles = Array.from(roleMap.values());

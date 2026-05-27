@@ -47,6 +47,7 @@ export async function seed(knex) {
       email: 'shenzhen@company.com',
       status: 1,
       type: 2,
+      role_ids: '[]',
       remark: '分公司',
       created_at: new Date(),
       updated_at: new Date()
@@ -76,6 +77,7 @@ export async function seed(knex) {
       email: 'market@company.com',
       status: 1,
       type: 3,
+      role_ids: '[]',
       remark: '市场部门',
       created_at: new Date(),
       updated_at: new Date()
@@ -105,6 +107,7 @@ export async function seed(knex) {
       email: 'finance@company.com',
       status: 1,
       type: 3,
+      role_ids: '[]',
       remark: '财务部门',
       created_at: new Date(),
       updated_at: new Date()
@@ -119,6 +122,7 @@ export async function seed(knex) {
       email: 'ops@company.com',
       status: 1,
       type: 3,
+      role_ids: '[]',
       remark: '运维部门',
       created_at: new Date(),
       updated_at: new Date()
@@ -133,6 +137,7 @@ export async function seed(knex) {
       email: 'market-sz@company.com',
       status: 1,
       type: 3,
+      role_ids: '[]',
       remark: '市场部门',
       created_at: new Date(),
       updated_at: new Date()
@@ -147,6 +152,7 @@ export async function seed(knex) {
       email: 'finance-sz@company.com',
       status: 1,
       type: 3,
+      role_ids: '[]',
       remark: '财务部门',
       created_at: new Date(),
       updated_at: new Date()

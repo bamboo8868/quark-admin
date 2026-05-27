@@ -113,11 +113,10 @@ function registerErrorHandlers(app) {
   });
   
   // Log request with body (body is parsed after preValidation)
-  app.addHook('preHandler', async (request, reply) => {
-    await securityHeaders(request, reply);
-  });
-
-
+  // app.addHook('preHandler', async (request, reply) => {    log.req(request);
+  //   await securityHeaders(request, reply);
+  //   }
+  // });
 }
 
 /**

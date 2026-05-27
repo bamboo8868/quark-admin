@@ -58,8 +58,8 @@ const { title, getDropdownItemStyle, getDropdownItemClass } = useNav();
 const { locale, translationCh, translationEn } = useTranslationLang();
 
 const ruleForm = reactive({
-  username: "admin",
-  password: "admin123",
+  username: "",
+  password: "",
   verifyCode: ""
 });
 
@@ -262,13 +262,13 @@ watch(loginDay, value => {
                       />
                     </span>
                   </el-checkbox>
-                  <el-button
+                  <!-- <el-button
                     link
                     type="primary"
                     @click="useUserStoreHook().SET_CURRENTPAGE(4)"
                   >
                     {{ t("login.pureForget") }}
-                  </el-button>
+                  </el-button> -->
                 </div>
                 <el-button
                   class="w-full mt-4!"
@@ -282,7 +282,7 @@ watch(loginDay, value => {
                 </el-button>
               </el-form-item>
             </Motion>
-
+<!-- 
             <Motion :delay="300">
               <el-form-item>
                 <div class="w-full h-5 flex-bc">
@@ -297,10 +297,10 @@ watch(loginDay, value => {
                   </el-button>
                 </div>
               </el-form-item>
-            </Motion>
+            </Motion> -->
           </el-form>
 
-          <Motion v-if="currentPage === 0" :delay="350">
+          <!-- <Motion v-if="currentPage === 0" :delay="350">
             <el-form-item>
               <el-divider>
                 <p class="text-gray-500 text-xs">
@@ -321,15 +321,15 @@ watch(loginDay, value => {
                 </span>
               </div>
             </el-form-item>
-          </Motion>
+          </Motion> -->
           <!-- 手机号登录 -->
-          <LoginPhone v-if="currentPage === 1" />
+          <!-- <LoginPhone v-if="currentPage === 1" /> -->
           <!-- 二维码登录 -->
-          <LoginQrCode v-if="currentPage === 2" />
+          <!-- <LoginQrCode v-if="currentPage === 2" /> -->
           <!-- 注册 -->
-          <LoginRegist v-if="currentPage === 3" />
+          <!-- <LoginRegist v-if="currentPage === 3" /> -->
           <!-- 忘记密码 -->
-          <LoginUpdate v-if="currentPage === 4" />
+          <!-- <LoginUpdate v-if="currentPage === 4" /> -->
         </div>
       </div>
     </div>

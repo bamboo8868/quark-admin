@@ -18,6 +18,12 @@ export {
   rateLimitKeyGenerator
 } from './auth.middleware.js';
 
+// Permission
+export {
+  checkPermission,
+  extractUser
+} from './permission.middleware.js';
+
 // Security
 export {
   securityHeaders,

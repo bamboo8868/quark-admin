@@ -42,8 +42,8 @@ function parseArgs() {
 
 // Default values
 const DEFAULTS = {
-  username: 'admin',
-  password: 'admin123',
+  username: 'admin666',
+  password: 'admin666',
   nickname: '超级管理员',
   email: 'admin@company.com',
   phone: '15888888888',

@@ -71,9 +71,9 @@ export const systemService = {
     const user = await userModel.create(userData);
     
     // Assign roles if provided
-    if (data.roleIds && data.roleIds.length > 0) {
-      await userModel.assignRoles(user.id, data.roleIds);
-    }
+    // if (data.roleIds && data.roleIds.length > 0) {
+    //   await userModel.assignRoles(user.id, data.roleIds);
+    // }
     
     return user;
   },

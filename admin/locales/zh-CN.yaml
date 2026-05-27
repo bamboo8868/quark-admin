@@ -82,6 +82,9 @@ menus:
   pureLoginLog: 登录日志
   pureOperationLog: 操作日志
   pureSystemLog: 系统日志
+  pureEmailManagement: 邮箱管理
+  pureMailManage: 邮件管理
+  pureAccountManage: 账号管理
   pureCodeMirror: 代码编辑器
   pureMarkdown: Markdown
   pureEditor: 编辑器
