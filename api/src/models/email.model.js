@@ -13,7 +13,7 @@ export class EmailAccountModel extends BaseModel {
    */
   async findByUserId(userId) {
     return await this.query()
-    //   .where('user_id', userId)
+      .where('user_id', userId)
       .orderBy('id', 'asc');
   }
 

@@ -4,16 +4,18 @@ import { log } from '../utils/logger.js';
 
 /**
  * Email Service
+ *
+ * Access control:
+ *   - Account CRUD: only the owner (user_id) can create/update/delete their accounts
+ *   - Email list & detail: all authenticated users can view (emails are shared read-only)
  */
 export const emailService = {
   /**
-   * Get email accounts for a user
+   * Get email accounts (all — for dropdown in email list)
    */
-  async getEmailAccounts(userId) {
-    let accounts = await emailAccountModel.findAll();
-    accounts = accounts.data;
-    // const accounts = await emailAccountModel.findByUserId(userId);
-    return accounts.map(a => emailAccountModel.formatAccount(a));
+  async getEmailAccounts() {
+    const accounts = await emailAccountModel.findAll();
+    return accounts.data.map(a => emailAccountModel.formatAccount(a));
   },
 
   /**
@@ -62,44 +64,33 @@ export const emailService = {
 
   /**
    * Get email detail by ID (with HTML body)
-   * Verifies the email belongs to a user's account
+   * All authenticated users can view emails (read-only)
    */
-  async getEmailDetail(userId, emailId) {
+  async getEmailDetail(emailId) {
     const email = await emailMessageModel.findByIdWithBody(emailId);
-    if (!email) return null;
-
-    // Verify ownership: email's account must belong to this user
-    const account = await emailAccountModel.findByIdAndUserId(email.accountId, userId);
-    if (!account) return null;
-
     return email;
   },
 
   /**
-   * Get email list from database (synced by cron worker)
+   * Get email list from database (synced by worker)
+   * All authenticated users can view emails (read-only)
    */
-  async fetchEmails(userId, accountId, options = {}) {
+  async fetchEmails(accountId, options = {}) {
     const { limit = 50, page = 1, subject, gameAccount } = options;
-
-    // Get all user accounts
-    const userAccounts = await emailAccountModel.findByUserId(userId);
-    if (!userAccounts.length) {
-      return { code: 10001, message: '未找到邮箱账号配置', data: null };
-    }
 
     let result;
     if (accountId) {
-      // Single account — verify ownership
-      const account = userAccounts.find(a => a.id === accountId);
-      if (!account) {
-        return { code: 10001, message: '未找到邮箱账号配置', data: null };
-      }
-      result = await emailMessageModel.findByAccountId(account.id, {
+      // Single account
+      result = await emailMessageModel.findByAccountId(accountId, {
         limit, page, subject, gameAccount
       });
     } else {
       // All accounts
-      const accountIds = userAccounts.map(a => a.id);
+      const accounts = await emailAccountModel.findAll();
+      const accountIds = accounts.data.map(a => a.id);
+      if (!accountIds.length) {
+        return { code: 10001, message: '未找到邮箱账号配置', data: null };
+      }
       result = await emailMessageModel.findByAccountIds(accountIds, {
         limit, page, subject, gameAccount
       });
@@ -113,10 +104,7 @@ export const emailService = {
         total: result.total,
         pageSize: result.pageSize,
         currentPage: result.currentPage,
-        accountId: accountId || null,
-        accountName: accountId
-          ? (userAccounts.find(a => a.id === accountId)?.display_name || userAccounts.find(a => a.id === accountId)?.username)
-          : '全部账号'
+        accountId: accountId || null
       }
     };
   }

@@ -6,12 +6,11 @@ import { extractUser } from '../middlewares/permission.middleware.js';
  */
 export const emailController = {
   /**
-   * Get email accounts for current user
+   * Get email accounts (all — for dropdown)
    * GET /email/accounts
    */
   getEmailAccounts: async (request, reply) => {
-    const decoded = extractUser(request);
-    const accounts = await emailService.getEmailAccounts(decoded.userId);
+    const accounts = await emailService.getEmailAccounts();
     return {
       code: 0,
       message: '操作成功',
@@ -88,13 +87,12 @@ export const emailController = {
   },
 
   /**
-   * Get email list from database
+   * Get email list (all authenticated users can view)
    * POST /email/list
    */
   getEmails: async (request, reply) => {
-    const decoded = extractUser(request);
     const { accountId, limit, page, subject, gameAccount } = request.body || {};
-    return await emailService.fetchEmails(decoded.userId, accountId || null, {
+    return await emailService.fetchEmails(accountId || null, {
       limit: limit || 50,
       page: page || 1,
       subject,
@@ -103,13 +101,12 @@ export const emailController = {
   },
 
   /**
-   * Get email detail with HTML body
+   * Get email detail with HTML body (all authenticated users can view)
    * GET /email/detail/:id
    */
   getEmailDetail: async (request, reply) => {
-    const decoded = extractUser(request);
     const { id } = request.params;
-    const email = await emailService.getEmailDetail(decoded.userId, id);
+    const email = await emailService.getEmailDetail(id);
     if (!email) {
       return { code: 10001, message: '未找到邮件', data: null };
     }
