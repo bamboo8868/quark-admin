@@ -107,105 +107,71 @@ async function fetchNewEmails(client, account) {
 async function runAccountLoop(account, stoppedRef) {
     const { ImapFlow } = await import('imapflow');
 
-    while (!stoppedRef.stopped) {
-        let client = null;
 
-        try {
-            // Always create a fresh client instance
-            client = new ImapFlow({
-                host: account.host,
-                port: account.port,
-                secure: account.tls,
-                auth: {
-                    user: account.username,
-                    pass: account.password
-                },
-                clientInfo: {
-                    name: 'Mozilla Thunderbird',
-                    version: '115.0',
-                    vendor: 'Mozilla'
-                },
-                logger: false,
-                emitLogs: false
-            });
+    let client = null;
 
-            // Wire up events BEFORE connecting
-            client.on('exists', async (data) => {
-                if (data.path !== 'INBOX') return;
-                log.info(`[emailExists] Account ${account.id} (${account.username}): new mail EXISTS notification`);
-                try {
-                    await fetchNewEmails(client, account);
-                } catch (err) {
-                    log.error(`[emailExists] Account ${account.id} fetch error: ${err.message}`);
-                }
-            });
+    try {
+        // Always create a fresh client instance
+        client = new ImapFlow({
+            host: account.host,
+            port: account.port,
+            secure: account.tls,
+            auth: {
+                user: account.username,
+                pass: account.password
+            },
+            clientInfo: {
+                name: 'Mozilla Thunderbird',
+                version: '115.0',
+                vendor: 'Mozilla'
+            },
+            disableAutoIdle: false, // 默认 false，必须保持关闭，否则不会自动 IDLE
+            maxIdleTime: 25 * 60 * 1000,
+            logger: false,
+            emitLogs: false
+        });
 
-            client.on('error', (err) => {
-                if (!stoppedRef.stopped) {
-                    log.warn(`[emailExists] Account ${account.id} (${account.username}) error: ${err.message}`);
-                }
-            });
+        // Wire up events BEFORE connecting
+        client.on('exists', async (data) => {
+            if (data.path !== 'INBOX') return;
+            log.info(`[emailExists] Account ${account.id} (${account.username}): new mail EXISTS notification`);
+            try {
+                await fetchNewEmails(client, account);
+            } catch (err) {
+                log.error(`[emailExists] Account ${account.id} fetch error: ${err.message}`);
+            }
+        });
 
-            // Connect
-            await client.connect();
-            log.info(`[emailExists] Account ${account.id} (${account.username}): connected`);
+        client.on('error', async (err) => {
+            log.warn(`[emailExists] Account ${account.id} (${account.username}) error: ${err.message}`);
+        });
 
-            await client.mailboxOpen('INBOX');
-            log.info(`[emailExists] Account ${account.id} (${account.username}): INBOX opened`);
+        client.on('close', async () => {
+            console.log('连接关闭，3秒后重连...');
+            setTimeout(() => runAccountLoop(account, stoppedRef), 3000);
+        });
 
-            // Initial fetch
-            await fetchNewEmails(client, account);
-            log.info(`[emailExists] Account ${account.id} (${account.username}): listening for new mail (auto-IDLE)`);
+        // Connect
+        await client.connect();
+        log.info(`[emailExists] Account ${account.id} (${account.username}): connected`);
 
-            // Wait for connection to close (imapflow auto-IDLEs)
-            // The 'close' event resolves this promise pattern
-            await new Promise((resolve) => {
-                client.on('close', () => {
-                    log.info(`[emailExists] Account ${account.id} (${account.username}): connection closed`);
-                    resolve();
-                });
+        await client.mailboxOpen('INBOX');
+        log.info(`[emailExists] Account ${account.id} (${account.username}): INBOX opened`);
 
-                // Also resolve if stopped externally
-                const checkStopped = setInterval(() => {
-                    if (stoppedRef.stopped) {
-                        clearInterval(checkStopped);
-                        resolve();
-                    }
-                }, 1000);
-            });
+        // Initial fetch
+        await fetchNewEmails(client, account);
+        log.info(`[emailExists] Account ${account.id} (${account.username}): listening for new mail (auto-IDLE)`);
 
-            // Clean up this client instance
+    } catch (err) {
+        if (client) {
             try { await client.logout(); } catch { /* ignore */ }
             client = null;
-
-        } catch (err) {
-            if (client) {
-                try { await client.logout(); } catch { /* ignore */ }
-                client = null;
-            }
-
-            if (stoppedRef.stopped) break;
-
-            log.error(`[emailExists] Account ${account.id} (${account.username}) error: ${err.message}`);
         }
 
-        // If not stopped, wait and reconnect with a NEW client
-        if (!stoppedRef.stopped) {
-            log.info(`[emailExists] Account ${account.id} (${account.username}): reconnecting in 5s...`);
-            await new Promise(resolve => {
-                const timer = setTimeout(resolve, 5000);
-                const check = setInterval(() => {
-                    if (stoppedRef.stopped) {
-                        clearTimeout(timer);
-                        clearInterval(check);
-                        resolve();
-                    }
-                }, 500);
-            });
-        }
+
+        log.error(`[emailExists] Account ${account.id} (${account.username}) error: ${err.message}`);
     }
 
-    log.info(`[emailExists] Account ${account.id} (${account.username}): loop ended`);
 }
 
 /**
