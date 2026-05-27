@@ -3,38 +3,101 @@ import { config } from './env.js';
 import { log } from '../utils/logger.js';
 
 /**
- * Redis connection instance
+ * Redis connection instance with keep-alive and auto-reconnect
  */
 let redis = null;
+
+/**
+ * Create a new Redis instance with connection resilience
+ */
+function createRedisInstance() {
+  const instance = new Redis({
+    host: config.redis.host,
+    port: config.redis.port,
+    password: config.redis.password || undefined,
+    db: config.redis.db,
+
+    // ==================== Reconnect Strategy ====================
+    // ioredis auto-reconnects by default. This controls the delay.
+    retryStrategy(times) {
+      // Stop retrying after 20 attempts
+      if (times > 20) {
+        log.error('[Redis] Max retry attempts reached. Giving up.');
+        return null; // stop retrying
+      }
+      // Exponential backoff: 200ms, 400ms, 800ms... max 10s
+      const delay = Math.min(times * 200, 10000);
+      log.info(`[Redis] Reconnecting in ${delay}ms (attempt ${times})...`);
+      return delay;
+    },
+
+    // ==================== Keep-Alive ====================
+    // Enable TCP keep-alive on the socket
+    // Sends ACK packets every 30s to detect dead connections
+    keepAlive: 30000,
+
+    // ==================== Timeouts ====================
+    // How long to wait for a connection to be established
+    connectTimeout: 10000,
+    // How long to wait before considering a command as failed
+    commandTimeout: 5000,
+    // Max retries per command (null = keep retrying until reconnect)
+    maxRetriesPerRequest: 3,
+
+    // ==================== Connection ====================
+    // Reconnect on error (default: true)
+    reconnectOnError: true,
+    // Use auto-resubscribe to restore subscriptions after reconnect
+    autoResubscribe: true,
+    // Resend unfinished commands after reconnect
+    autoResendUnfulfilledCommands: true,
+
+    // ==================== Offline Queue ====================
+    // Queue commands while disconnected, execute after reconnect
+    enableOfflineQueue: true,
+    // Max queue size — reject commands if queue exceeds this
+    maxOfflineQueueSize: 1000
+  });
+
+  // ==================== Event Handlers ====================
+  instance.on('connect', () => {
+    log.info('[Redis] Connected successfully');
+  });
+
+  instance.on('ready', () => {
+    log.info('[Redis] Ready to accept commands');
+  });
+
+  instance.on('reconnecting', () => {
+    log.info('[Redis] Reconnecting...');
+  });
+
+  instance.on('error', (error) => {
+    log.error(`[Redis] Error: ${error.message}`);
+  });
+
+  instance.on('close', () => {
+    log.info('[Redis] Connection closed');
+  });
+
+  instance.on('end', () => {
+    log.warn('[Redis] Connection ended (no more reconnections)');
+  });
+
+  // Monitor node status changes for cluster/sentinel scenarios
+  instance.on('node error', (error, node) => {
+    log.error(`[Redis] Node ${node} error: ${error.message}`);
+  });
+
+  return instance;
+}
 
 /**
  * Get Redis instance (singleton)
  */
 export function getRedis() {
   if (!redis) {
-    redis = new Redis({
-      host: config.redis.host,
-      port: config.redis.port,
-      password: config.redis.password || undefined,
-      db: config.redis.db,
-      retryStrategy: (times) => {
-        const delay = Math.min(times * 50, 2000);
-        return delay;
-      },
-      maxRetriesPerRequest: 3
-    });
-
-    redis.on('connect', () => {
-      log.info('Redis connected successfully');
-    });
-
-    redis.on('error', (error) => {
-      log.error('Redis connection error', error);
-    });
-
-    redis.on('close', () => {
-      log.info('Redis connection closed');
-    });
+    redis = createRedisInstance();
   }
 
   return redis;
@@ -47,7 +110,7 @@ export async function closeRedis() {
   if (redis) {
     await redis.quit();
     redis = null;
-    log.info('Redis connection closed');
+    log.info('[Redis] Connection closed gracefully');
   }
 }
 

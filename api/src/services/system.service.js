@@ -69,12 +69,6 @@ export const systemService = {
     }
     
     const user = await userModel.create(userData);
-    
-    // Assign roles if provided
-    // if (data.roleIds && data.roleIds.length > 0) {
-    //   await userModel.assignRoles(user.id, data.roleIds);
-    // }
-    
     return user;
   },
 
@@ -99,12 +93,6 @@ export const systemService = {
     }
     
     const user = await userModel.update(id, data);
-    
-    // Update roles if provided
-    if (data.roleIds) {
-      await userModel.assignRoles(id, data.roleIds);
-    }
-    
     return user;
   },
 
@@ -141,17 +129,10 @@ export const systemService = {
   },
 
   /**
-   * Get user role IDs
+   * Get user role IDs (from department)
    */
   async getUserRoleIds(userId) {
     return await userModel.getUserRoleIds(userId);
-  },
-
-  /**
-   * Update user roles
-   */
-  async updateUserRoles(userId, roleIds) {
-    return await userModel.assignRoles(userId, roleIds);
   },
 
   // ==================== Role Management ====================
@@ -340,6 +321,53 @@ export const systemService = {
 
   async clearSystemLogs() {
     return await systemLogModel.clearAll();
+  },
+
+  // ==================== User Profile ====================
+
+  /**
+   * Update user profile (nickname, email, phone, avatar, description)
+   */
+  async updateProfile(userId, data) {
+    const updateData = {};
+    if (data.nickname !== undefined) updateData.nickname = data.nickname;
+    if (data.email !== undefined) updateData.email = data.email;
+    if (data.phone !== undefined) updateData.phone = data.phone;
+    if (data.avatar !== undefined) updateData.avatar = data.avatar;
+    if (data.description !== undefined) updateData.remark = data.description;
+
+    await userModel.update(userId, updateData);
+    return await userModel.findWithRoles(userId);
+  },
+
+  /**
+   * Change password — verify old password, then update
+   */
+  async changePassword(userId, oldPassword, newPassword) {
+    const user = await userModel.findById(userId);
+    if (!user) {
+      throw new Error('用户不存在');
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      throw new Error('原密码错误');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await userModel.update(userId, { password: hashedPassword });
+    return true;
+  },
+
+  /**
+   * Get user's login logs for security log
+   */
+  async getMineLogs(userId, page = 1, limit = 10) {
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return { list: [], total: 0, pageSize: limit, currentPage: page };
+    }
+    return await loginLogModel.getLogs({ username: user.username }, page, limit);
   }
 };
 

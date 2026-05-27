@@ -323,23 +323,6 @@ export const systemController = {
   },
 
   /**
-   * Update User Roles
-   * PUT /user/:id/roles
-   */
-  updateUserRoles: async (request, reply) => {
-    const { id } = request.params;
-    const { roleIds } = request.body || {};
-    
-    await systemService.updateUserRoles(id, roleIds || []);
-    
-    return {
-      code: 0,
-      message: '操作成功',
-      data: null
-    };
-  },
-
-  /**
    * Get All Roles (for dropdown)
    * GET /list-all-role
    */
@@ -745,15 +728,14 @@ export const systemController = {
    * GET /mine
    */
   getMine: async (request, reply) => {
-    // Get user from token
     const userId = request.user?.userId;
     
     if (!userId) {
-      return {
+      return reply.status(401).send({
         code: 10001,
         message: '未登录',
         data: null
-      };
+      });
     }
 
     const user = await systemService.getUserById(userId);
@@ -767,9 +749,101 @@ export const systemController = {
         nickname: user.nickname,
         email: user.email,
         phone: user.phone,
-        description: user.remark || '一个热爱开源的前端工程师'
+        description: user.remark || ''
       }
     };
+  },
+
+  /**
+   * Update Mine (User Profile)
+   * PUT /mine/update
+   */
+  updateMine: async (request, reply) => {
+    const userId = request.user?.userId;
+
+    if (!userId) {
+      return reply.status(401).send({
+        code: 10001,
+        message: '未登录',
+        data: null
+      });
+    }
+
+    try {
+      const { nickname, email, phone, avatar, description } = request.body;
+      const user = await systemService.updateProfile(userId, {
+        nickname, email, phone, avatar, description
+      });
+
+      return {
+        code: 0,
+        message: '更新成功',
+        data: {
+          avatar: user.avatar || 'https://avatars.githubusercontent.com/u/44761321',
+          username: user.username,
+          nickname: user.nickname,
+          email: user.email,
+          phone: user.phone,
+          description: user.remark || ''
+        }
+      };
+    } catch (err) {
+      return {
+        code: -1,
+        message: err.message || '更新失败',
+        data: null
+      };
+    }
+  },
+
+  /**
+   * Change Password
+   * PUT /mine/password
+   */
+  changePassword: async (request, reply) => {
+    const userId = request.user?.userId;
+
+    if (!userId) {
+      return reply.status(401).send({
+        code: 10001,
+        message: '未登录',
+        data: null
+      });
+    }
+
+    try {
+      const { oldPassword, newPassword } = request.body;
+
+      if (!oldPassword || !newPassword) {
+        return {
+          code: -1,
+          message: '原密码和新密码不能为空',
+          data: null
+        };
+      }
+
+      if (newPassword.length < 6) {
+        return {
+          code: -1,
+          message: '新密码长度不能少于6位',
+          data: null
+        };
+      }
+
+      await systemService.changePassword(userId, oldPassword, newPassword);
+
+      return {
+        code: 0,
+        message: '密码修改成功',
+        data: null
+      };
+    } catch (err) {
+      return {
+        code: -1,
+        message: err.message || '密码修改失败',
+        data: null
+      };
+    }
   },
 
   /**
@@ -777,38 +851,33 @@ export const systemController = {
    * GET /mine-logs
    */
   getMineLogs: async (request, reply) => {
-    // Mock data for user logs
-    const list = [
-      {
-        id: 1,
-        ip: '192.168.1.1',
-        address: '中国河南省信阳市',
-        system: 'macOS',
-        browser: 'Chrome',
-        summary: '账户登录',
-        operatingTime: new Date()
-      },
-      {
-        id: 2,
-        ip: '192.168.1.2',
-        address: '中国广东省深圳市',
-        system: 'Windows',
-        browser: 'Firefox',
-        summary: '绑定了手机号码',
-        operatingTime: new Date(Date.now() - 86400000)
-      }
-    ];
+    const userId = request.user?.userId;
 
-    return {
-      code: 0,
-      message: '操作成功',
-      data: {
-        list,
-        total: list.length,
-        pageSize: 10,
-        currentPage: 1
-      }
-    };
+    if (!userId) {
+      return reply.status(401).send({
+        code: 10001,
+        message: '未登录',
+        data: null
+      });
+    }
+
+    const page = parseInt(request.query?.page) || 1;
+    const limit = parseInt(request.query?.limit) || 10;
+
+    try {
+      const result = await systemService.getMineLogs(userId, page, limit);
+      return {
+        code: 0,
+        message: '操作成功',
+        data: result
+      };
+    } catch (err) {
+      return {
+        code: -1,
+        message: err.message || '获取安全日志失败',
+        data: { list: [], total: 0, pageSize: limit, currentPage: page }
+      };
+    }
   },
 
   // ==================== Other ====================

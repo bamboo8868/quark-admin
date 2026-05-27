@@ -10,7 +10,9 @@ export const emailService = {
    * Get email accounts for a user
    */
   async getEmailAccounts(userId) {
-    const accounts = await emailAccountModel.findByUserId(userId);
+    let accounts = await emailAccountModel.findAll();
+    accounts = accounts.data;
+    // const accounts = await emailAccountModel.findByUserId(userId);
     return accounts.map(a => emailAccountModel.formatAccount(a));
   },
 

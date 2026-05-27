@@ -26,8 +26,7 @@ import {
   updateUser,
   deleteUser,
   batchDeleteUsers,
-  resetUserPassword,
-  updateUserRole
+  resetUserPassword
 } from "@/api/system";
 import {
   ElForm,
@@ -502,37 +501,17 @@ export function useUser(tableRef: Ref, treeRef: Ref) {
     });
   }
 
-  /** 分配角色 */
+  /** 查看角色（来自部门） */
   async function handleRole(row) {
-    // 选中的角色列表
     const ids = (await getRoleIds({ userId: row.id })).data ?? [];
-    addDialog({
-      title: `分配 ${row.username} 用户的角色`,
-      props: {
-        formInline: {
-          username: row?.username ?? "",
-          nickname: row?.nickname ?? "",
-          roleOptions: roleOptions.value ?? [],
-          ids
-        }
-      },
-      width: "400px",
-      draggable: true,
-      fullscreen: deviceDetection(),
-      fullscreenIcon: true,
-      closeOnClickModal: false,
-      contentRenderer: () => h(roleForm),
-      beforeSure: async (done, { options }) => {
-        const curData = options.props.formInline as RoleFormItemProps;
-        const { code } = await updateUserRole(row.id, curData.ids);
-        if (code === 0) {
-          message(`已成功为 ${row.username} 分配角色`, {
-            type: "success"
-          });
-          done(); // 关闭弹框
-        }
-      }
-    });
+    const roleNames = roleOptions.value
+      .filter(r => ids.includes(r.id))
+      .map(r => r.name)
+      .join(', ');
+    message(
+      `${row.username} 的角色来自所属部门：${roleNames || '无'}`,
+      { type: "info" }
+    );
   }
 
   onMounted(async () => {
@@ -572,7 +551,7 @@ export function useUser(tableRef: Ref, treeRef: Ref) {
     handleDelete,
     handleUpload,
     handleReset,
-    handleRole,
+        handleRole,
     handleSizeChange,
     onSelectionCancel,
     handleCurrentChange,

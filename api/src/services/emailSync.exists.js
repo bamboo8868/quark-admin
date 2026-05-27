@@ -9,9 +9,10 @@ import { log } from '../utils/logger.js';
  * Pattern (from test.js):
  *   1. Connect → open INBOX → imapflow auto-IDLE
  *   2. On 'exists' event → acquire lock → fetch new emails → release lock
- *   3. On 'close' event → auto-reconnect after 3 seconds
+ *   3. On 'close' event → create NEW client instance → reconnect
  *
- * No cron, no manual idle() call — imapflow auto-IDLEs when connection is idle.
+ * Key: ImapFlow instances cannot be reused after close.
+ *      Always create a new instance on reconnect.
  */
 
 const activeConnections = new Map();
@@ -50,17 +51,15 @@ function extractSteamLoginInfo(subject, bodyHtml) {
 
 /**
  * Fetch new emails for an account and persist to DB.
- * Uses getLastUid to only fetch emails newer than what we already have.
  */
 async function fetchNewEmails(client, account) {
     const lock = await client.getMailboxLock('INBOX');
     try {
-
         const msg = await client.fetchOne('*', {
             envelope: true,
             source: true
         });
-        
+
         let bodyText = null;
         let bodyHtml = null;
         if (msg.source) {
@@ -72,8 +71,8 @@ async function fetchNewEmails(client, account) {
                 log.warn(`[emailExists] Failed to parse body for UID ${msg.uid}: ${parseErr.message}`);
             }
         }
-        let emails = [];
-        emails.push({
+
+        const emails = [{
             uid: msg.uid,
             messageId: msg.envelope?.messageId || '',
             subject: msg.envelope?.subject || '(No Subject)',
@@ -86,110 +85,127 @@ async function fetchNewEmails(client, account) {
                 address: t.address || ''
             })) || [],
             mailDate: msg.envelope?.date || null,
-            // flags: Array.from(msg.flags || []),
-            // isRead: (msg.flags || []).has('\\Seen'),
             bodyText,
             bodyHtml,
             ...extractSteamLoginInfo(msg.envelope?.subject, bodyHtml)
-        });
+        }];
 
-
-        if (emails.length > 0) {
-            const result = await emailMessageModel.bulkUpsert(account.id, emails);
-            log.info(
-                `[emailExists] Account ${account.id} (${account.username}): ` +
-                `+${result.inserted} new, ~${result.updated} updated`
-            );
-        }
+        const result = await emailMessageModel.bulkUpsert(account.id, emails);
+        log.info(
+            `[emailExists] Account ${account.id} (${account.username}): ` +
+            `+${result.inserted} new, ~${result.updated} updated`
+        );
     } finally {
         lock.release();
     }
 }
 
 /**
- * Connect and maintain a long-lived IMAP session for one account.
- * Uses exists event for real-time push, auto-reconnects on disconnect.
+ * Run the persistent connection loop for one account.
+ * Creates a NEW ImapFlow instance on each connect/reconnect.
  */
-async function connectAccount(account, stoppedRef) {
+async function runAccountLoop(account, stoppedRef) {
     const { ImapFlow } = await import('imapflow');
 
-    const client = new ImapFlow({
-        host: account.host,
-        port: account.port,
-        secure: account.tls,
-        auth: {
-            user: account.username,
-            pass: account.password
-        },
-        clientInfo: {
-            name: 'Mozilla Thunderbird',
-            version: '115.0',
-            vendor: 'Mozilla'
-        },
-        logger: false,
-        emitLogs: false
-    });
+    while (!stoppedRef.stopped) {
+        let client = null;
 
-    // ====================== EXISTS event — new mail notification ======================
-    client.on('exists', async (data) => {
-        if (data.path !== 'INBOX') return;
-
-        log.info(`[emailExists] Account ${account.id} (${account.username}): new mail EXISTS notification`);
         try {
+            // Always create a fresh client instance
+            client = new ImapFlow({
+                host: account.host,
+                port: account.port,
+                secure: account.tls,
+                auth: {
+                    user: account.username,
+                    pass: account.password
+                },
+                clientInfo: {
+                    name: 'Mozilla Thunderbird',
+                    version: '115.0',
+                    vendor: 'Mozilla'
+                },
+                logger: false,
+                emitLogs: false
+            });
+
+            // Wire up events BEFORE connecting
+            client.on('exists', async (data) => {
+                if (data.path !== 'INBOX') return;
+                log.info(`[emailExists] Account ${account.id} (${account.username}): new mail EXISTS notification`);
+                try {
+                    await fetchNewEmails(client, account);
+                } catch (err) {
+                    log.error(`[emailExists] Account ${account.id} fetch error: ${err.message}`);
+                }
+            });
+
+            client.on('error', (err) => {
+                if (!stoppedRef.stopped) {
+                    log.warn(`[emailExists] Account ${account.id} (${account.username}) error: ${err.message}`);
+                }
+            });
+
+            // Connect
+            await client.connect();
+            log.info(`[emailExists] Account ${account.id} (${account.username}): connected`);
+
+            await client.mailboxOpen('INBOX');
+            log.info(`[emailExists] Account ${account.id} (${account.username}): INBOX opened`);
+
+            // Initial fetch
             await fetchNewEmails(client, account);
+            log.info(`[emailExists] Account ${account.id} (${account.username}): listening for new mail (auto-IDLE)`);
+
+            // Wait for connection to close (imapflow auto-IDLEs)
+            // The 'close' event resolves this promise pattern
+            await new Promise((resolve) => {
+                client.on('close', () => {
+                    log.info(`[emailExists] Account ${account.id} (${account.username}): connection closed`);
+                    resolve();
+                });
+
+                // Also resolve if stopped externally
+                const checkStopped = setInterval(() => {
+                    if (stoppedRef.stopped) {
+                        clearInterval(checkStopped);
+                        resolve();
+                    }
+                }, 1000);
+            });
+
+            // Clean up this client instance
+            try { await client.logout(); } catch { /* ignore */ }
+            client = null;
+
         } catch (err) {
-            log.error(`[emailExists] Account ${account.id} fetch error: ${err.message}`);
+            if (client) {
+                try { await client.logout(); } catch { /* ignore */ }
+                client = null;
+            }
+
+            if (stoppedRef.stopped) break;
+
+            log.error(`[emailExists] Account ${account.id} (${account.username}) error: ${err.message}`);
         }
-    });
 
-    // ====================== Error event ======================
-    client.on('error', (err) => {
+        // If not stopped, wait and reconnect with a NEW client
         if (!stoppedRef.stopped) {
-            log.warn(`[emailExists] Account ${account.id} (${account.username}) error: ${err.message}`);
-        }
-    });
-
-    // ====================== Close event — auto reconnect ======================
-    client.on('close', () => {
-        if (!stoppedRef.stopped) {
-            log.info(`[emailExists] Account ${account.id} (${account.username}): connection closed, reconnecting in 3s...`);
-            setTimeout(() => connectAndOpen(client, account, stoppedRef), 3000);
-        }
-    });
-
-    // Initial connect
-    await connectAndOpen(client, account, stoppedRef);
-
-    return client;
-}
-
-/**
- * Connect, open INBOX, and do initial fetch.
- * imapflow auto-IDLEs when connection is idle — no manual idle() call needed.
- */
-async function connectAndOpen(client, account, stoppedRef) {
-    if (stoppedRef.stopped) return;
-
-    try {
-        await client.connect();
-        log.info(`[emailExists] Account ${account.id} (${account.username}): connected`);
-
-        await client.mailboxOpen('INBOX');
-        log.info(`[emailExists] Account ${account.id} (${account.username}): INBOX opened`);
-
-        // Initial fetch — sync any emails that arrived while we were disconnected
-        await fetchNewEmails(client, account);
-
-        // imapflow auto-IDLEs — no need to call client.idle()
-        // The 'exists' event fires whenever new mail arrives
-        log.info(`[emailExists] Account ${account.id} (${account.username}): listening for new mail (auto-IDLE)`);
-    } catch (err) {
-        if (!stoppedRef.stopped) {
-            log.error(`[emailExists] Account ${account.id} (${account.username}) connect failed: ${err.message}`);
-            log.info(`[emailExists] Account ${account.id}: retrying in 10s...`);
-            setTimeout(() => connectAndOpen(client, account, stoppedRef), 10000);
+            log.info(`[emailExists] Account ${account.id} (${account.username}): reconnecting in 5s...`);
+            await new Promise(resolve => {
+                const timer = setTimeout(resolve, 5000);
+                const check = setInterval(() => {
+                    if (stoppedRef.stopped) {
+                        clearTimeout(timer);
+                        clearInterval(check);
+                        resolve();
+                    }
+                }, 500);
+            });
         }
     }
+
+    log.info(`[emailExists] Account ${account.id} (${account.username}): loop ended`);
 }
 
 /**
@@ -207,17 +223,13 @@ export async function startEmailExists() {
 
     for (const account of accounts) {
         const stoppedRef = { stopped: false };
-        try {
-            const client = await connectAccount(account, stoppedRef);
-            activeConnections.set(account.id, { stoppedRef, client, account });
-        } catch (err) {
-            log.error(`[emailExists] Failed to start for account ${account.id}: ${err.message}`);
-            const stoppedRef = { stopped: false };
-            activeConnections.set(account.id, { stoppedRef, client: null, account });
-        }
+        const loopPromise = runAccountLoop(account, stoppedRef).catch(err => {
+            log.error(`[emailExists] Account ${account.id} loop crashed: ${err.message}`);
+        });
+        activeConnections.set(account.id, { stoppedRef, loopPromise, account });
     }
 
-    log.info(`[emailExists] ${activeConnections.size} connection(s) started`);
+    log.info(`[emailExists] ${activeConnections.size} connection(s) starting`);
 }
 
 /**
@@ -228,10 +240,16 @@ export async function stopEmailExists() {
 
     for (const [accountId, handle] of activeConnections) {
         handle.stoppedRef.stopped = true;
-        if (handle.client) {
-            try { await handle.client.logout(); } catch { /* ignore */ }
-        }
     }
+
+    await Promise.allSettled(
+        [...activeConnections.values()].map(h =>
+            Promise.race([
+                h.loopPromise,
+                new Promise(resolve => setTimeout(resolve, 5000))
+            ])
+        )
+    );
 
     activeConnections.clear();
     log.info('[emailExists] All connections stopped');

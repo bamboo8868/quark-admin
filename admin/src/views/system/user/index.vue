@@ -240,7 +240,7 @@ const {
                         :icon="useRenderIcon(Role)"
                         @click="handleRole(row)"
                       >
-                        分配角色
+                        查看角色
                       </el-button>
                     </el-dropdown-item>
                   </el-dropdown-menu>

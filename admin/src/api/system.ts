@@ -31,7 +31,7 @@ export const getAllRoleList = () => {
   return http.request<Result>("get", "/api/list-all-role");
 };
 
-/** 系统管理-用户管理-根据userId，获取对应角色id列表（userId：用户id） */
+/** 系统管理-用户管理-根据userId，获取对应角色id列表（来自部门） */
 export const getRoleIds = (data?: object) => {
   return http.request<Result>("post", "/api/list-role-ids", { data });
 };
@@ -140,10 +140,7 @@ export const resetUserPassword = (id: number, password: string) => {
   return http.request<Result>("put", `/api/user/${id}/reset-password`, { data: { password } });
 };
 
-/** 更新用户角色 */
-export const updateUserRole = (userId: number, roleIds: number[]) => {
-  return http.request<Result>("put", `/api/user/${userId}/roles`, { data: { roleIds } });
-};
+
 
 // ==================== Department Management ====================
 

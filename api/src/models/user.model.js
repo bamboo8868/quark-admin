@@ -63,28 +63,21 @@ export class UserModel extends BaseModel {
   }
 
   /**
-   * Find user with roles (including dept roles)
+   * Find user with roles (from department only)
    */
   async findWithRoles(id) {
     const user = await this.findById(id);
     if (!user) return null;
-
-    // Get roles directly assigned to user via user_roles (only active roles)
-    const directRoles = await getDatabase()('user_roles as ur')
-      .join('roles as r', 'ur.role_id', 'r.id')
-      .where('ur.user_id', id)
-      .where('r.status', 1)
-      .select('r.id', 'r.name', 'r.code');
-
-    // Get roles from user's department via dept.role_ids (only active roles)
-    let deptRoles = [];
+  
+    // Get roles from user's department via dept.role_ids
+    let roles = [];
     if (user.dept_id) {
       const dept = await getDatabase()('depts').where('id', user.dept_id).first();
       if (dept && dept.role_ids) {
         try {
           const deptRoleIds = JSON.parse(dept.role_ids);
           if (Array.isArray(deptRoleIds) && deptRoleIds.length > 0) {
-            deptRoles = await getDatabase()('roles')
+            roles = await getDatabase()('roles')
               .whereIn('id', deptRoleIds)
               .where('status', 1)
               .select('id', 'name', 'code');
@@ -94,14 +87,7 @@ export class UserModel extends BaseModel {
         }
       }
     }
-
-    // Merge roles, deduplicate by id
-    const roleMap = new Map();
-    for (const r of [...directRoles, ...deptRoles]) {
-      roleMap.set(r.id, r);
-    }
-    const roles = Array.from(roleMap.values());
-
+  
     return { ...user, roles };
   }
 
@@ -113,28 +99,21 @@ export class UserModel extends BaseModel {
   }
 
   /**
-   * Find user by username with roles (including dept roles)
+   * Find user by username with roles (from department only)
    */
   async findByUsernameWithRoles(username) {
     const user = await this.findByUsername(username);
     if (!user) return null;
-
-    // Get roles directly assigned to user via user_roles (only active roles)
-    // const directRoles = await getDatabase()('user_roles as ur')
-    //   .join('roles as r', 'ur.role_id', 'r.id')
-    //   .where('ur.user_id', user.id)
-    //   .where('r.status', 1)
-    //   .select('r.id', 'r.name', 'r.code');
-
-    // Get roles from user's department via dept.role_ids (only active roles)
-    let deptRoles = [];
+  
+    // Get roles from user's department via dept.role_ids
+    let roles = [];
     if (user.dept_id) {
       const dept = await getDatabase()('depts').where('id', user.dept_id).first();
       if (dept && dept.role_ids) {
         try {
           const deptRoleIds = JSON.parse(dept.role_ids);
           if (Array.isArray(deptRoleIds) && deptRoleIds.length > 0) {
-            deptRoles = await getDatabase()('roles')
+            roles = await getDatabase()('roles')
               .whereIn('id', deptRoleIds)
               .where('status', 1)
               .select('id', 'name', 'code');
@@ -144,14 +123,7 @@ export class UserModel extends BaseModel {
         }
       }
     }
-
-    // Merge roles, deduplicate by id
-    const roleMap = new Map();
-    for (const r of [ ...deptRoles]) {
-      roleMap.set(r.id, r);
-    }
-    const roles = Array.from(roleMap.values());
-
+  
     return { ...user, roles };
   }
 
@@ -222,37 +194,21 @@ export class UserModel extends BaseModel {
   }
 
   /**
-   * Assign roles to user
-   */
-  async assignRoles(userId, roleIds) {
-    const db = getDatabase();
-    
-    return await db.transaction(async (trx) => {
-      // Remove existing roles
-      await trx('user_roles').where('user_id', userId).del();
-      
-      // Insert new roles
-      if (roleIds && roleIds.length > 0) {
-        const inserts = roleIds.map(roleId => ({
-          user_id: userId,
-          role_id: roleId
-        }));
-        await trx('user_roles').insert(inserts);
-      }
-      
-      return true;
-    });
-  }
-
-  /**
-   * Get user role IDs
+   * Get user role IDs from department
    */
   async getUserRoleIds(userId) {
-    const roles = await getDatabase()('user_roles')
-      .where('user_id', userId)
-      .select('role_id');
-    
-    return roles.map(r => r.role_id);
+    const user = await this.findById(userId);
+    if (!user || !user.dept_id) return [];
+
+    const dept = await getDatabase()('depts').where('id', user.dept_id).first();
+    if (!dept || !dept.role_ids) return [];
+
+    try {
+      const deptRoleIds = JSON.parse(dept.role_ids);
+      return Array.isArray(deptRoleIds) ? deptRoleIds : [];
+    } catch {
+      return [];
+    }
   }
 }
 

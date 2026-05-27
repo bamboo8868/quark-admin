@@ -42,11 +42,4 @@ export async function seed(knex) {
       updated_at: new Date()
     }
   ]);
-
-  // Assign roles to users
-  await knex('user_roles').del();
-  await knex('user_roles').insert([
-    { user_id: 1, role_id: 1, created_at: new Date() },
-    { user_id: 2, role_id: 2, created_at: new Date() }
-  ]);
 }

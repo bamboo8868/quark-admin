@@ -1,4 +1,5 @@
 import { systemController } from '../controllers/system.controller.js';
+import { optionalAuth, authenticate } from '../middlewares/auth.middleware.js';
 
 /**
  * System routes for admin frontend
@@ -28,11 +29,9 @@ export async function systemRoutes(app) {
   app.post('/user/batch-delete', systemController.batchDeleteUsers);
   // Reset user password
   app.put('/user/:id/reset-password', systemController.resetUserPassword);
-  // Update user roles
-  app.put('/user/:id/roles', systemController.updateUserRoles);
   // Get all roles (for dropdown)
   app.get('/list-all-role', systemController.getAllRoles);
-  // Get user role IDs
+  // Get user role IDs (from department)
   app.post('/list-role-ids', systemController.getRoleIds);
 
   // ==================== Role Management ====================
@@ -81,9 +80,13 @@ export async function systemRoutes(app) {
 
   // ==================== User Profile ====================
   // Mine (user profile)
-  app.get('/mine', systemController.getMine);
+  app.get('/mine', { preHandler: [optionalAuth] }, systemController.getMine);
+  // Update mine (user profile)
+  app.put('/mine/update', { preHandler: [authenticate] }, systemController.updateMine);
+  // Change password
+  app.put('/mine/password', { preHandler: [authenticate] }, systemController.changePassword);
   // Mine logs
-  app.get('/mine-logs', systemController.getMineLogs);
+  app.get('/mine-logs', { preHandler: [optionalAuth] }, systemController.getMineLogs);
 
   // ==================== Other ====================
   // Card list

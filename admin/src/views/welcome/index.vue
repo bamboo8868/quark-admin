@@ -27,7 +27,7 @@ const optionsBasis: Array<OptionsType> = [
 </script>
 
 <template>
-  <div>
+  <!-- <div>
     <el-row :gutter="24" justify="space-around">
       <re-col
         v-for="(item, index) in chartData"
@@ -245,7 +245,7 @@ const optionsBasis: Array<OptionsType> = [
         </el-card>
       </re-col>
     </el-row>
-  </div>
+  </div> -->
 </template>
 
 <style lang="scss" scoped>

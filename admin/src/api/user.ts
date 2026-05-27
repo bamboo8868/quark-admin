@@ -87,7 +87,17 @@ export const getMine = (data?: object) => {
   return http.request<UserInfoResult>("get", "/api/mine", { data });
 };
 
+/** 账户设置-更新个人信息 */
+export const updateMine = (data?: object) => {
+  return http.request<UserInfoResult>("put", "/api/mine/update", { data });
+};
+
+/** 账户设置-修改密码 */
+export const changePassword = (data?: { oldPassword: string; newPassword: string }) => {
+  return http.request<{ code: number; message: string; data: null }>("put", "/api/mine/password", { data });
+};
+
 /** 账户设置-个人安全日志 */
-export const getMineLogs = (data?: object) => {
-  return http.request<ResultTable>("get", "/api/mine-logs", { data });
+export const getMineLogs = (params?: object) => {
+  return http.request<ResultTable>("get", "/api/mine-logs", { params });
 };

@@ -13,7 +13,7 @@ export class EmailAccountModel extends BaseModel {
    */
   async findByUserId(userId) {
     return await this.query()
-      .where('user_id', userId)
+    //   .where('user_id', userId)
       .orderBy('id', 'asc');
   }
 
@@ -27,14 +27,7 @@ export class EmailAccountModel extends BaseModel {
       .first();
   }
 
-  async getLastUid(id) {
-    return await this.query()
-      .select('uid')
-      .where('account_id', id)
-      .orderBy('uid', 'desc')
-      .first()
-      .then(row => row ? row.last_uid : 0);
-  }
+
 
   /**
    * Create email account

@@ -22,7 +22,8 @@ const columns: TableColumnList = [
   {
     label: "详情",
     prop: "summary",
-    minWidth: 140
+    minWidth: 140,
+    formatter: ({ behavior }) => behavior || "账户登录"
   },
   {
     label: "IP 地址",
@@ -48,24 +49,37 @@ const columns: TableColumnList = [
     label: "时间",
     prop: "operatingTime",
     minWidth: 180,
-    formatter: ({ operatingTime }) =>
-      dayjs(operatingTime).format("YYYY-MM-DD HH:mm:ss")
+    formatter: ({ loginTime }) =>
+      loginTime ? dayjs(loginTime).format("YYYY-MM-DD HH:mm:ss") : ""
   }
 ];
 
 async function onSearch() {
   loading.value = true;
-  const { code, data } = await getMineLogs();
-  if (code === 0) {
-    dataList.value = data.list;
-    pagination.total = data.total;
-    pagination.pageSize = data.pageSize;
-    pagination.currentPage = data.currentPage;
-  }
-
-  setTimeout(() => {
+  try {
+    const { code, data } = await getMineLogs({
+      page: pagination.currentPage,
+      limit: pagination.pageSize
+    });
+    if (code === 0) {
+      dataList.value = data.list;
+      pagination.total = data.total;
+      pagination.pageSize = data.pageSize;
+      pagination.currentPage = data.currentPage;
+    }
+  } finally {
     loading.value = false;
-  }, 200);
+  }
+}
+
+function handleSizeChange(val: number) {
+  pagination.pageSize = val;
+  onSearch();
+}
+
+function handleCurrentChange(val: number) {
+  pagination.currentPage = val;
+  onSearch();
 }
 
 onMounted(() => {
@@ -83,6 +97,8 @@ onMounted(() => {
       :data="dataList"
       :columns="columns"
       :pagination="pagination"
+      @page-size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
     />
   </div>
 </template>
