@@ -21,7 +21,7 @@ export function useMail() {
   /** Pagination */
   const pagination = reactive<PaginationProps>({
     total: 0,
-    pageSize: 20,
+    pageSize: 50,
     currentPage: 1,
     background: true
   });
