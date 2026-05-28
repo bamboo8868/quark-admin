@@ -10,9 +10,11 @@
  * 
  * This script will:
  *   1. Check if the super admin role exists, create if not
- *   2. Check if the user exists, update password if yes, create if not
- *   3. Assign super admin role to the user
+ *   2. Check if the super admin department exists, create if not (with role bound)
+ *   3. Check if the user exists, update password if yes, create if not (with dept)
  *   4. Assign all menus (from static config) to the super admin role
+ *
+ * Roles come from department — no user_roles table needed.
  */
 
 import dotenv from 'dotenv';
@@ -48,7 +50,8 @@ const DEFAULTS = {
   email: 'admin@company.com',
   phone: '15888888888',
   role_name: '超级管理员',
-  role_code: 'admin'
+  role_code: 'admin',
+  dept_name: '超级管理员组'
 };
 
 async function main() {
@@ -98,22 +101,63 @@ async function main() {
       console.log(`[✓] Super admin role created (id: ${adminRole.id})`);
     }
 
-    // Step 2: Check if user exists, create or update
-    console.log('\n[2/4] Checking admin user...');
+    // Step 2: Ensure super admin department exists (with admin role bound)
+    console.log('\n[2/4] Checking super admin department...');
+    let adminDept = await db('depts').where({ name: options.dept_name }).first();
+
+    if (adminDept) {
+      // Check if the dept already has the admin role bound
+      let deptRoleIds = [];
+      try {
+        deptRoleIds = JSON.parse(adminDept.role_ids || '[]');
+      } catch { /* ignore */ }
+
+      if (!deptRoleIds.includes(adminRole.id)) {
+        deptRoleIds.push(adminRole.id);
+        await db('depts').where({ id: adminDept.id }).update({
+          role_ids: JSON.stringify(deptRoleIds),
+          updated_at: new Date()
+        });
+        console.log(`[✓] Super admin department already exists (id: ${adminDept.id}), role bound updated`);
+      } else {
+        console.log(`[✓] Super admin department already exists (id: ${adminDept.id}), role already bound`);
+      }
+    } else {
+      const [deptId] = await db('depts').insert({
+        name: options.dept_name,
+        parent_id: 0,
+        sort: 0,
+        phone: options.phone,
+        principal: options.nickname,
+        email: options.email,
+        status: 1,
+        type: 1,
+        role_ids: JSON.stringify([adminRole.id]),
+        remark: '超级管理员所属部门',
+        created_at: new Date(),
+        updated_at: new Date()
+      });
+      adminDept = await db('depts').where({ id: deptId }).first();
+      console.log(`[✓] Super admin department created (id: ${adminDept.id}), role bound`);
+    }
+
+    // Step 3: Check if user exists, create or update
+    console.log('\n[3/4] Checking admin user...');
     let user = await db('users').where({ username: options.username }).first();
     const hashedPassword = await bcrypt.hash(options.password, 10);
 
     if (user) {
-      // Update existing user
+      // Update existing user — ensure dept_id points to admin dept
       await db('users').where({ id: user.id }).update({
         password: hashedPassword,
+        dept_id: adminDept.id,
         status: 1,
         updated_at: new Date()
       });
       user = await db('users').where({ id: user.id }).first();
-      console.log(`[✓] Admin user already exists, password updated (id: ${user.id})`);
+      console.log(`[✓] Admin user already exists, password & dept updated (id: ${user.id})`);
     } else {
-      // Create new user
+      // Create new user under admin dept
       const [userId] = await db('users').insert({
         username: options.username,
         nickname: options.nickname,
@@ -123,32 +167,13 @@ async function main() {
         password: hashedPassword,
         sex: 0,
         status: 1,
-        dept_id: 0,
+        dept_id: adminDept.id,
         remark: '超级管理员',
         created_at: new Date(),
         updated_at: new Date()
       });
       user = await db('users').where({ id: userId }).first();
-      console.log(`[✓] Admin user created (id: ${user.id})`);
-    }
-
-    // Step 3: Assign super admin role to user
-    console.log('\n[3/4] Assigning super admin role...');
-    const existingMapping = await db('user_roles')
-      .where({ user_id: user.id, role_id: adminRole.id })
-      .first();
-
-    if (existingMapping) {
-      console.log('[✓] User already has super admin role');
-    } else {
-      // Remove existing roles and assign super admin role
-      await db('user_roles').where({ user_id: user.id }).del();
-      await db('user_roles').insert({
-        user_id: user.id,
-        role_id: adminRole.id,
-        created_at: new Date()
-      });
-      console.log('[✓] Super admin role assigned to user');
+      console.log(`[✓] Admin user created (id: ${user.id}), dept: ${adminDept.name}`);
     }
 
     // Step 4: Assign all menus (from static config) to super admin role
@@ -178,7 +203,8 @@ async function main() {
     console.log('========================================');
     console.log(`  Username: ${options.username}`);
     console.log(`  Password: ${options.password}`);
-    console.log(`  Role:     ${options.role_name} (${options.role_code})`);
+    console.log(`  Role:     ${options.role_name} (${options.role_code}, id: ${adminRole.id})`);
+    console.log(`  Dept:     ${adminDept.name} (id: ${adminDept.id})`);
     console.log(`  Menus:    ${menuIds.length}`);
     console.log('========================================\n');
 

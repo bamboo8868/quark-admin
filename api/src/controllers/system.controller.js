@@ -74,7 +74,6 @@ export const systemController = {
         username: user.username,
         nickname: user.nickname,
         roles: user.roles?.map(r => r.code) || [],
-        // roles: ['admin'],
         accessToken,
         refreshToken,
         expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()

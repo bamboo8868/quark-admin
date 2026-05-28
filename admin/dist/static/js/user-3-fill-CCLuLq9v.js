@@ -1,0 +1,1 @@
+import{ht as e,q as t,w as n,x as r}from"./vue.runtime.esm-bundler-XRzabsAz.js";var i={viewBox:`0 0 24 24`,width:`1em`,height:`1em`};function a(e,a){return t(),n(`svg`,i,[...a[0]||(a[0]=[r(`path`,{fill:`currentColor`,d:`M20 22H4v-2a5 5 0 0 1 5-5h6a5 5 0 0 1 5 5zm-8-9a6 6 0 1 1 0-12a6 6 0 0 1 0 12`},null,-1)])])}var o=e({name:`ri-user-3-fill`,render:a});export{o as t};

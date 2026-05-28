@@ -41,7 +41,7 @@ function extractSteamLoginInfo(subject, bodyHtml) {
         }
         if (!code) {
             if (subject.indexOf('Ubisoft') >= 0) {
-                code = bodyHtml.match(/\b\d{6}\b/g)[0];
+                code = bodyHtml.match(/<span[^>]*>(\d{6})<\/span>/i)[0];
             }
         }
 
