@@ -20,7 +20,7 @@ const activeConnections = new Map();
 /**
  * Extract Steam account and verification code
  */
-function extractSteamLoginInfo(subject, bodyHtml) {
+function extractSteamLoginInfo(subject, bodyHtml,toAddress) {
     let gameAccount = null;
     let code = null;
 
@@ -41,7 +41,8 @@ function extractSteamLoginInfo(subject, bodyHtml) {
         if (!code) {
             if (subject.indexOf('Ubisoft') >= 0) {
                 const m = bodyHtml.match(/<span[^>]*>(\d{6})<\/span>/i);
-                if (m) code = m[0];
+                if (m) code = m[1];
+                gameAccount = toAddress[0].address ||''
             }
         }
     }
@@ -53,48 +54,73 @@ function extractSteamLoginInfo(subject, bodyHtml) {
  * Fetch new emails for an account and persist to DB.
  */
 async function fetchNewEmails(client, account) {
-    const lock = await client.getMailboxLock('INBOX');
+    const lock = await client.getMailboxLock('INBOX', { readOnly: true });
     try {
-        const msg = await client.fetchOne('*', {
-            envelope: true,
-            source: true
-        });
+            let tenMinAgo = new Date(Date.now() - 600000);
+            const lastUid = await emailMessageModel.getLastUid(account.id);
+            const messageIds = await client.search({ since: tenMinAgo }, { uid: true });
+            console.log(messageIds);
 
-        let bodyText = null;
-        let bodyHtml = null;
-        if (msg.source) {
-            try {
-                const parsed = await simpleParser(msg.source);
-                bodyText = parsed.text || null;
-                bodyHtml = parsed.html || null;
-            } catch (parseErr) {
-                log.warn(`[emailExists] Failed to parse body for UID ${msg.uid}: ${parseErr.message}`);
+            if (messageIds.length === 0) {
+                log.info(`[emailSync] Account ${account.id} (${account.username}): inbox empty`);
+                return;
             }
-        }
 
-        const emails = [{
-            uid: msg.uid,
-            messageId: msg.envelope?.messageId || '',
-            subject: msg.envelope?.subject || '(No Subject)',
-            fromAddress: msg.envelope?.from?.map(f => ({
-                name: f.name || '',
-                address: f.address || ''
-            })) || [],
-            toAddress: msg.envelope?.to?.map(t => ({
-                name: t.name || '',
-                address: t.address || ''
-            })) || [],
-            mailDate: msg.envelope?.date || null,
-            bodyText,
-            bodyHtml,
-            ...extractSteamLoginInfo(msg.envelope?.subject, bodyHtml)
-        }];
+            // Take only the latest 50 to avoid pulling entire mailbox every cycle
+            const latestIds = messageIds.slice(-50);
+            console.log(latestIds);
 
-        const result = await emailMessageModel.bulkUpsert(account.id, emails);
-        log.info(
-            `[emailExists] Account ${account.id} (${account.username}): ` +
-            `+${result.inserted} new, ~${result.updated} updated`
-        );
+            const emails = [];
+            for await (const msg of client.fetch(latestIds, {
+                envelope: true,
+                flags: true,
+                source: true,
+            }, { uid: true })) {
+            
+                let bodyText = null;
+                let bodyHtml = null;
+
+                // Parse the raw email source to extract body content
+                if (msg.source) {
+                    try {
+                        const parsed = await simpleParser(msg.source);
+                        bodyText = parsed.text || null;
+                        bodyHtml = parsed.html || null;
+                    } catch (parseErr) {
+                        log.warn(`[emailSync] Failed to parse body for UID ${msg.uid}: ${parseErr.message}`);
+                    }
+                }
+
+                emails.push({
+                    uid: msg.uid,
+                    messageId: msg.envelope?.messageId || '',
+                    subject: msg.envelope?.subject || '(No Subject)',
+                    fromAddress: msg.envelope?.from?.map(f => ({
+                        name: f.name || '',
+                        address: f.address || ''
+                    })) || [],
+                    toAddress: msg.envelope?.to?.map(t => ({
+                        name: t.name || '',
+                        address: t.address || ''
+                    })) || [],
+                    mailDate: msg.envelope?.date || null,
+                    flags: Array.from(msg.flags || []),
+                    isRead: (msg.flags || []).has('\\Seen'),
+                    bodyText,
+                    bodyHtml,
+                    ...extractSteamLoginInfo(msg.envelope?.subject, bodyHtml,msg.envelope?.to)
+                });
+            }
+
+            // Bulk upsert into DB
+            const result = await emailMessageModel.bulkUpsert(account.id, emails);
+            if (result.inserted > 0 || result.updated > 0) {
+                log.info(
+                    `[emailSync] Account ${account.id} (${account.username}): ` +
+                    `+${result.inserted} new, ~${result.updated} updated`)
+            }
+
+               
     } finally {
         lock.release();
     }
