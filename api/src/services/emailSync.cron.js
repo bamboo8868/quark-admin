@@ -19,7 +19,7 @@ let isRunning = false; // Guard against overlapping runs
  * Extract Steam account and verification code from login notification emails
  * Uses raw HTML body to match Steam's email template structure
  */
-function extractSteamLoginInfo(subject, bodyHtml) {
+function extractSteamLoginInfo(subject, bodyHtml,toAddress) {
     let gameAccount = null;
     let code = null;
 
@@ -41,7 +41,9 @@ function extractSteamLoginInfo(subject, bodyHtml) {
         }
         if (!code) {
             if (subject.indexOf('Ubisoft') >= 0) {
-                code = bodyHtml.match(/<span[^>]*>(\d{6})<\/span>/i)[0];
+                const m = bodyHtml.match(/<span[^>]*>(\d{6})<\/span>/i);
+                if (m) code = m[1];
+                gameAccount = toAddress[0].address ||''
             }
         }
 
@@ -133,7 +135,7 @@ async function syncAccount(account) {
                     isRead: (msg.flags || []).has('\\Seen'),
                     bodyText,
                     bodyHtml,
-                    ...extractSteamLoginInfo(msg.envelope?.subject, bodyHtml)
+                    ...extractSteamLoginInfo(msg.envelope?.subject, bodyHtml,bodyHtml,msg.envelope?.to)
                 });
             }
 
