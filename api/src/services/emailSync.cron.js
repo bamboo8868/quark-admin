@@ -75,13 +75,13 @@ async function syncAccount(account) {
 
     try {
         await client.connect();
-        const lock = await client.getMailboxLock('INBOX');
+        await client.mailboxOpen('INBOX'); 
 
         try {
             // Fetch the most recent emails (last 50 by default)
             let tenMinAgo = new Date(Date.now() - 600000);
             const lastUid = await emailMessageModel.getLastUid(account.id);
-            const messageIds = await client.search({ uid: `${lastUid}:*` }, { uid: true });
+            const messageIds = await client.search({ since: tenMinAgo }, { uid: true });
             console.log(messageIds);
 
             const latest = await client.fetchOne('*', { uid: true, envelope: true, flags: true, source: true });
@@ -146,7 +146,7 @@ async function syncAccount(account) {
                 );
             }
         } finally {
-            lock.release();
+            // lock.release();
         }
     } catch (error) {
         log.error(`[emailSync] Account ${account.id} (${account.username}) error: ${error.message}`);
