@@ -85,6 +85,8 @@ menus:
   pureEmailManagement: Email Management
   pureMailManage: Mail Management
   pureAccountManage: Account Management
+  pureGameManagement: Game Management
+  pureGameAccount: Game Account
   pureCodeMirror: CodeMirror
   pureMarkdown: Markdown
   pureEditor: Editor
