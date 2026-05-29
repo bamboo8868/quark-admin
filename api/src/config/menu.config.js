@@ -7,6 +7,7 @@
 const SYSTEM_RANK = 10;
 const MONITOR_RANK = 11;
 const EMAIL_RANK = 12;
+const GAME_RANK = 13;
 
 export const menuConfig = [
   {
@@ -129,6 +130,28 @@ export const menuConfig = [
         path: '/email/account/index',
         component: 'email/account/index',
         icon: 'ri:account-circle-line'
+      }
+    ]
+  },
+  {
+    id: 4000,
+    parentId: 0,
+    menuType: 0,
+    title: 'menus.pureGameManagement',
+    name: 'Game',
+    path: '/game',
+    icon: 'ri:gamepad-line',
+    rank: GAME_RANK,
+    children: [
+      {
+        id: 4001,
+        parentId: 4000,
+        menuType: 0,
+        title: 'menus.pureGameAccount',
+        name: 'GameAccount',
+        path: '/game/account/index',
+        component: 'game/account/index',
+        icon: 'ri:key-2-line'
       }
     ]
   }

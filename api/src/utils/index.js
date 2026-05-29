@@ -18,3 +18,4 @@ export {
   queryOptimizer, 
   memoryOptimizer 
 } from './optimizer.js';
+export { db, getKnex, knex } from './db.js';
