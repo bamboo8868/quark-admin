@@ -4,8 +4,9 @@ module.exports = {
       name: 'quark-api',
       script: 'src/app.js',
       env: {
-        NODE_ENV: 'production'
+        NODE_ENV: 'prod'
       },
+      exec_mode: 'fork',
       instances: 1,
       autorestart: true,
       max_restarts: 10,
@@ -17,8 +18,9 @@ module.exports = {
       name: 'quark-email-sync',
       script: 'src/workers/emailSyncWorker.js',
       env: {
-        NODE_ENV: 'production'
+        NODE_ENV: 'prod'
       },
+      exec_mode: 'fork',
       instances: 1,
       autorestart: true,
       max_restarts: 10,
@@ -30,8 +32,9 @@ module.exports = {
       name: 'quark-email-exists',
       script: 'src/workers/emailExistsWorker.js',
       env: {
-        NODE_ENV: 'production'
+        NODE_ENV: 'prod'
       },
+      exec_mode: 'fork',
       instances: 1,
       autorestart: true,
       max_restarts: 10,

@@ -1,0 +1,552 @@
+export const categories = [
+  { id: 'all', name: '全部游戏', icon: '🎮' },
+  { id: 'fps', name: '射击游戏', icon: '🔫' },
+  { id: 'moba', name: 'MOBA', icon: '⚔️' },
+  { id: 'rpg', name: '角色扮演', icon: '🧙' },
+  { id: 'arpg', name: '动作RPG', icon: '🗡️' },
+  { id: 'strategy', name: '策略游戏', icon: '🏰' },
+  { id: 'rts', name: '即时战略', icon: '⚔️' },
+  { id: 'sports', name: '体育竞技', icon: '⚽' },
+  { id: 'racing', name: '竞速游戏', icon: '🏎️' },
+  { id: 'survival', name: '生存游戏', icon: '🏕️' },
+  { id: 'sandbox', name: '沙盒游戏', icon: '🌍' },
+  { id: 'horror', name: '恐怖游戏', icon: '👻' },
+  { id: 'simulation', name: '模拟经营', icon: '🏭' },
+  { id: 'puzzle', name: '益智解谜', icon: '🧩' },
+  { id: 'adventure', name: '冒险游戏', icon: '🗺️' },
+  { id: 'platformer', name: '平台跳跃', icon: '🏃' },
+  { id: 'fighting', name: '格斗游戏', icon: '🥊' },
+  { id: 'rhythm', name: '音乐节奏', icon: '🎵' },
+  { id: 'card', name: '卡牌游戏', icon: '🃏' },
+  { id: 'vr', name: 'VR游戏', icon: '🥽' },
+]
+
+export const games = [
+  {
+    id: 1,
+    title: 'Counter-Strike 2',
+    category: 'fps',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/730/header.jpg',
+    rating: 4.8,
+    players: '1.2M',
+    tags: ['FPS', '竞技', '多人'],
+    description: '全球最受欢迎的战术射击游戏',
+    longDescription: 'Counter-Strike 2 是一款由 Valve 开发的免费多人战术射击游戏，是 CS:GO 的全面升级版。游戏基于 Source 2 引擎打造，带来全新的视觉效果、CS 评分系统以及重新设计的地图。无论是经典竞技模式还是休闲对战，CS2 都提供了无与伦比的射击体验。',
+    storeUrl: 'https://store.steampowered.com/app/730',
+    accounts: [
+      { username: 'cs2_pro_2024', password: 'Cs2@Pr0!Xk9' },
+      { username: 'steam_cs2_vip', password: 'V1p#St3am!Zm' },
+    ]
+  },
+  {
+    id: 2,
+    title: 'Valorant',
+    category: 'fps',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/730/header.jpg',
+    rating: 4.6,
+    players: '890K',
+    tags: ['FPS', '英雄', '战术'],
+    description: '5v5 角色战术射击游戏',
+    longDescription: 'Valorant 是一款由 Riot Games 开发的免费 5v5 战术射击游戏。游戏融合了精准的枪械射击与独特的英雄技能，每位特工都拥有各自的技能组合，为团队战术带来无限可能。在攻防双方的激烈对抗中，策略与枪法同样重要。',
+    storeUrl: 'https://playvalorant.com',
+    accounts: [
+      { username: 'val_hero_main', password: 'H3r0!V4l@Qw' },
+    ]
+  },
+  {
+    id: 3,
+    title: 'Apex Legends',
+    category: 'fps',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1172470/header.jpg',
+    rating: 4.5,
+    players: '670K',
+    tags: ['大逃杀', 'FPS', '英雄'],
+    description: '下一代大逃杀英雄射击游戏',
+    longDescription: 'Apex Legends 是一款由 Respawn Entertainment 开发的免费大逃杀英雄射击游戏。玩家可以选择各具特色的传奇角色，在激烈的竞技场上与其他队伍展开对抗。创新的标记系统、流畅的移动机制以及独特的英雄技能让每场战斗都充满变数。',
+    storeUrl: 'https://store.steampowered.com/app/1172470',
+    accounts: [
+      { username: 'apex_legends_gl', password: 'L3g3nd@Ap3x!' },
+      { username: 'apex_pred_rank', password: 'Pr3d@t0r#Xz' },
+    ]
+  },
+  {
+    id: 4,
+    title: '英雄联盟',
+    category: 'moba',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/570/header.jpg',
+    rating: 4.7,
+    players: '2.1M',
+    tags: ['MOBA', '竞技', '5v5'],
+    description: '全球最受欢迎的MOBA竞技游戏',
+    longDescription: '英雄联盟（League of Legends）是由 Riot Games 开发的多人在线竞技游戏。超过 160 位英雄各具特色，在召唤师峡谷的 5v5 对战中，团队协作与个人操作同样关键。作为全球最大的电竞赛事之一，英雄联盟拥有庞大的玩家社区和观赛群体。',
+    storeUrl: 'https://lol.qq.com',
+    accounts: [
+      { username: 'lol_diamond_01', password: 'D1a@L0L!M0b' },
+      { username: 'lol_challenger', password: 'Ch4ll!L0L#Ng' },
+      { username: 'lol_rank_solo', password: 'S0l0@R4nk!Qq' },
+    ]
+  },
+  {
+    id: 5,
+    title: 'Dota 2',
+    category: 'moba',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/570/header.jpg',
+    rating: 4.4,
+    players: '750K',
+    tags: ['MOBA', '竞技', '策略'],
+    description: '最具深度的MOBA竞技游戏',
+    longDescription: 'Dota 2 是一款由 Valve 开发的免费 MOBA 竞技游戏，以其深度的策略性和极高的操作上限著称。超过 120 位英雄，数百种物品组合，每一局都是全新的挑战。每年举办的国际邀请赛（TI）拥有电竞史上最高的奖金池。',
+    storeUrl: 'https://store.steampowered.com/app/570',
+    accounts: [
+      { username: 'dota2_immortal', password: '1mm0rt4l!Dt' },
+    ]
+  },
+  {
+    id: 6,
+    title: '艾尔登法环',
+    category: 'rpg',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/header.jpg',
+    rating: 4.9,
+    players: '450K',
+    tags: ['魂系', '开放世界', 'RPG'],
+    description: '由宫崎英高与乔治·R·R·马丁联手打造',
+    longDescription: '艾尔登法环（Elden Ring）是由 FromSoftware 开发、Bandai Namco 发行的开放世界动作角色扮演游戏。由宫崎英高执掌开发，乔治·R·R·马丁参与世界观构建。在广袤的交界地中探索、战斗，体验魂系游戏标志性的高难度战斗与深邃的世界叙事。2022年度最佳游戏。',
+    storeUrl: 'https://store.steampowered.com/app/1245620',
+    accounts: [
+      { username: 'elden_ring_souls', password: 'S0uls@Eld3n!' },
+      { username: 'elden_ring_ng7', password: 'Ng7!R1ng#Fm' },
+    ]
+  },
+  {
+    id: 7,
+    title: '博德之门 3',
+    category: 'rpg',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1086940/header.jpg',
+    rating: 4.9,
+    players: '520K',
+    tags: ['CRPG', '回合制', '剧情'],
+    description: '基于D&D规则的史诗级角色扮演游戏',
+    longDescription: '博德之门 3（Baldur\'s Gate 3）是由 Larian Studio 开发的经典 CRPG 续作。基于龙与地下城第五版规则，拥有极其丰富的剧情分支与选择系统。从角色创建到每一次对话选择，都将影响你的冒险旅程。支持最多4人合作，与好友共同书写传奇。',
+    storeUrl: 'https://store.steampowered.com/app/1086940',
+    accounts: [
+      { username: 'bg3_dnd_master', password: 'Dnd@Bg3!R0l3' },
+    ]
+  },
+  {
+    id: 8,
+    title: '赛博朋克 2077',
+    category: 'rpg',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1091500/header.jpg',
+    rating: 4.3,
+    players: '380K',
+    tags: ['RPG', '开放世界', '赛博朋克'],
+    description: '在夜之城中追寻独一无二的植入体',
+    longDescription: '赛博朋克 2077（Cyberpunk 2077）是由 CD Projekt RED 开发的开放世界动作角色扮演游戏。在未来的夜之城中，你扮演佣兵 V，追寻一种独一无二的植入体——永生的关键。自由探索繁华都市，定制角色技能与义体，在危险的赛博世界中闯出属于自己的传奇。',
+    storeUrl: 'https://store.steampowered.com/app/1091500',
+    accounts: [
+      { username: 'cyber_night_v', password: 'N1ght@Cyb3r!' },
+    ]
+  },
+  {
+    id: 9,
+    title: '文明 6',
+    category: 'strategy',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/289070/header.jpg',
+    rating: 4.6,
+    players: '290K',
+    tags: ['4X', '回合制', '策略'],
+    description: '打造横跨时代的帝国',
+    longDescription: '文明 6（Civilization VI）是由 Firaxis Games 开发的经典 4X 回合制策略游戏。从石器时代到信息时代，引领你的文明走向辉煌。选择不同的文明与领袖，发展科技、文化、军事，通过外交或征服称霸世界。"再回合一"的上瘾体验让无数玩家欲罢不能。',
+    storeUrl: 'https://store.steampowered.com/app/289070',
+    accounts: [
+      { username: 'civ6_emperor', password: '3mp3r0r!Cv6' },
+    ]
+  },
+  {
+    id: 10,
+    title: '帝国时代 IV',
+    category: 'strategy',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1466860/header.jpg',
+    rating: 4.2,
+    players: '180K',
+    tags: ['RTS', '历史', '策略'],
+    description: '重返历史，体验即时战略',
+    longDescription: '帝国时代 IV（Age of Empires IV）是由 Relic Entertainment 开发的即时战略游戏。从中世纪到近代，体验历史上著名的战役与文明。精美的画面还原历史风貌，简化的经济系统让新手更易上手，同时保留了深度的战略玩法。',
+    storeUrl: 'https://store.steampowered.com/app/1466860',
+    accounts: [
+      { username: 'aoe4_khan_01', password: 'Kh4n@A0e4!Rt' },
+    ]
+  },
+  {
+    id: 11,
+    title: 'FIFA 25',
+    category: 'sports',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/2669320/header.jpg',
+    rating: 3.8,
+    players: '560K',
+    tags: ['足球', '体育', '模拟'],
+    description: '最真实的足球体验',
+    longDescription: 'EA SPORTS FC 25（原 FIFA 系列）带来最真实的足球模拟体验。HyperMotion V 技术让球员动作更加逼真，全新的 FC IQ 系统赋予队友更智能的跑位与战术执行能力。无论是终极球队、职业生涯还是在线对战，都能找到属于你的赛场。',
+    storeUrl: 'https://store.steampowered.com/app/2669320',
+    accounts: [
+      { username: 'fifa25_striker', password: 'Str1k3r@Ff4!' },
+    ]
+  },
+  {
+    id: 12,
+    title: '极限竞速：地平线 5',
+    category: 'racing',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1551360/header.jpg',
+    rating: 4.7,
+    players: '340K',
+    tags: ['竞速', '开放世界', '赛车'],
+    description: '在墨西哥的壮丽风景中自由驰骋',
+    longDescription: '极限竞速：地平线 5（Forza Horizon 5）由 Playground Games 开发，带你前往墨西哥的壮丽风景中自由驰骋。超过 500 辆授权豪车，从沙漠到丛林，从火山到海滩，在开放世界中尽情探索。季节更替系统为每一处景点带来不同的风貌与挑战。',
+    storeUrl: 'https://store.steampowered.com/app/1551360',
+    accounts: [
+      { username: 'fh5_speed_demon', password: 'Sp33d@Fh5!Dr' },
+      { username: 'fh5_drift_king', password: 'Dr1ft!K1ng#5H' },
+    ]
+  },
+  {
+    id: 13,
+    title: '方舟：生存进化',
+    category: 'survival',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/346110/header.jpg',
+    rating: 4.1,
+    players: '270K',
+    tags: ['生存', '恐龙', '建造'],
+    description: '在恐龙世界中生存与进化',
+    longDescription: '方舟：生存进化（ARK: Survival Evolved）是一款以恐龙为主题的开放世界生存游戏。在充满远古生物的神秘岛屿上，你需要采集资源、建造基地、驯服恐龙，与其他玩家合作或对抗。超过 100 种可驯服的生物，从温顺的三角龙到凶猛的霸王龙。',
+    storeUrl: 'https://store.steampowered.com/app/346110',
+    accounts: [
+      { username: 'ark_survivor_01', password: 'Surv1v3@Ark!' },
+    ]
+  },
+  {
+    id: 14,
+    title: '我的世界',
+    category: 'sandbox',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/322330/header.jpg',
+    rating: 4.8,
+    players: '1.5M',
+    tags: ['沙盒', '建造', '生存'],
+    description: '无限创造，无限可能',
+    longDescription: '我的世界（Minecraft）是全球销量最高的游戏，由 Mojang Studios 开发。在由方块构成的世界中，你可以自由探索、建造与创造。无论是生存模式中的冒险旅程，还是创造模式中的建筑奇观，亦或是红石工程中的逻辑挑战，每一个玩家都能找到属于自己的乐趣。',
+    storeUrl: 'https://www.minecraft.net',
+    accounts: [
+      { username: 'mc_builder_pro', password: 'Bu1ld@Mc!Pr0' },
+      { username: 'mc_redstone_eng', password: 'R3d@St0ne!En' },
+    ]
+  },
+  {
+    id: 15,
+    title: '寂静岭 2 重制版',
+    category: 'horror',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1693350/header.jpg',
+    rating: 4.5,
+    players: '150K',
+    tags: ['恐怖', '心理', '重制'],
+    description: '经典恐怖游戏重制回归',
+    longDescription: '寂静岭 2 重制版（Silent Hill 2 Remake）由 Bloober Team 开发，是对经典心理恐怖游戏的全面重制。詹姆斯来到寂静岭寻找已故妻子的来信，在浓雾笼罩的小镇中探索被扭曲的记忆与恐惧。全新的越肩视角与画面表现，让经典恐怖体验焕发新生。',
+    storeUrl: 'https://store.steampowered.com/app/1693350',
+    accounts: [
+      { username: 'sh2_nightmare', password: 'N1ghtm@r3!Sh' },
+    ]
+  },
+  {
+    id: 16,
+    title: '城市：天际线 II',
+    category: 'simulation',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/949230/header.jpg',
+    rating: 3.9,
+    players: '200K',
+    tags: ['模拟', '建造', '经营'],
+    description: '打造你梦想中的城市',
+    longDescription: '城市：天际线 II（Cities: Skylines II）是由 Colossal Order 开发的城市建造模拟游戏。从零开始规划你的城市，管理交通、经济、环境与市民需求。全新的模拟引擎带来前所未有的城市细节，每一个决策都将影响你城市的发展与市民的幸福感。',
+    storeUrl: 'https://store.steampowered.com/app/949230',
+    accounts: [
+      { username: 'csl2_mayor_pro', password: 'M4y0r@Csly!' },
+    ]
+  },
+  {
+    id: 17,
+    title: '传送门 2',
+    category: 'puzzle',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/620/header.jpg',
+    rating: 4.9,
+    players: '310K',
+    tags: ['解谜', '科幻', '合作'],
+    description: '史上最伟大的解谜游戏之一',
+    longDescription: '传送门 2（Portal 2）是由 Valve 开发的第一人称解谜游戏。使用传送门枪在墙壁、地板和天花板上创造传送门，通过物理与空间思维解决精妙的谜题。单人剧情延续前作精彩故事，双人合作模式则带来全新的协作解谜体验。GLaDOS 的幽默旁白堪称游戏史上最经典的对话之一。',
+    storeUrl: 'https://store.steampowered.com/app/620',
+    accounts: [
+      { username: 'portal_test_19', password: 'T3st@P0rt4l!' },
+    ]
+  },
+  {
+    id: 18,
+    title: '绝地求生',
+    category: 'fps',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/578080/header.jpg',
+    rating: 4.0,
+    players: '980K',
+    tags: ['大逃杀', 'FPS', '多人'],
+    description: '大逃杀玩法的开创者',
+    longDescription: '绝地求生（PUBG: Battlegrounds）是由 PUBG Studios 开发的大逃杀射击游戏，开创了"吃鸡"游戏品类。100 名玩家空降荒岛，搜集武器装备，在不断缩小的安全区中生存到最后。丰富的武器系统、真实的弹道物理与紧张的对局节奏让每一局都充满挑战。',
+    storeUrl: 'https://store.steampowered.com/app/578080',
+    accounts: [
+      { username: 'pubg_chicken_dn', password: 'Ch1ck3n@Dnr!' },
+      { username: 'pubg_solo_ace', password: 'S0l0@Ac3!Pbg' },
+    ]
+  },
+  {
+    id: 19,
+    title: '星际争霸 II',
+    category: 'strategy',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/15190/header.jpg',
+    rating: 4.7,
+    players: '230K',
+    tags: ['RTS', '科幻', '电竞'],
+    description: '传奇即时战略游戏',
+    longDescription: '星际争霸 II（StarCraft II）是由 Blizzard Entertainment 开发的传奇即时战略游戏。人族、虫族与星灵三大种族各具特色，在星际战场上展开激烈对抗。精彩的单人战役与激烈的多人对战，使其成为 RTS 电竞的标杆之作。',
+    storeUrl: 'https://starcraft2.com',
+    accounts: [
+      { username: 'sc2_terran_rush', password: 'T3rr4n@Sc2!' },
+    ]
+  },
+  {
+    id: 20,
+    title: '腐蚀 Rust',
+    category: 'survival',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/252490/header.jpg',
+    rating: 4.2,
+    players: '420K',
+    tags: ['生存', 'PvP', '建造'],
+    description: '在残酷世界中唯一的目标就是生存',
+    longDescription: '腐蚀（Rust）是由 Facepunch Studios 开发的多人生存游戏。在荒野中赤手空拳开始，采集资源、建造庇护所、制作武器。最大挑战不是环境，而是其他玩家——背叛与联盟随时可能发生。残酷而真实的 PvP 机制让每一次遭遇都充满紧张感。',
+    storeUrl: 'https://store.steampowered.com/app/252490',
+    accounts: [
+      { username: 'rust_pvp_king', password: 'PvP@Rust!K1n' },
+    ]
+  },
+  {
+    id: 21,
+    title: '暗黑破坏神 IV',
+    category: 'arpg',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/236820/header.jpg',
+    rating: 4.3,
+    players: '350K',
+    tags: ['ARPG', '刷装', '暗黑'],
+    description: '莉莉丝归来，重返庇护之地',
+    longDescription: '暗黑破坏神 IV（Diablo IV）是由 Blizzard Entertainment 开发的动作角色扮演游戏。莉莉丝重返庇护之地，黑暗再度降临。在广袤的开放世界中探索，选择不同职业与技能组合，挑战无尽的地下城与世界 Boss。赛季系统持续带来全新内容与玩法。',
+    storeUrl: 'https://diablo4.blizzard.com',
+    accounts: [
+      { username: 'd4_lilith_hunt', password: 'L1l1th@D4!Hn' },
+    ]
+  },
+  {
+    id: 22,
+    title: '流放之路 2',
+    category: 'arpg',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/236820/header.jpg',
+    rating: 4.6,
+    players: '280K',
+    tags: ['ARPG', '暗黑', '自由构建'],
+    description: '深度技能树与无限可能的ARPG',
+    longDescription: '流放之路 2（Path of Exile 2）是由 Grinding Gear Games 开发的新一代 ARPG。拥有超过 100 种技能宝石与庞大的天赋树，为角色构建提供几乎无限的可能。全新的六人合作、改进的战斗系统与更丰富的故事剧情，将暗黑系 ARPG 推向新的高度。',
+    storeUrl: 'https://www.pathofexile.com',
+    accounts: [
+      { username: 'poe2_exile_main', password: '3x1l3@P0e2!' },
+    ]
+  },
+  {
+    id: 23,
+    title: '神话时代：重述',
+    category: 'rts',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/15190/header.jpg',
+    rating: 4.4,
+    players: '120K',
+    tags: ['RTS', '神话', '策略'],
+    description: '经典神话RTS重制归来',
+    longDescription: '神话时代：重述（Age of Mythology: Retold）是对经典神话主题即时战略游戏的重制版。希腊、北欧、埃及等神话体系中的神祇与传说生物将在战场上为你而战。召唤神力降下天罚，指挥神话单位攻城掠地，体验神话与战略的完美融合。',
+    storeUrl: 'https://store.steampowered.com/app/1976820',
+    accounts: [
+      { username: 'aom_god_war_01', password: 'G0dW4r@A0m!' },
+    ]
+  },
+  {
+    id: 24,
+    title: '神话时代：重述',
+    category: 'rts',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/15190/header.jpg',
+    rating: 4.7,
+    players: '230K',
+    tags: ['RTS', '神话', '策略'],
+    description: '经典神话RTS重制归来',
+    longDescription: '神话时代：重述（Age of Mythology: Retold）是对经典神话主题即时战略游戏的重制版。希腊、北欧、埃及等神话体系中的神祇与传说生物将在战场上为你而战。召唤神力降下天罚，指挥神话单位攻城掠地，体验神话与战略的完美融合。',
+    storeUrl: 'https://store.steampowered.com/app/1976820'
+  },
+  {
+    id: 25,
+    title: '神秘海域：盗贼传奇',
+    category: 'adventure',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1659420/header.jpg',
+    rating: 4.7,
+    players: '190K',
+    tags: ['冒险', '动作', '剧情'],
+    description: '德雷克的传奇冒险之旅',
+    longDescription: '神秘海域：盗贼传奇合辑（Uncharted: Legacy of Thieves Collection）将顽皮狗工作室的冒险杰作带到 PC。跟随内森·德雷克踏遍全球寻找失落宝藏，体验好莱坞级别的动作场面与感人至深的故事。攀爬、射击、解谜完美融合的冒险体验。',
+    storeUrl: 'https://store.steampowered.com/app/1659420',
+    accounts: [
+      { username: 'uncharted_drake', password: 'Dr4k3@Unch!' },
+    ]
+  },
+  {
+    id: 26,
+    title: '空洞骑士：丝之歌',
+    category: 'platformer',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/367520/header.jpg',
+    rating: 4.8,
+    players: '260K',
+    tags: ['银河城', '平台', '独立'],
+    description: '探索广袤而诡异的昆虫王国',
+    longDescription: '空洞骑士（Hollow Knight）是由 Team Cherry 开发的独立银河城类动作冒险游戏。在广袤而诡异的昆虫王国中探索，挑战各具特色的 Boss，解锁新能力前往更深层的区域。手绘风格的画面、精巧的关卡设计与深邃的世界观，使其成为独立游戏中的标杆之作。',
+    storeUrl: 'https://store.steampowered.com/app/367520',
+    accounts: [
+      { username: 'hk_void_knight', password: 'V01d@H0ll0w!' },
+    ]
+  },
+  {
+    id: 27,
+    title: '蔚蓝 Celeste',
+    category: 'platformer',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/504230/header.jpg',
+    rating: 4.8,
+    players: '170K',
+    tags: ['平台', '独立', '剧情'],
+    description: '攀登塞莱斯特山的艰难旅程',
+    longDescription: '蔚蓝（Celeste）是由 Maddy Makes Games 开发的独立平台跳跃游戏。帮助玛德琳攀登塞莱斯特山，在数百个精心设计的关卡中挑战极限。流畅的操作手感、渐进的难度曲线与感人的叙事，让你在每一次跌倒后都想要再试一次。',
+    storeUrl: 'https://store.steampowered.com/app/504230',
+    accounts: [
+      { username: 'celeste_madeline', password: 'M4d3l1n3@Cl!' },
+    ]
+  },
+  {
+    id: 28,
+    title: '街霸 6',
+    category: 'fighting',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1364780/header.jpg',
+    rating: 4.5,
+    players: '210K',
+    tags: ['格斗', '竞技', '电竞'],
+    description: '格斗游戏之王回归',
+    longDescription: '街头霸王 6（Street Fighter 6）由 Capcom 开发，格斗游戏之王重磅回归。全新的 Drive 系统为战斗增添策略深度，World Tour 模式让你在开放世界中修炼格斗技巧。丰富的角色阵容与精致的画面表现，无论新手还是老玩家都能享受格斗的乐趣。',
+    storeUrl: 'https://store.steampowered.com/app/1364780',
+    accounts: [
+      { username: 'sf6_shoto_main', password: 'Sh0t0@Sf6!Ma' },
+    ]
+  },
+  {
+    id: 29,
+    title: '铁拳 8',
+    category: 'fighting',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1196590/header.jpg',
+    rating: 4.4,
+    players: '160K',
+    tags: ['格斗', '3D', '竞技'],
+    description: '三岛家族宿命之战',
+    longDescription: '铁拳 8（TEKKEN 8）由 Bandai Namco 开发，三岛家族的宿命之战迎来终章。在虚幻引擎 5 的加持下，呈现系列最震撼的战斗画面。Heat 系统带来更激爽的战斗节奏，丰富的单人剧情模式揭示三岛一八与风间仁的最终对决。',
+    storeUrl: 'https://store.steampowered.com/app/1196590',
+    accounts: [
+      { username: 'tk8_mishima_fst', password: 'M1sh1m4@Tk8!' },
+    ]
+  },
+  {
+    id: 30,
+    title: '节奏光剑',
+    category: 'rhythm',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/620980/header.jpg',
+    rating: 4.7,
+    players: '320K',
+    tags: ['音乐', 'VR', '节奏'],
+    description: '在节拍中挥舞光剑',
+    longDescription: '节奏光剑（Beat Saber）是一款 VR 音乐节奏游戏，在虚拟现实中跟随节拍挥舞光剑切割飞来的方块。动感十足的音乐、流畅的体感操作与丰富的自定义歌曲支持，使其成为 VR 平台上最受欢迎的游戏之一。',
+    storeUrl: 'https://store.steampowered.com/app/620980',
+    accounts: [
+      { username: 'bsaber_expert', password: '3xp3rt@Bs4b!' },
+    ]
+  },
+  {
+    id: 31,
+    title: 'OSU!',
+    category: 'rhythm',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/620980/header.jpg',
+    rating: 4.5,
+    players: '410K',
+    tags: ['音乐', '节奏', '竞技'],
+    description: '节奏游戏的巅峰之作',
+    longDescription: 'OSU! 是一款免费开源的节奏游戏，灵感来自经典的押忍！太鼓达人等音乐游戏。点击、滑动、旋转——跟随音乐节拍精准操作，在排行榜上与全球玩家一较高下。庞大的社区曲库确保你永远有新歌可玩。',
+    storeUrl: 'https://osu.ppy.sh',
+    accounts: [
+      { username: 'osu_rhythm_ssg', password: 'Rhy7hm@0su!S' },
+    ]
+  },
+  {
+    id: 32,
+    title: '炉石传说',
+    category: 'card',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1085660/header.jpg',
+    rating: 4.3,
+    players: '370K',
+    tags: ['卡牌', '策略', '暴雪'],
+    description: '魔兽世界卡牌对战游戏',
+    longDescription: '炉石传说（Hearthstone）是由 Blizzard Entertainment 开发的免费数字卡牌游戏。以魔兽世界为背景，构筑你的卡组，在回合制对战中运用策略击败对手。简单易学的基本规则下隐藏着深度的策略组合，每一局对局都充满变数与惊喜。',
+    storeUrl: 'https://playhearthstone.com',
+    accounts: [
+      { username: 'hs_top_deck_01', password: 'T0pD3ck@Hs!' },
+    ]
+  },
+  {
+    id: 33,
+    title: '杀戮尖塔',
+    category: 'card',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/646570/header.jpg',
+    rating: 4.8,
+    players: '240K',
+    tags: ['卡牌', 'Roguelike', '策略'],
+    description: '卡牌与Roguelike的完美融合',
+    longDescription: '杀戮尖塔（Slay the Spire）是由 Mega Crit Games 开发的卡牌 Roguelike 游戏。在攀登尖塔的旅程中，不断收集与优化你的卡组，与各具特色的 Boss 战斗。每次冒险都是独一无二的体验——随机的遭遇、遗物与卡牌选择让每局游戏都充满策略考量。',
+    storeUrl: 'https://store.steampowered.com/app/646570',
+    accounts: [
+      { username: 'sts_silent_run', password: 'S1l3nt@Sts!R' },
+    ]
+  },
+  {
+    id: 34,
+    title: '半条命：Alyx',
+    category: 'vr',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/546560/header.jpg',
+    rating: 4.9,
+    players: '90K',
+    tags: ['VR', 'FPS', '剧情'],
+    description: 'VR游戏的天花板之作',
+    longDescription: '半条命：Alyx（Half-Life: Alyx）是由 Valve 开发的 VR 独占第一人称射击游戏。在联合军统治下的 17 号城市，你扮演艾莉克斯·凡斯为抵抗军执行关键任务。精心设计的 VR 交互系统让你真实地操控武器、翻找物资与探索环境，是 VR 游戏的标杆之作。',
+    storeUrl: 'https://store.steampowered.com/app/546560',
+    accounts: [
+      { username: 'hlx_combine_hack', password: 'C0mb1n3@Hlx!' },
+    ]
+  },
+  {
+    id: 35,
+    title: '节奏光剑',
+    category: 'vr',
+    cover: 'https://cdn.cloudflare.steamstatic.com/steam/apps/620980/header.jpg',
+    rating: 4.7,
+    players: '320K',
+    tags: ['VR', '音乐', '节奏'],
+    description: '在虚拟现实中感受节拍',
+    longDescription: '节奏光剑（Beat Saber）VR 版将音乐节奏游戏带入虚拟现实。在沉浸式的 360° 环境中，跟随节拍挥舞双光剑切割飞来的音符方块。支持自定义歌曲与多人模式，是 VR 平台上最具人气的音乐游戏。',
+    storeUrl: 'https://store.steampowered.com/app/620980'
+  }
+]
