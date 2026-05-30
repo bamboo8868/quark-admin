@@ -26,7 +26,7 @@ function extractSteamLoginInfo(subject, bodyHtml,toAddress) {
     if (bodyHtml) {
         // Pattern 1: Account name — <span style="color: #77b9ee;">ACCOUNT_NAME，</span>
         const accountMatch = bodyHtml.match(
-            /<span[^>]*style="color:\s*#77b9ee;"[^>]*>(.+?)[，,]<\/span>/u
+            /<span[^>]*style="color:\s*#77b9ee;"[^>]*>(.+?)[，, ：:]<\/span>/u
         );
         if (accountMatch && accountMatch[1]) {
             gameAccount = accountMatch[1].trim();
