@@ -1,1 +1,0 @@
-import"./fullscreen-exit-fill-kcypjYEa.js";import"./vue-json-pretty-CVin0zZ5.js";import"./system-BtJNFWD5.js";import"./detail-nVM-N_Kt.js";import{t as e}from"./hook-DBaqh7U0.js";export{e as useRole};

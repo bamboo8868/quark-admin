@@ -1,0 +1,1 @@
+import"./fullscreen-exit-fill-kcypjYEa.js";import"./vue-json-pretty-CVin0zZ5.js";import"./system-hRw-3SAp.js";import"./detail-GSr6Ku9c.js";import{t as e}from"./hook-Rs9o721K.js";export{e as useRole};

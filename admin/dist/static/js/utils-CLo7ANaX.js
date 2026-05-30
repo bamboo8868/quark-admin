@@ -1,0 +1,1 @@
+import{Xt as e}from"./vue.runtime.esm-bundler-XRzabsAz.js";import{J as t}from"./index-Cx7-bye_.js";var n=e(t(),1);function r(e,t){return Math.floor(Math.random()*(t-e+1))+e}export{n,r as t};

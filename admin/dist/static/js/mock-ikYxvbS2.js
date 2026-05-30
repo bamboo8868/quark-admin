@@ -1,1 +1,0 @@
-import{C as e}from"./index-CuC-3QuM.js";var t=t=>e.request(`post`,`https://pureadmin.free.beeceptor.com/images`,{data:t},{headers:{"Content-Type":`multipart/form-data`}});export{t};
