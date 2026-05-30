@@ -18,6 +18,8 @@ export async function gameAccountRoutes(app) {
   app.delete('/game-accounts/:id', accountsSimpleController.deleteAccount);
   // Batch delete accounts
   app.post('/game-accounts/batch-delete', accountsSimpleController.batchDeleteAccounts);
+  // Import accounts from JSON
+  app.post('/game-accounts/import', accountsSimpleController.importAccounts);
 }
 
 export default gameAccountRoutes;

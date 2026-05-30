@@ -116,5 +116,42 @@ export const accountsSimpleController = {
       message: '操作成功',
       data: null
     };
+  },
+
+  /**
+   * Import accounts from JSON
+   * POST /game-accounts/import
+   * Body: { items: [{ account_name, shared_secret, ... }] }
+   * The items array can come directly from a parsed JSON file.
+   */
+  importAccounts: async (request, reply) => {
+    const { items } = request.body || {};
+
+    // Support both array and single object
+    const data = Array.isArray(items) ? items : (items ? [items] : null);
+
+    if (!data || data.length === 0) {
+      return {
+        code: 10001,
+        message: '导入数据不能为空',
+        data: null
+      };
+    }
+
+    try {
+      const result = await accountsSimpleService.importAccounts(data);
+
+      return {
+        code: 0,
+        message: `成功导入 ${result.inserted} 条，更新 ${result.updated} 条，跳过 ${result.skipped} 条`,
+        data: result
+      };
+    } catch (err) {
+      return {
+        code: 10002,
+        message: err.message,
+        data: null
+      };
+    }
   }
 };

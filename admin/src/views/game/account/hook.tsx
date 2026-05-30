@@ -4,7 +4,8 @@ import {
   getGameAccountList,
   createGameAccount,
   updateGameAccount,
-  deleteGameAccount
+  deleteGameAccount,
+  importGameAccounts
 } from "@/api/gameAccount";
 import { ref, reactive, onMounted, h, defineComponent } from "vue";
 import type { PaginationProps } from "@pureadmin/table";
@@ -49,17 +50,17 @@ export function useGameAccount() {
       minWidth: 150
     },
     {
-      label: "密码",
+      label: "验证码",
       prop: "code",
       minWidth: 150
     },
     {
-      label: "显示状态",
+      label: "可查询",
       prop: "visible",
       minWidth: 100,
       cellRenderer: ({ row }) => (
         <el-tag type={row.visible === 1 ? "success" : "danger"} effect="plain">
-          {row.visible === 1 ? "显示" : "隐藏"}
+          {row.visible === 1 ? "是" : "否"}
         </el-tag>
       )
     },
@@ -171,6 +172,39 @@ export function useGameAccount() {
     }
   }
 
+  /** Import accounts from JSON file */
+  function handleImport() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json";
+    input.onchange = async (e: Event) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      try {
+        const text = await file.text();
+        let json = JSON.parse(text);
+
+        // Support both array and object-with-accounts format
+        const items = Array.isArray(json) ? json : json.accounts || [json];
+
+        if (items.length === 0) {
+          message("JSON 文件中没有有效数据", { type: "warning" });
+          return;
+        }
+
+        const { code, message: msg } = await importGameAccounts(items);
+        if (code === 0) {
+          message(msg || "导入成功", { type: "success" });
+          onSearch();
+        }
+      } catch (err: any) {
+        message(err?.message || "JSON 文件解析失败", { type: "error" });
+      }
+    };
+    input.click();
+  }
+
   onMounted(() => {
     onSearch();
   });
@@ -187,7 +221,8 @@ export function useGameAccount() {
     handleSizeChange,
     handleCurrentChange,
     openDialog,
-    handleDelete
+    handleDelete,
+    handleImport
   };
 }
 
@@ -204,7 +239,7 @@ const AccountFormComponent = defineComponent({
     const formRef = ref();
     const rules = {
       account: [{ required: true, message: "请输入用户名", trigger: "blur" }],
-      code: [{ required: true, message: "请输入密码", trigger: "blur" }]
+      code: [{ required: true, message: "请输入验证码", trigger: "blur" }]
     };
 
     const getRef = () => formRef.value;
@@ -217,7 +252,7 @@ const AccountFormComponent = defineComponent({
         rules={rules}
         label-width="90px"
       >
-        <el-form-item label="用户名" prop="account">
+        {/* <el-form-item label="用户名" prop="account">
           <el-input
             v-model={props.formInline.account}
             placeholder="请输入用户名"
@@ -229,11 +264,11 @@ const AccountFormComponent = defineComponent({
             placeholder="请输入密码"
             show-password
           />
-        </el-form-item>
-        <el-form-item label="显示状态" prop="visible">
+        </el-form-item> */}
+        <el-form-item label="查询状态" prop="visible">
           <el-radio-group v-model={props.formInline.visible}>
-            <el-radio value={1}>显示</el-radio>
-            <el-radio value={0}>隐藏</el-radio>
+            <el-radio value={1}>是</el-radio>
+            <el-radio value={0}>否</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>

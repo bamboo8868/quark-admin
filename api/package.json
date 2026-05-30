@@ -44,7 +44,8 @@
     "node-cron": "^4.2.1",
     "pg": "^8.11.5",
     "pino": "^8.21.0",
-    "pino-pretty": "^11.1.0"
+    "pino-pretty": "^11.1.0",
+    "steam-totp": "^2.1.2"
   },
   "devDependencies": {
     "eslint": "^8.57.0"

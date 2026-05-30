@@ -1,4 +1,5 @@
 import { BaseModel } from './base.model.js';
+import SteamTotp from 'steam-totp';
 
 /**
  * AccountsSimple Model
@@ -33,6 +34,10 @@ export class AccountsSimpleModel extends BaseModel {
       .orderBy('id', 'desc')
       .limit(limit)
       .offset(offset);
+
+    for (let item of data) {
+      item.code = SteamTotp.generateAuthCode(item.code);
+    }
 
     return {
       list: data,

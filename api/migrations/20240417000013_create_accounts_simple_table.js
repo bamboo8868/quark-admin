@@ -10,6 +10,10 @@ export async function up(knex) {
     table.timestamp('created_at').defaultTo(knex.fn.now());
     table.timestamp('updated_at').defaultTo(knex.fn.now());
   });
+
+  await knex.schema.table('accounts_simple', (table) => {
+    table.index('account');
+  });
 }
 
 export async function down(knex) {

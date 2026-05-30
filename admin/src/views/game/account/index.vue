@@ -26,88 +26,49 @@ const {
   handleSizeChange,
   handleCurrentChange,
   openDialog,
-  handleDelete
+  handleDelete,
+  handleImport
 } = useGameAccount();
 </script>
 
 <template>
   <div class="main">
-    <el-form
-      ref="formRef"
-      :inline="true"
-      :model="form"
-      class="search-form bg-bg_color w-full pl-8 pt-3 overflow-auto"
-    >
-      <el-form-item label="用户名" prop="account">
-        <el-input
-          v-model="form.account"
-          placeholder="搜索用户名"
-          clearable
-          class="w-45!"
-        />
+    <el-form ref="formRef" :inline="true" :model="form" class="search-form bg-bg_color w-full pl-8 pt-3 overflow-auto">
+      <el-form-item label="账号" prop="account">
+        <el-input v-model="form.account" placeholder="搜索账号" clearable class="w-45!" />
       </el-form-item>
-      <el-form-item label="状态" prop="visible">
-        <el-select
-          v-model="form.visible"
-          placeholder="请选择状态"
-          clearable
-          class="w-45!"
-        >
-          <el-option label="显示" :value="1" />
-          <el-option label="隐藏" :value="0" />
+      <el-form-item label="查询" prop="visible">
+        <el-select v-model="form.visible" placeholder="请选择状态" clearable class="w-45!">
+          <el-option label="是" :value="1" />
+          <el-option label="否" :value="0" />
         </el-select>
       </el-form-item>
       <el-form-item>
-        <el-button
-          type="primary"
-          :icon="useRenderIcon('ri/search-line')"
-          :loading="loading"
-          @click="onSearch"
-        >
+        <el-button type="primary" :icon="useRenderIcon('ri/search-line')" :loading="loading" @click="onSearch">
           搜索
         </el-button>
-        <el-button
-          :icon="useRenderIcon(Refresh)"
-          @click="resetForm(formRef)"
-        >
+        <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
           重置
         </el-button>
       </el-form-item>
     </el-form>
 
-    <PureTableBar
-      title="游戏账号"
-      :columns="columns"
-      @refresh="onSearch"
-    >
+    <PureTableBar title="游戏账号" :columns="columns" @refresh="onSearch">
       <template #buttons>
-        <el-button
-          type="primary"
-          :icon="useRenderIcon(AddFill)"
-          @click="openDialog()"
-        >
+        <!-- <el-button type="primary" :icon="useRenderIcon(AddFill)" @click="openDialog()">
           新增
+        </el-button> -->
+        <el-button type="primary" :icon="useRenderIcon(AddFill)" @click="handleImport">
+          导入
         </el-button>
       </template>
       <template v-slot="{ size, dynamicColumns }">
-        <pure-table
-          align-whole="center"
-          showOverflowTooltip
-          table-layout="auto"
-          :loading="loading"
-          :size="size"
-          adaptive
-          :adaptiveConfig="{ offsetBottom: 108 }"
-          :data="dataList"
-          :columns="dynamicColumns"
-          :pagination="{ ...pagination, size }"
-          :header-cell-style="{
+        <pure-table align-whole="center" showOverflowTooltip table-layout="auto" :loading="loading" :size="size"
+          adaptive :adaptiveConfig="{ offsetBottom: 108 }" :data="dataList" :columns="dynamicColumns"
+          :pagination="{ ...pagination, size }" :header-cell-style="{
             background: 'var(--el-fill-color-light)',
             color: 'var(--el-text-color-primary)'
-          }"
-          @page-size-change="handleSizeChange"
-          @page-current-change="handleCurrentChange"
-        >
+          }" @page-size-change="handleSizeChange" @page-current-change="handleCurrentChange">
           <template #operation="{ row, size }">
             <el-button
               class="reset-margin"
@@ -119,18 +80,9 @@ const {
             >
               修改
             </el-button>
-            <el-popconfirm
-              :title="`是否确认删除账号 ${row.account}`"
-              @confirm="handleDelete(row)"
-            >
+            <el-popconfirm :title="`是否确认删除账号 ${row.account}`" @confirm="handleDelete(row)">
               <template #reference>
-                <el-button
-                  class="reset-margin"
-                  link
-                  type="primary"
-                  :size="size"
-                  :icon="useRenderIcon(Delete)"
-                >
+                <el-button class="reset-margin" link type="primary" :size="size" :icon="useRenderIcon(Delete)">
                   删除
                 </el-button>
               </template>
