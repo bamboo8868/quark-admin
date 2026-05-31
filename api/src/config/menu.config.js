@@ -152,6 +152,16 @@ export const menuConfig = [
         path: '/game/account/index',
         component: 'game/account/index',
         icon: 'ri:key-2-line'
+      },
+      {
+        id: 4002,
+        parentId: 4000,
+        menuType: 0,
+        title: 'menus.pureDencryptedAccount',
+        name: 'AccountAccessRecords',
+        path: '/game/account-access/index',
+        component: 'account-access/index',
+        icon: 'ri:lock-password-line'
       }
     ]
   }
