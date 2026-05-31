@@ -1,1 +1,0 @@
-import{Sn as e,Wn as t,cr as n,yn as r}from"./index-DJ7Acgnn.js";var i={viewBox:`0 0 1024 1024`,width:`1em`,height:`1em`};function a(n,a){return t(),e(`svg`,i,[...a[0]||(a[0]=[r(`path`,{fill:`currentColor`,d:`M406.7 707L195.8 496.2a32 32 0 1 0-45.2 45.2l256 256l512-512a32 32 0 0 0-45.3-45.2L406.6 706.9z`},null,-1)])])}var o=n({name:`ep-check`,render:a});export{o as t};

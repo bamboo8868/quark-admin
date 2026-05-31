@@ -1,0 +1,1 @@
+import{Dn as e,V as t,dr as n,on as r,yt as i}from"./index-ClmLF2-h.js";import"./utils-DMTESTey.js";var a=t(e(r(r({},{name:`Welcome`}),{},{__name:`index`,setup(e){let{isDark:t}=i();return n(1),(e,t)=>null}})),[[`__scopeId`,`data-v-f7a0b3ff`]]);export{a as default};

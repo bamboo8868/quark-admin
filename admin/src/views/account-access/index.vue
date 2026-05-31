@@ -43,11 +43,23 @@ async function handleView(row: any) {
 
 function handleCopy(row: any) {
   const text = `账号:${row.account} 密码:${row.password}`;
-  navigator.clipboard.writeText(text).then(() => {
-    message("已复制到剪贴板", { type: "success" });
-  }).catch(() => {
-    message("复制失败", { type: "error" });
-  });
+  if (navigator.clipboard) {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        message("已复制到剪贴板", { type: "success" });
+      })
+      .catch(() => {
+        message("复制失败", { type: "error" });
+      });
+  } else {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
+  }
 }
 </script>
 
