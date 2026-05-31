@@ -11,6 +11,7 @@ import Refresh from "~icons/ep/refresh";
 import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
 import View from "~icons/ep/view";
+import CopyDocument from "~icons/ep/copy-document";
 
 defineOptions({
   name: "AccountAccessRecords"
@@ -38,6 +39,15 @@ async function handleView(row: any) {
     message("查看记录已更新", { type: "success" });
     onSearch();
   }
+}
+
+function handleCopy(row: any) {
+  const text = `账号:${row.account} 密码:${row.password}`;
+  navigator.clipboard.writeText(text).then(() => {
+    message("已复制到剪贴板", { type: "success" });
+  }).catch(() => {
+    message("复制失败", { type: "error" });
+  });
 }
 </script>
 
@@ -83,6 +93,16 @@ async function handleView(row: any) {
               @click="handleView(row)"
             >
               查看
+            </el-button>
+            <el-button
+              class="reset-margin"
+              link
+              type="primary"
+              :size="size"
+              :icon="useRenderIcon(CopyDocument)"
+              @click="handleCopy(row)"
+            >
+              复制
             </el-button>
             <el-button
               class="reset-margin"

@@ -23,9 +23,10 @@ export function useAccountAccess() {
   /** Pagination */
   const pagination = reactive<PaginationProps>({
     total: 0,
-    pageSize: 10,
+    pageSize: 50,
     currentPage: 1,
-    background: true
+    background: true,
+    pageSizes: [10, 20, 50, 100]
   });
 
   /** Data list */
@@ -109,7 +110,7 @@ export function useAccountAccess() {
     {
       label: "操作",
       fixed: "right",
-      width: 200,
+      width: 260,
       slot: "operation"
     }
   ];
