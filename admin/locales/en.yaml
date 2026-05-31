@@ -87,6 +87,8 @@ menus:
   pureAccountManage: Account Management
   pureGameManagement: Game Management
   pureGameAccount: Game Account
+  pureAccountAccessManagement: Account Management
+  pureDencryptedAccount: D-encrypted Account
   pureCodeMirror: CodeMirror
   pureMarkdown: Markdown
   pureEditor: Editor
