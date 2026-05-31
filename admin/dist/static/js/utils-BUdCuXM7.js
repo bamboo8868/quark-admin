@@ -1,0 +1,1 @@
+import{Er as e,Ut as t}from"./index-CFJXdP31.js";var n=e(t(),1);function r(e,t){return Math.floor(Math.random()*(t-e+1))+e}export{n,r as t};

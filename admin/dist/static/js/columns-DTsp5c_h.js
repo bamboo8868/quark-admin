@@ -1,1 +1,0 @@
-import"./arrow-right-s-line-CCDauBz0.js";import{t as e}from"./columns-fKSSDM9r.js";export{e as useColumns};

@@ -1,1 +1,0 @@
-import"./vue-json-pretty-CVin0zZ5.js";import{t as e}from"./detail-GSr6Ku9c.js";export{e as default};

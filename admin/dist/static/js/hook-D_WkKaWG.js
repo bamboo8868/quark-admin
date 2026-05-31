@@ -1,1 +1,0 @@
-import"./fullscreen-exit-fill-kcypjYEa.js";import"./ReCol-CC8-r5gl.js";import"./system-hRw-3SAp.js";import"./form-tnLxYHAt.js";import{t as e}from"./hook-CGyzwVTx.js";export{e as useDept};
