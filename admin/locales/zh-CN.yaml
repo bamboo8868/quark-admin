@@ -88,6 +88,9 @@ menus:
   pureGameManagement: 游戏管理
   pureGameAccount: SDA账号管理
   pureDencryptedAccount: D加密账号管理
+  pureMembershipCenter: 会员中心
+  pureGameCategory: 游戏分类管理
+  pureGameTag: 标签管理
   pureCodeMirror: 代码编辑器
   pureMarkdown: Markdown
   pureEditor: 编辑器

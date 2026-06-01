@@ -29,7 +29,8 @@ const home = 0, // 平台规定只有 home 路由的 rank 才能为 0 ，所以�
   guide = 26,
   menuoverflow = 27,
   email = 28,
-  game = 29;
+  game = 29,
+  membership = 30;
 
 export {
   home,
@@ -61,5 +62,6 @@ export {
   guide,
   menuoverflow,
   email,
-  game
+  game,
+  membership
 };
