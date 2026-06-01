@@ -1,9 +1,10 @@
 import { gameController } from '../controllers/game.controller.js';
-
+import { authenticate } from '../middlewares/auth.middleware.js';
 /**
  * Game routes
  */
 export async function gameRoutes(app) {
+  app.addHook('preHandler', authenticate);
   // Get games list
   app.post('/games', gameController.getGames);
   // Get game by ID

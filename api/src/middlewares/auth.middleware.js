@@ -19,6 +19,10 @@ function extractToken(request) {
  * JWT authentication middleware
  */
 export async function authenticate(request, reply) {
+  let url = request.routerPath;
+  if(url == '/api/login' || url == '/api/refresh-token') {
+    return;
+  }
   const token = extractToken(request);
   
   if (!token) {

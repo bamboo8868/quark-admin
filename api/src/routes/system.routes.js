@@ -1,11 +1,11 @@
 import { systemController } from '../controllers/system.controller.js';
 import { optionalAuth, authenticate } from '../middlewares/auth.middleware.js';
-
 /**
  * System routes for admin frontend
  * These routes provide CRUD APIs for admin system
  */
 export async function systemRoutes(app) {
+    app.addHook('preHandler',authenticate);
   // ==================== Auth ====================
   // Login
   app.post('/login', systemController.login);

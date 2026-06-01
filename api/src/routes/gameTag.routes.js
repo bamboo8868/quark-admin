@@ -1,9 +1,10 @@
 import { gameTagController } from '../controllers/gameTag.controller.js';
-
+import { authenticate } from '../middlewares/auth.middleware.js';
 /**
  * Game Tag routes
  */
 export async function gameTagRoutes(app) {
+  app.addHook('preHandler', authenticate);
   // Get tags list
   app.post('/game-tags', gameTagController.getTags);
   // Get tag by ID

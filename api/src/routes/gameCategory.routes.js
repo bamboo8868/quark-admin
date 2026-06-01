@@ -1,9 +1,10 @@
 import { gameCategoryController } from '../controllers/gameCategory.controller.js';
-
+import { authenticate } from '../middlewares/auth.middleware.js';
 /**
  * Game Category routes
  */
 export async function gameCategoryRoutes(app) {
+  app.addHook('preHandler', authenticate);
   // Get categories list
   app.post('/game-categories', gameCategoryController.getCategories);
   // Get category by ID

@@ -1,10 +1,11 @@
 import { accountsSimpleController } from '../controllers/accountsSimple.controller.js';
-
+import { authenticate } from '../middlewares/auth.middleware.js';
 /**
  * Game Account routes
  * CRUD APIs for accounts_simple table
  */
 export async function gameAccountRoutes(app) {
+  app.addHook('preHandler', authenticate);
   // ==================== Game Account Management ====================
   // Get accounts list
   app.post('/game-accounts', accountsSimpleController.getAccounts);

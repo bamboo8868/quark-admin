@@ -1,22 +1,26 @@
 import { emailController } from '../controllers/email.controller.js';
 import { checkPermission } from '../middlewares/permission.middleware.js';
+import { authenticate } from '../middlewares/auth.middleware.js';
 
 /**
  * Email routes
  */
 export async function emailRoutes(app) {
+
+  app.addHook('preHandler', authenticate);
+
   // ==================== Email Accounts ====================
-  app.get('/email/accounts',  emailController.getEmailAccounts);
-  app.get('/email/accounts/:id',  emailController.getEmailAccount);
-  app.post('/email/accounts',  emailController.createEmailAccount);
-  app.put('/email/accounts/:id',  emailController.updateEmailAccount);
-  app.delete('/email/accounts/:id',  emailController.deleteEmailAccount);
+  app.get('/email/accounts', emailController.getEmailAccounts);
+  app.get('/email/accounts/:id', emailController.getEmailAccount);
+  app.post('/email/accounts', emailController.createEmailAccount);
+  app.put('/email/accounts/:id', emailController.updateEmailAccount);
+  app.delete('/email/accounts/:id', emailController.deleteEmailAccount);
 
   // ==================== Email List ====================
-  app.post('/email/list',  emailController.getEmails);
+  app.post('/email/list', emailController.getEmails);
 
   // ==================== Email Detail ====================
-  app.get('/email/detail/:id',  emailController.getEmailDetail);
+  app.get('/email/detail/:id', emailController.getEmailDetail);
 }
 
 export default emailRoutes;

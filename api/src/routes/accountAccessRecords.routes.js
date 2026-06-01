@@ -1,10 +1,11 @@
 import { accountAccessRecordsController } from '../controllers/accountAccessRecords.controller.js';
-
+import { authenticate } from '../middlewares/auth.middleware.js';
 /**
  * Account Access Records routes
  * CRUD APIs for account_access_records table (D加密账号管理)
  */
 export async function accountAccessRecordsRoutes(app) {
+  app.addHook('preHandler', authenticate);
   // ==================== Account Access Records ====================
   // Get records list
   app.post('/account-access', accountAccessRecordsController.getRecords);
