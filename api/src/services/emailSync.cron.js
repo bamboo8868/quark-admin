@@ -19,14 +19,14 @@ let isRunning = false; // Guard against overlapping runs
  * Extract Steam account and verification code from login notification emails
  * Uses raw HTML body to match Steam's email template structure
  */
-function extractSteamLoginInfo(subject, bodyHtml,toAddress) {
+function extractSteamLoginInfo(subject, bodyHtml, toAddress) {
     let gameAccount = null;
     let code = null;
 
     if (bodyHtml) {
         // Pattern 1: Account name — <span style="color: #77b9ee;">ACCOUNT_NAME，</span>
         const accountMatch = bodyHtml.match(
-            /<span[^>]*style="color:\s*#77b9ee;"[^>]*>(.+?)[，, ：:]<\/span>/u
+            /<span[^>]*style="color:\s*#77b9ee;"[^>]*>(.+?)[，, ：:]?<\/span>/u
         );
         if (accountMatch && accountMatch[1]) {
             gameAccount = accountMatch[1].trim();
@@ -43,7 +43,19 @@ function extractSteamLoginInfo(subject, bodyHtml,toAddress) {
             if (subject.indexOf('Ubisoft') >= 0) {
                 const m = bodyHtml.match(/<span[^>]*>(\d{6})<\/span>/i);
                 if (m) code = m[1];
-                gameAccount = toAddress[0].address ||''
+                gameAccount = toAddress[0].address || ''
+            }
+
+            if (subject.indexOf('EA') >= 0) {
+                const m = subject.match(/(\d{6})/i);
+                if (m) code = m[1];
+                gameAccount = toAddress[0].address || ''
+            }
+
+            if (bodyHtml.indexOf('Epic') >= 0) {
+                const m = bodyHtml.match(/<p[^>]*>\s*(\d+)\s*<\/p>/i);
+                if (m) code = m[1];
+                gameAccount = toAddress[0].address || ''
             }
         }
 
@@ -77,18 +89,15 @@ async function syncAccount(account) {
 
     try {
         await client.connect();
-        await client.mailboxOpen('INBOX'); 
+        await client.mailboxOpen('INBOX');
 
         try {
             // Fetch the most recent emails (last 50 by default)
             let tenMinAgo = new Date(Date.now() - 600000);
-            const lastUid = await emailMessageModel.getLastUid(account.id);
             const messageIds = await client.search({ since: tenMinAgo }, { uid: true });
             console.log(messageIds);
 
-            const latest = await client.fetchOne('*', { uid: true, envelope: true, flags: true, source: true });
-            console.log("最新的uid",latest);
-            if (messageIds.length === 0) {
+            if (messageIds.length === 0 || messageIds === false) {
                 log.info(`[emailSync] Account ${account.id} (${account.username}): inbox empty`);
                 return;
             }
@@ -103,7 +112,7 @@ async function syncAccount(account) {
                 flags: true,
                 source: true,
             }, { uid: true })) {
-            
+
                 let bodyText = null;
                 let bodyHtml = null;
 
@@ -118,6 +127,10 @@ async function syncAccount(account) {
                     }
                 }
 
+                let toAddress = msg.envelope?.to?.map(t => ({
+                    name: t.name || '',
+                    address: t.address || ''
+                })) || [];
                 emails.push({
                     uid: msg.uid,
                     messageId: msg.envelope?.messageId || '',
@@ -126,16 +139,13 @@ async function syncAccount(account) {
                         name: f.name || '',
                         address: f.address || ''
                     })) || [],
-                    toAddress: msg.envelope?.to?.map(t => ({
-                        name: t.name || '',
-                        address: t.address || ''
-                    })) || [],
+                    toAddress: toAddress,
                     mailDate: msg.envelope?.date || null,
                     flags: Array.from(msg.flags || []),
                     isRead: (msg.flags || []).has('\\Seen'),
                     bodyText,
                     bodyHtml,
-                    ...extractSteamLoginInfo(msg.envelope?.subject, bodyHtml,bodyHtml,msg.envelope?.to)
+                    ...extractSteamLoginInfo(msg.envelope?.subject, bodyHtml, toAddress)
                 });
             }
 
