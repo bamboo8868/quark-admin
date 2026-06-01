@@ -11,6 +11,8 @@
     "migrate:prod": "set NODE_ENV=prod&& knex migrate:latest",
     "migrate:rollback": "set NODE_ENV=dev&& knex migrate:rollback",
     "migrate:rollback:prod": "set NODE_ENV=prod&& knex migrate:rollback",
+    "seed": "set NODE_ENV=dev&& knex seed:run",
+    "seed:prod": "set NODE_ENV=prod&& knex seed:run",
     "test": "node --test tests/**/*.test.js",
     "lint": "eslint src/**/*.js",
     "worker:email-sync": "node src/workers/emailSyncWorker.js",

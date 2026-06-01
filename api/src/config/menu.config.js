@@ -8,6 +8,7 @@ const SYSTEM_RANK = 10;
 const MONITOR_RANK = 11;
 const EMAIL_RANK = 12;
 const GAME_RANK = 13;
+const MEMBERSHIP_RANK = 14;
 
 export const menuConfig = [
   {
@@ -162,6 +163,38 @@ export const menuConfig = [
         path: '/game/account-access/index',
         component: 'account-access/index',
         icon: 'ri:lock-password-line'
+      }
+    ]
+  },
+  {
+    id: 5000,
+    parentId: 0,
+    menuType: 0,
+    title: 'menus.pureMembershipCenter',
+    name: 'Membership',
+    path: '/membership',
+    icon: 'ri:vip-crown-2-line',
+    rank: MEMBERSHIP_RANK,
+    children: [
+      {
+        id: 5001,
+        parentId: 5000,
+        menuType: 0,
+        title: 'menus.pureGameCategory',
+        name: 'GameCategory',
+        path: '/membership/category/index',
+        component: 'membership/category/index',
+        icon: 'ri:folder-3-line'
+      },
+      {
+        id: 5002,
+        parentId: 5000,
+        menuType: 0,
+        title: 'menus.pureGameTag',
+        name: 'GameTag',
+        path: '/membership/tag/index',
+        component: 'membership/tag/index',
+        icon: 'ri:price-tag-3-line'
       }
     ]
   }

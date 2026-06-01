@@ -2,6 +2,9 @@ import { systemRoutes } from './system.routes.js';
 import { emailRoutes } from './email.routes.js';
 import { gameAccountRoutes } from './gameAccount.routes.js';
 import { accountAccessRecordsRoutes } from './accountAccessRecords.routes.js';
+import { gameCategoryRoutes } from './gameCategory.routes.js';
+import { gameTagRoutes } from './gameTag.routes.js';
+import { gameRoutes } from './game.routes.js';
 import { queryOptimizer, memoryOptimizer } from '../utils/optimizer.js';
 import { cache } from '../utils/cache.js';
 import { authenticate, authorize } from '../middlewares/auth.middleware.js';
@@ -13,14 +16,6 @@ export async function registerRoutes(app) {
   // Health check endpoint
   app.get('/health', async (request, reply) => {
     return { status: 'ok', timestamp: new Date().toISOString() };
-  });
-
-  // API info endpoint
-  app.get('/', async (request, reply) => {
-    return {
-      name: 'Quark Admin API',
-      version: '1.0.0'
-    };
   });
 
   // Performance monitoring endpoint (admin only)
@@ -47,6 +42,9 @@ export async function registerRoutes(app) {
   await app.register(emailRoutes, { prefix: '/api' });
   await app.register(gameAccountRoutes, { prefix: '/api' });
   await app.register(accountAccessRecordsRoutes, { prefix: '/api' });
+  await app.register(gameCategoryRoutes, { prefix: '/api' });
+  await app.register(gameTagRoutes, { prefix: '/api' });
+  await app.register(gameRoutes, { prefix: '/api' });
 }
 
 export default registerRoutes;

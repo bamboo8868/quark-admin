@@ -1,0 +1,60 @@
+/**
+ * Seed data for game_tag table
+ */
+export async function seed(knex) {
+  const rows = await knex('game_tag').select('id').limit(1);
+  if (rows.length > 0) return;
+
+  await knex('game_tag').insert([
+    { name: 'FPS' },
+    { name: 'MOBA' },
+    { name: 'RPG' },
+    { name: 'ARPG' },
+    { name: 'RTS' },
+    { name: '4X' },
+    { name: '大逃杀' },
+    { name: '开放世界' },
+    { name: '多人' },
+    { name: '竞技' },
+    { name: '魂系' },
+    { name: '回合制' },
+    { name: '动作' },
+    { name: '剧情' },
+    { name: '合作' },
+    { name: 'PvP' },
+    { name: '建造' },
+    { name: '生存' },
+    { name: '恐龙' },
+    { name: '沙盒' },
+    { name: '独立' },
+    { name: '银河城' },
+    { name: '恐怖' },
+    { name: '心理' },
+    { name: '重制' },
+    { name: '模拟' },
+    { name: '经营' },
+    { name: '解谜' },
+    { name: '科幻' },
+    { name: 'VR' },
+    { name: '音乐' },
+    { name: '节奏' },
+    { name: '卡牌' },
+    { name: 'Roguelike' },
+    { name: '格斗' },
+    { name: '3D' },
+    { name: '足球' },
+    { name: '体育' },
+    { name: '赛车' },
+    { name: '竞速' },
+    { name: '赛博朋克' },
+    { name: '暗黑' },
+    { name: '刷装' },
+    { name: '自由构建' },
+    { name: '神话' },
+    { name: '冒险' },
+    { name: '电竞' },
+    { name: '策略' },
+    { name: '平台' },
+    { name: '暴雪' }
+  ]);
+}
