@@ -17,6 +17,8 @@ export async function accountAccessRecordsRoutes(app) {
   app.put('/account-access/:id', accountAccessRecordsController.updateRecord);
   // Delete record
   app.delete('/account-access/:id', accountAccessRecordsController.deleteRecord);
+  // Back record
+  app.post('/account-access/back/:id', accountAccessRecordsController.backRecord);
   // Batch delete records
   app.post('/account-access/batch-delete', accountAccessRecordsController.batchDeleteRecords);
   // Record a view

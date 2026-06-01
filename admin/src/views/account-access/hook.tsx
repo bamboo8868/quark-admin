@@ -4,10 +4,12 @@ import {
   getAccountAccessList,
   createAccountAccess,
   updateAccountAccess,
-  deleteAccountAccess
+  deleteAccountAccess,
+  backAccountAccess
 } from "@/api/accountAccess";
 import { ref, reactive, onMounted, h, defineComponent } from "vue";
 import type { PaginationProps } from "@pureadmin/table";
+import { P } from "vue-router/dist/index-BQLwgiyK.js";
 
 export function useAccountAccess() {
   const loading = ref(false);
@@ -34,28 +36,29 @@ export function useAccountAccess() {
 
   /** Table columns */
   const columns: TableColumnList = [
-    {
-      label: "编号",
-      prop: "id",
-      minWidth: 70
-    },
+    // {
+    //   label: "编号",
+    //   prop: "id",
+    //   minWidth: 50
+    // },
     {
       label: "游戏名称",
       prop: "game_name",
-      minWidth: 130
+      align:'left',
+      minWidth: 160
     },
     {
       label: "账号",
       prop: "account",
-      minWidth: 160
+      minWidth: 100
     },
     {
       label: "密码",
       prop: "password",
-      minWidth: 200
+      minWidth: 100
     },
     {
-      label: "24小时查看次数",
+      label: "24小时查看",
       prop: "view_count_24h",
       minWidth: 120,
       cellRenderer: ({ row }) => (
@@ -65,7 +68,7 @@ export function useAccountAccess() {
       )
     },
     {
-      label: "最近5次查看",
+      label: "近5次查看",
       prop: "view_times",
       minWidth: 140,
       cellRenderer: ({ row }) => {
@@ -103,14 +106,14 @@ export function useAccountAccess() {
     {
       label: "创建时间",
       prop: "created_at",
-      minWidth: 170,
+      minWidth: 150,
       formatter: ({ created_at }) =>
         created_at ? new Date(created_at).toLocaleString("zh-CN") : ""
     },
     {
       label: "操作",
       fixed: "right",
-      width: 260,
+      width: 320,
       slot: "operation"
     }
   ];
@@ -208,6 +211,16 @@ export function useAccountAccess() {
     }
   }
 
+  async function handleBack(row: any) {
+    const { code } = await backAccountAccess(row.id);
+    if (code === 0) {
+      message("回退成功", { type: "success" });
+      onSearch();
+    }else {
+      message("", { type: "error" });
+    }
+  }
+
   onMounted(() => {
     onSearch();
   });
@@ -224,7 +237,8 @@ export function useAccountAccess() {
     handleSizeChange,
     handleCurrentChange,
     openDialog,
-    handleDelete
+    handleDelete,
+    handleBack
   };
 }
 

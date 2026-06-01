@@ -1,5 +1,5 @@
 import { AccountAccessRecordsModel } from '../models/accountAccessRecords.model.js';
-
+import db from '../utils/db.js';
 const accountAccessRecordsModel = new AccountAccessRecordsModel();
 
 /**
@@ -66,6 +66,24 @@ export const accountAccessRecordsService = {
    */
   async recordView(id) {
     return await accountAccessRecordsModel.recordView(id);
+  },
+
+  /**
+   * Back record
+   */
+  async backRecord(id) {
+    let info = await db('account_access_records').where('id', id).first();
+    if (!info) throw new Error('账号不存在');
+
+    if (Array.isArray(info.view_times)) {
+      info.view_times.pop();
+      let viewTimes = info.view_times;
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const viewCount24h = viewTimes.filter(t => t >= oneDayAgo).length;
+      await db('account_access_records').where('id', id).update({ view_times: JSON.stringify(viewTimes), view_count_24h: viewCount24h });
+    }
+
+    return true;
   }
 };
 

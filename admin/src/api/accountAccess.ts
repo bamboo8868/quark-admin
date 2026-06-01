@@ -44,6 +44,10 @@ export const deleteAccountAccess = (id: number) => {
   return http.request<Result>("delete", `/api/account-access/${id}`);
 };
 
+export const backAccountAccess = (id: number) => {
+  return http.request<Result>("post", `/api/account-access/back/${id}`);
+};
+
 /** 批量删除D加密账号 */
 export const batchDeleteAccountAccess = (ids: number[]) => {
   return http.request<Result>("post", "/api/account-access/batch-delete", { data: { ids } });

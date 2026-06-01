@@ -139,5 +139,16 @@ export const accountAccessRecordsController = {
       message: '查看成功',
       data: record
     };
+  },
+
+  backRecord: async (request, reply) => {
+    const { id } = request.params;
+    let res = await accountAccessRecordsService.backRecord(id);
+
+    return {
+      code: 0,
+      message: '操作成功',
+      data: null
+    };
   }
 };

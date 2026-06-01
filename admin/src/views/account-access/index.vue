@@ -12,6 +12,7 @@ import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
 import View from "~icons/ep/view";
 import CopyDocument from "~icons/ep/copy-document";
+import BackOneIcon from '~icons/icon-park-outline/back-one?width=1em&height=1em';
 
 defineOptions({
   name: "AccountAccessRecords"
@@ -30,7 +31,8 @@ const {
   handleSizeChange,
   handleCurrentChange,
   openDialog,
-  handleDelete
+  handleDelete,
+  handleBack
 } = useAccountAccess();
 
 async function handleView(row: any) {
@@ -89,7 +91,7 @@ function handleCopy(row: any) {
         </el-button>
       </template>
       <template v-slot="{ size, dynamicColumns }">
-        <pure-table align-whole="center" showOverflowTooltip table-layout="auto" :loading="loading" :size="size"
+        <pure-table align-whole="center" table-layout="auto" :loading="loading" :size="size"
           adaptive :adaptiveConfig="{ offsetBottom: 108 }" :data="dataList" :columns="dynamicColumns"
           :pagination="{ ...pagination, size }" :header-cell-style="{
             background: 'var(--el-fill-color-light)',
@@ -116,6 +118,13 @@ function handleCopy(row: any) {
             >
               复制
             </el-button>
+            <el-popconfirm :title="`是否回退一条记录`" @confirm="handleBack(row)">
+              <template #reference>
+                <el-button class="reset-margin" link type="primary" :size="size" :icon="useRenderIcon(BackOneIcon)">
+                  回退
+                </el-button>
+              </template>
+            </el-popconfirm>
             <el-button
               class="reset-margin"
               link

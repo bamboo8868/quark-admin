@@ -1,1 +1,0 @@
-import{w as e}from"./index-ClmLF2-h.js";var t=t=>e.request(`post`,`https://pureadmin.free.beeceptor.com/images`,{data:t},{headers:{"Content-Type":`multipart/form-data`}});export{t};
