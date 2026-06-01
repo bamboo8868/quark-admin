@@ -165,7 +165,7 @@ async function runAccountLoop(account, stoppedRef) {
                 vendor: 'Mozilla'
             },
             disableAutoIdle: false, // 默认 false，必须保持关闭，否则不会自动 IDLE
-            maxIdleTime: 25 * 60 * 1000,
+            maxIdleTime: 10 * 60 * 1000,
             logger: false,
             emitLogs: false
         });
@@ -186,7 +186,7 @@ async function runAccountLoop(account, stoppedRef) {
         });
 
         client.on('close', async () => {
-            console.log('连接关闭，3秒后重连...');
+            log.warn(`[emailExists] Account ${account.id} (${account.username}) closed, reconnecting in 3s... 连接关闭,3秒后重连`);
             setTimeout(() => runAccountLoop(account, stoppedRef), 3000);
         });
 
