@@ -95,7 +95,6 @@ async function syncAccount(account) {
             // Fetch the most recent emails (last 50 by default)
             let tenMinAgo = new Date(Date.now() - 600000);
             const messageIds = await client.search({ since: tenMinAgo }, { uid: true });
-            console.log(messageIds);
 
             if (messageIds.length === 0 || messageIds === false) {
                 log.info(`[emailSync] Account ${account.id} (${account.username}): inbox empty`);
@@ -104,7 +103,6 @@ async function syncAccount(account) {
 
             // Take only the latest 50 to avoid pulling entire mailbox every cycle
             const latestIds = messageIds.slice(-50);
-            console.log(latestIds);
 
             const emails = [];
             for await (const msg of client.fetch(latestIds, {

@@ -70,7 +70,6 @@ async function fetchNewEmails(client, account) {
     try {
         let tenMinAgo = new Date(Date.now() - 600000);
         const messageIds = await client.search({ since: tenMinAgo }, { uid: true });
-        console.log(messageIds);
 
         if (messageIds.length === 0 || messageIds === false) {
             log.info(`[emailSync] Account ${account.id} (${account.username}): inbox empty`);
@@ -79,7 +78,7 @@ async function fetchNewEmails(client, account) {
 
         // Take only the latest 50 to avoid pulling entire mailbox every cycle
         const latestIds = messageIds.slice(-50);
-        console.log(latestIds);
+
 
         const emails = [];
         for await (const msg of client.fetch(latestIds, {
@@ -200,6 +199,14 @@ async function runAccountLoop(account, stoppedRef) {
         // Initial fetch
         await fetchNewEmails(client, account);
         log.info(`[emailExists] Account ${account.id} (${account.username}): listening for new mail (auto-IDLE)`);
+
+        //定时保持链接
+        // setInterval(async () => {
+        //     if(client) {
+        //         await client.noop();
+        //         await client.idle();
+        //     }
+        // }, 30000);
 
     } catch (err) {
         if (client) {
