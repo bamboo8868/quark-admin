@@ -164,7 +164,7 @@ async function runAccountLoop(account, stoppedRef) {
                 vendor: 'Mozilla'
             },
             disableAutoIdle: false, // 默认 false，必须保持关闭，否则不会自动 IDLE
-            maxIdleTime: 10 * 60 * 1000,
+            maxIdleTime: 5 * 60 * 1000,
             logger: false,
             emitLogs: false
         });
@@ -204,7 +204,7 @@ async function runAccountLoop(account, stoppedRef) {
         // setInterval(async () => {
         //     if(client) {
         //         await client.noop();
-        //         await client.idle();
+        //         // await client.idle();
         //     }
         // }, 30000);
 
