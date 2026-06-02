@@ -2,7 +2,7 @@ import { simpleParser } from 'mailparser';
 import emailAccountModel from '../models/email.model.js';
 import emailMessageModel from '../models/emailMessage.model.js';
 import { log } from '../utils/logger.js';
-
+import { ImapFlow } from 'imapflow'
 /**
  * Email Sync — Long-lived IMAP connection using EXISTS event
  *
@@ -143,9 +143,6 @@ async function fetchNewEmails(client, account) {
  * Creates a NEW ImapFlow instance on each connect/reconnect.
  */
 async function runAccountLoop(account, stoppedRef) {
-    const { ImapFlow } = await import('imapflow');
-
-
     let client = null;
 
     try {
@@ -191,10 +188,15 @@ async function runAccountLoop(account, stoppedRef) {
 
         // Connect
         await client.connect();
+
         log.info(`[emailExists] Account ${account.id} (${account.username}): connected`);
 
-        // await client.mailboxOpen('INBOX');
-        // log.info(`[emailExists] Account ${account.id} (${account.username}): INBOX opened`);
+        await client.mailboxOpen('INBOX');
+        log.info(`[emailExists] Account ${account.id} (${account.username}): INBOX opened,IDLE:${client.idling}`);
+
+        if(client.idling === false) {
+            await client.idle();
+        }
 
         // Initial fetch
         await fetchNewEmails(client, account);
