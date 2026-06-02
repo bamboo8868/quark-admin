@@ -193,8 +193,8 @@ async function runAccountLoop(account, stoppedRef) {
         await client.connect();
         log.info(`[emailExists] Account ${account.id} (${account.username}): connected`);
 
-        await client.mailboxOpen('INBOX');
-        log.info(`[emailExists] Account ${account.id} (${account.username}): INBOX opened`);
+        // await client.mailboxOpen('INBOX');
+        // log.info(`[emailExists] Account ${account.id} (${account.username}): INBOX opened`);
 
         // Initial fetch
         await fetchNewEmails(client, account);
