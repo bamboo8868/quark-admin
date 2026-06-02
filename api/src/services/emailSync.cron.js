@@ -208,7 +208,7 @@ export function startEmailSync() {
     }
 
     // Every 5 seconds: "*/5 * * * * *"
-    task = cron.schedule('*/30 * * * * *', runSyncCycle, {
+    task = cron.schedule('*/20 * * * * *', runSyncCycle, {
         scheduled: true
     });
 
