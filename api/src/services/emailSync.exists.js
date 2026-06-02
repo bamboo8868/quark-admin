@@ -195,7 +195,7 @@ async function runAccountLoop(account, stoppedRef) {
         log.info(`[emailExists] Account ${account.id} (${account.username}): INBOX opened,IDLE:${client.idling}`);
 
         if(client.idling === false) {
-            await client.idle();
+            client.idle();
         }
 
         // Initial fetch
