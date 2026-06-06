@@ -66,6 +66,7 @@
         :categories="categories"
         :active-category="activeCategory"
         :mobile-open="sidebarOpen"
+        :total-games="totalGames"
         @select="handleCategorySelect"
         @close="sidebarOpen = false"
       />
@@ -79,7 +80,7 @@
               {{ currentCategoryName }}
             </h2>
             <p class="mt-1 text-xs md:text-sm text-gray-500">
-              共 {{ filteredGames.length }} 款游戏
+              共 {{ totalGames }} 款游戏
             </p>
           </div>
           <div class="flex gap-1.5 md:gap-2 shrink-0">
@@ -109,7 +110,7 @@
         </div>
 
         <!-- Empty State -->
-        <div v-if="filteredGames.length === 0" class="flex flex-col items-center justify-center py-32">
+        <div v-if="sortedGames.length === 0" class="flex flex-col items-center justify-center py-32">
           <div class="text-6xl">🎮</div>
           <p class="mt-4 text-lg text-gray-500">暂无该分类的游戏</p>
         </div>
@@ -119,45 +120,84 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import Sidebar from '../components/Sidebar.vue'
 import GameCard from '../components/GameCard.vue'
-import { categories, games } from '../data/games.js'
 import siteConfig from '../config/site.js'
 import { currentUser, getTier } from '../config/membership.js'
+import { fetchCategories, fetchTags, fetchGames } from '../api/index.js'
 
 const route = useRoute()
 const searchQuery = ref('')
-const activeCategory = ref(route.params.id || 'all')
+const activeCategory = ref(
+  route.params.id
+    ? (isNaN(route.params.id) ? route.params.id : Number(route.params.id))
+    : 'all'
+)
 const currentSort = ref('popular')
 const sidebarOpen = ref(false)
 const mobileSearchOpen = ref(false)
 
+// API data
+const rawCategories = ref([])
+const rawTags = ref([])
+const games = ref([])
+const totalGames = ref(0)
+const loading = ref(false)
+
+// Prepend 'all' to API categories
+const categories = computed(() => [
+  { id: 'all', name: '全部游戏', icon: '🎮' },
+  ...rawCategories.value.map(c => ({
+    id: c.id,
+    name: c.name,
+    icon: c.icon || '🎮'
+  }))
+])
+
+// Build tag map: id -> name
+const tagMap = computed(() => {
+  const map = {}
+  rawTags.value.forEach(t => { map[t.id] = t.name })
+  return map
+})
+
 // Watch route changes to update category
 watch(() => route.params.id, (newId) => {
-  if (newId) activeCategory.value = newId
+  if (newId) activeCategory.value = isNaN(newId) ? newId : Number(newId)
   else activeCategory.value = 'all'
 })
 
 const sortOptions = [
   { label: '最热门', value: 'popular' },
-  { label: '评分最高', value: 'rating' },
   { label: '最新', value: 'newest' }
 ]
 
 const currentCategoryName = computed(() => {
-  const cat = categories.find(c => c.id === activeCategory.value)
+  const cat = categories.value.find(c => c.id === activeCategory.value)
   return cat ? cat.name : '全部游戏'
 })
 
-const filteredGames = computed(() => {
-  let result = games
-
-  // Filter by category
-  if (activeCategory.value !== 'all') {
-    result = result.filter(g => g.category === activeCategory.value)
+// Map API game objects to GameCard-compatible format
+function mapGame(g) {
+  return {
+    id: g.id,
+    title: g.name,
+    category: g.category_id,
+    category_name: g.category_name,
+    cover: g.img_url || '',
+    description: g.desc || '',
+    tags: Array.isArray(g.tag_ids)
+      ? g.tag_ids.map(id => tagMap.value[id] || '').filter(Boolean)
+      : [],
+    member_level: g.member_level || 0,
+    storeUrl: g.detail_url || ''
   }
+}
+
+const filteredGames = computed(() => {
+  let result = games.value.map(mapGame)
 
   // Filter by search
   if (searchQuery.value.trim()) {
@@ -174,22 +214,53 @@ const filteredGames = computed(() => {
 const sortedGames = computed(() => {
   const list = [...filteredGames.value]
   switch (currentSort.value) {
-    case 'rating':
-      return list.sort((a, b) => b.rating - a.rating)
     case 'newest':
       return list.sort((a, b) => b.id - a.id)
     default:
-      return list.sort((a, b) => {
-        const parsePlayers = p => {
-          const n = parseFloat(p)
-          return p.includes('M') ? n * 1000000 : p.includes('K') ? n * 1000 : n
-        }
-        return parsePlayers(b.players) - parsePlayers(a.players)
-      })
+      return list
   }
 })
 
 const currentTier = computed(() => getTier(currentUser.membership))
+
+async function loadData() {
+  loading.value = true
+  try {
+    const params = {}
+    if (activeCategory.value !== 'all') {
+      params.category_id = activeCategory.value
+    }
+    if (searchQuery.value.trim()) {
+      params.name = searchQuery.value.trim()
+    }
+    params.limit = 100
+    const data = await fetchGames(params)
+    games.value = data.list || []
+    totalGames.value = data.total || 0
+  } catch (e) {
+    console.error('Failed to load games:', e)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(async () => {
+  // Load categories and tags in parallel
+  try {
+    const [cats, tags] = await Promise.all([fetchCategories(), fetchTags()])
+    rawCategories.value = cats
+    rawTags.value = tags
+  } catch (e) {
+    console.error('Failed to load categories/tags:', e)
+  }
+  // Load games
+  await loadData()
+})
+
+// Reload games when category changes
+watch(activeCategory, () => {
+  loadData()
+})
 
 function handleLogout() {
   currentUser.isLoggedIn = false

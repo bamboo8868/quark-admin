@@ -91,6 +91,9 @@ menus:
   pureMembershipCenter: 会员中心
   pureGameCategory: 游戏分类管理
   pureGameTag: 标签管理
+  pureMemberGame: 游戏管理
+  pureMemberGameAcc: 游戏账号
+  pureMemberList: 会员列表
   pureCodeMirror: 代码编辑器
   pureMarkdown: Markdown
   pureEditor: 编辑器

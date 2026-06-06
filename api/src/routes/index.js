@@ -5,6 +5,9 @@ import { accountAccessRecordsRoutes } from './accountAccessRecords.routes.js';
 import { gameCategoryRoutes } from './gameCategory.routes.js';
 import { gameTagRoutes } from './gameTag.routes.js';
 import { gameRoutes } from './game.routes.js';
+import { memberRoutes } from './member.routes.js';
+import { gameAccMgrRoutes } from './gameAccMgr.routes.js';
+import { webRoutes } from './web.routes.js';
 import { queryOptimizer, memoryOptimizer } from '../utils/optimizer.js';
 import { cache } from '../utils/cache.js';
 import { authenticate, authorize } from '../middlewares/auth.middleware.js';
@@ -45,6 +48,11 @@ export async function registerRoutes(app) {
   await app.register(gameCategoryRoutes, { prefix: '/api' });
   await app.register(gameTagRoutes, { prefix: '/api' });
   await app.register(gameRoutes, { prefix: '/api' });
+  await app.register(memberRoutes, { prefix: '/api' });
+  await app.register(gameAccMgrRoutes, { prefix: '/api' });
+
+  // Web project public routes (no admin auth)
+  await app.register(webRoutes, { prefix: '/api' });
 }
 
 export default registerRoutes;

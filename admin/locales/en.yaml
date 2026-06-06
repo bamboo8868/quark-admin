@@ -92,6 +92,9 @@ menus:
   pureMembershipCenter: Membership Center
   pureGameCategory: Game Category
   pureGameTag: Tag Management
+  pureMemberGame: Game Management
+  pureMemberGameAcc: Game Account
+  pureMemberList: Member List
   pureCodeMirror: CodeMirror
   pureMarkdown: Markdown
   pureEditor: Editor

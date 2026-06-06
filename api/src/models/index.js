@@ -7,3 +7,5 @@ export { AccountsSimpleModel } from './accountsSimple.model.js';
 export { GameCategoryModel } from './gameCategory.model.js';
 export { GameTagModel } from './gameTag.model.js';
 export { GameModel } from './game.model.js';
+export { MemberModel } from './member.model.js';
+export { GameAccountModel } from './gameAccount.model.js';

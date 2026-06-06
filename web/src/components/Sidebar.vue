@@ -59,7 +59,7 @@
           <div class="mt-2 space-y-1.5">
             <div class="flex items-center justify-between">
               <span class="text-xs text-gray-500">游戏总数</span>
-              <span class="text-sm font-semibold text-gray-300">35</span>
+              <span class="text-sm font-semibold text-gray-300">{{ totalGames }}</span>
             </div>
             <div class="flex items-center justify-between">
               <span class="text-xs text-gray-500">活跃玩家</span>
@@ -79,8 +79,9 @@
 <script setup>
 defineProps({
   categories: { type: Array, required: true },
-  activeCategory: { type: String, default: 'all' },
-  mobileOpen: { type: Boolean, default: false }
+  activeCategory: { type: [String, Number], default: 'all' },
+  mobileOpen: { type: Boolean, default: false },
+  totalGames: { type: Number, default: 0 }
 })
 
 defineEmits(['select', 'close'])
