@@ -57,3 +57,14 @@ export const batchDeleteAccountAccess = (ids: number[]) => {
 export const recordView = (id: number) => {
   return http.request<Result>("post", `/api/account-access/${id}/view`);
 };
+
+/** 导入Excel */
+export const importAccountAccessExcel = (file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  return http.request<Result>("post", "/api/account-access/import", {
+    data: formData,
+    headers: { "Content-Type": "multipart/form-data" },
+    timeout: 60000
+  });
+};
