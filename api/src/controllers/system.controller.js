@@ -76,7 +76,7 @@ export const systemController = {
         roles: user.roles?.map(r => r.code) || [],
         accessToken,
         refreshToken,
-        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+        expires: new Date(Date.now() +  86400000).toISOString()
       }
     };
   },

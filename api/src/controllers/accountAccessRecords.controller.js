@@ -1,5 +1,6 @@
 import { accountAccessRecordsService } from '../services/accountAccessRecords.service.js';
-
+import XLSX from 'xlsx';
+import db from '../utils/db.js';
 /**
  * Account Access Records Controller - D加密账号管理 CRUD operations
  */
@@ -150,5 +151,54 @@ export const accountAccessRecordsController = {
       message: '操作成功',
       data: null
     };
-  }
+  },
+
+  /**
+   * Import records from Excel file
+   * POST /account-access/import
+   */
+  importExcel: async (request, reply) => {
+    try {
+      // 获取上传文件
+      const part = await request.file();
+
+      // 把文件流转成字符串（文本内容）
+      const buffer = await part.toBuffer();
+
+      // 3. Buffer 转字符串（读取文本内容）
+      // const content = buffer.toString('utf8');
+      const workbook = XLSX.read(buffer, {
+        type: 'buffer',
+        cellDates: true,
+        cellNF: true,
+      });
+      const result = {
+        fileName: part.filename,
+        sheetCount: workbook.SheetNames.length,
+        sheets: {},
+      };
+
+      const worksheet = workbook.Sheets['Sheet1'];
+      const sheetData = XLSX.utils.sheet_to_json(worksheet, {
+        header: 1,
+        defval: null,
+      });
+
+      for (let item of sheetData) {
+        await accountAccessRecordsService.createRecord({
+          game_name: item[0],
+          account: item[1],
+          password: item[2],
+        });
+      }
+      return {
+        code: 0,
+        message: '操作成功',
+        data: null
+      };
+    } catch (err) {
+      return reply.status(400).send({ error: err.message });
+    }
+
+  },
 };

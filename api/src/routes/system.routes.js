@@ -4,13 +4,17 @@ import { optionalAuth, authenticate } from '../middlewares/auth.middleware.js';
  * System routes for admin frontend
  * These routes provide CRUD APIs for admin system
  */
-export async function systemRoutes(app) {
-    app.addHook('preHandler',authenticate);
-  // ==================== Auth ====================
+export async function loginRoutes(app) {
   // Login
   app.post('/login', systemController.login);
-  // Refresh token
+    // Refresh token
   app.post('/refresh-token', systemController.refreshToken);
+}
+
+export async function systemRoutes(app) {
+  app.addHook('preHandler', authenticate);
+  // ==================== Auth ====================
+
   // Async routes
   app.get('/get-async-routes', systemController.getAsyncRoutes);
 
@@ -95,4 +99,4 @@ export async function systemRoutes(app) {
   app.get('/get-map-info', systemController.getMapInfo);
 }
 
-export default systemRoutes;
+// export default systemRoutes;

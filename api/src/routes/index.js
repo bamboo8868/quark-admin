@@ -1,4 +1,4 @@
-import { systemRoutes } from './system.routes.js';
+import { systemRoutes,loginRoutes } from './system.routes.js';
 import { emailRoutes } from './email.routes.js';
 import { gameAccountRoutes } from './gameAccount.routes.js';
 import { accountAccessRecordsRoutes } from './accountAccessRecords.routes.js';
@@ -38,6 +38,7 @@ export async function registerRoutes(app) {
   });
 
   // Register route groups
+  await app.register(loginRoutes, { prefix: '/api' });
   await app.register(systemRoutes, { prefix: '/api' });
   await app.register(emailRoutes, { prefix: '/api' });
   await app.register(gameAccountRoutes, { prefix: '/api' });

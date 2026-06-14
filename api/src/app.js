@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
+import multipart from '@fastify/multipart';
 import { config } from './config/env.js';
 import { log } from './utils/logger.js';
 import { globalErrorHandler, notFoundHandler } from './middlewares/error.middleware.js';
@@ -19,8 +20,10 @@ async function createApp() {
     connectionTimeout: 30000,
     keepAliveTimeout: 60000,
     bodyLimit: 10 * 1024 * 1024, // 10MB body limit
-    caseSensitive: false,
-    requestTimeout: 30000
+    requestTimeout: 30000,
+    routerOptions: {
+      caseSensitive: false
+    }
   });
 
   // Register plugins
@@ -42,8 +45,8 @@ async function createApp() {
 async function registerPlugins(app) {
   // CORS - restrict in production
   await app.register(cors, {
-    origin: config.app.env === 'prod' 
-      ? (process.env.ALLOWED_ORIGINS || '').split(',') 
+    origin: config.app.env === 'prod'
+      ? (process.env.ALLOWED_ORIGINS || '').split(',')
       : true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -72,6 +75,15 @@ async function registerPlugins(app) {
     referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
     xssFilter: true
   });
+
+  // Multipart (file upload)
+  app.register(multipart, {
+    limits: {
+      fileSize: 50 * 1024 * 1024,
+      files: 1
+    }
+  })
+
 
   // Rate limiting - stricter for auth endpoints
   await app.register(rateLimit, {
@@ -111,7 +123,7 @@ function registerErrorHandlers(app) {
     await detectThreats(request, reply);
     await sanitizeInput(request, reply);
   });
-  
+
   // Log request with body (body is parsed after preValidation)
   app.addHook('preHandler', async (request, reply) => {
     log.req(request);
@@ -136,17 +148,17 @@ async function start() {
     // Graceful shutdown
     const gracefulShutdown = async (signal) => {
       log.info(`Received ${signal}. Starting graceful shutdown...`);
-      
+
       await app.close();
-      
+
       // Close database connection
       const { closeDatabase } = await import('./config/database.js');
       await closeDatabase();
-      
+
       // Close Redis connection
       const { closeRedis } = await import('./config/redis.js');
       await closeRedis();
-      
+
       log.info('Graceful shutdown completed');
       process.exit(0);
     };
