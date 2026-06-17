@@ -1,0 +1,1 @@
+import{w as e}from"./index-CPCmsvbi.js";var t=t=>e.request(`post`,`/api/game-accounts`,{data:t}),n=t=>e.request(`post`,`/api/game-accounts/create`,{data:t}),r=(t,n)=>e.request(`put`,`/api/game-accounts/${t}`,{data:n}),i=t=>e.request(`delete`,`/api/game-accounts/${t}`),a=t=>e.request(`post`,`/api/game-accounts/import`,{data:{items:t}});export{r as a,a as i,i as n,t as r,n as t};

@@ -145,6 +145,16 @@ export const menuConfig = [
     rank: GAME_RANK,
     children: [
       {
+        id: 4003,
+        parentId: 4000,
+        menuType: 0,
+        title: 'menus.pureGameAccountSearch',
+        name: 'GameAccountSearch',
+        path: '/game/account-seach/index',
+        component: 'game/account-search/index',
+        icon: 'ri:key-2-line'
+      },
+      {
         id: 4001,
         parentId: 4000,
         menuType: 0,

@@ -1,1 +1,0 @@
-import{An as e,Dn as t,Yn as n,ar as r}from"./index-CUI9yTE8.js";var i=t({name:`Motion`,props:{delay:{type:Number,default:50}},render(){let{delay:t}=this,i=n(`motion`);return r(e(`div`,{},{default:()=>[this.$slots.default()]}),[[i,{initial:{opacity:0,y:100},enter:{opacity:1,y:0,transition:{delay:t}}}]])}});export{i as t};
