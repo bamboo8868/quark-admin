@@ -8,6 +8,7 @@ import AddFill from "~icons/ri/add-circle-line";
 import Refresh from "~icons/ep/refresh";
 import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
+import SwitchButton from "~icons/ep/switch-button";
 import { message } from "@/utils/message";
 import CopyDocument from "~icons/ep/copy-document";
 
@@ -29,7 +30,8 @@ const {
   handleCurrentChange,
   openDialog,
   handleDelete,
-  handleImport
+  handleImport,
+  handleLogout
 } = useGameAccount();
 
 function handleCopy(row: any) {
@@ -85,10 +87,22 @@ function handleCopy(row: any) {
             color: 'var(--el-text-color-primary)'
           }" @page-size-change="handleSizeChange" @page-current-change="handleCurrentChange">
           <template #operation="{ row, size }">
+            <el-button class="reset-margin" link type="primary" :size="size" :icon="useRenderIcon(EditPen)"
+              @click="openDialog('修改', row)">
+              修改密码
+            </el-button>
             <el-button @click="handleCopy(row)" class="reset-margin" link type="primary" :size="size"
               :icon="useRenderIcon(CopyDocument)">
               复制
             </el-button>
+            <el-popconfirm :title="`是否确认注销账号 ${row.account}`" @confirm="handleLogout(row)">
+              <template #reference>
+                <el-button class="reset-margin" link type="danger" :size="size"
+                  :icon="useRenderIcon(SwitchButton)">
+                  注销
+                </el-button>
+              </template>
+            </el-popconfirm>
           </template>
         </pure-table>
       </template>

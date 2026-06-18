@@ -21,6 +21,8 @@ export async function gameAccountRoutes(app) {
   app.post('/game-accounts/batch-delete', accountsSimpleController.batchDeleteAccounts);
   // Import accounts from JSON
   app.post('/game-accounts/import', accountsSimpleController.importAccounts);
+
+  app.post('/game-accounts/logout', accountsSimpleController.logout);
 }
 
 export default gameAccountRoutes;

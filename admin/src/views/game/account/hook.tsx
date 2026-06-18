@@ -5,7 +5,8 @@ import {
   createGameAccount,
   updateGameAccount,
   deleteGameAccount,
-  importGameAccounts
+  importGameAccounts,
+  logoutGameAccount
 } from "@/api/gameAccount";
 import { ref, reactive, onMounted, h, defineComponent } from "vue";
 import type { PaginationProps } from "@pureadmin/table";
@@ -48,6 +49,11 @@ export function useGameAccount() {
       label: "用户名",
       prop: "account",
       minWidth: 150
+    },
+    {
+      label: "密码",
+      prop: "password",
+      minWidth: 120
     },
     {
       label: "验证码",
@@ -125,6 +131,7 @@ export function useGameAccount() {
       props: {
         formInline: {
           account: row?.account ?? "",
+          password: row?.password ?? "",
           code: row?.code ?? "",
           visible: row?.visible ?? 1
         }
@@ -168,6 +175,15 @@ export function useGameAccount() {
     const { code } = await deleteGameAccount(row.id);
     if (code === 0) {
       message("删除成功", { type: "success" });
+      onSearch();
+    }
+  }
+
+  /** Logout account */
+  async function handleLogout(row: any) {
+    const { code } = await logoutGameAccount(row.id);
+    if (code === 0) {
+      message("注销成功", { type: "success" });
       onSearch();
     }
   }
@@ -222,7 +238,8 @@ export function useGameAccount() {
     handleCurrentChange,
     openDialog,
     handleDelete,
-    handleImport
+    handleImport,
+    handleLogout
   };
 }
 
@@ -252,19 +269,12 @@ const AccountFormComponent = defineComponent({
         rules={rules}
         label-width="90px"
       >
-        {/* <el-form-item label="用户名" prop="account">
+        <el-form-item label="密码" prop="password">
           <el-input
-            v-model={props.formInline.account}
-            placeholder="请输入用户名"
+            v-model={props.formInline.password}
+            placeholder="请输入密码"
           />
         </el-form-item>
-        <el-form-item label="密码" prop="code">
-          <el-input
-            v-model={props.formInline.code}
-            placeholder="请输入密码"
-            show-password
-          />
-        </el-form-item> */}
         <el-form-item label="查询状态" prop="visible">
           <el-radio-group v-model={props.formInline.visible}>
             <el-radio value={1}>是</el-radio>
