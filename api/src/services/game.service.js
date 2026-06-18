@@ -12,9 +12,18 @@ export const gameService = {
   },
 
   async getGameById(id) {
-    const game = await gameModel.findById(id);
+    const game = await db('games as g')
+      .leftJoin('game_category as gc', 'g.category_id', 'gc.id')
+      .select('g.*', 'gc.name as category_name')
+      .where('g.id', id)
+      .first();
     if (game) {
-      game.tag_ids = typeof game.tag_ids === 'string' ? JSON.parse(game.tag_ids) : game.tag_ids;
+      const tagIds = typeof game.tag_ids === 'string' ? JSON.parse(game.tag_ids) : (game.tag_ids || []);
+      const allTags = await db('game_tag').select('id', 'name');
+      const tagMap = {};
+      allTags.forEach(t => { tagMap[t.id] = t.name; });
+      game.tag_ids = tagIds;
+      game.tag_names = tagIds.map(tid => tagMap[tid] || '').filter(Boolean);
     }
     return game;
   },

@@ -176,38 +176,68 @@ export const menuConfig = [
       }
     ]
   },
-  // {
-  //   id: 5000,
-  //   parentId: 0,
-  //   menuType: 0,
-  //   title: 'menus.pureMembershipCenter',
-  //   name: 'Membership',
-  //   path: '/membership',
-  //   icon: 'ri:vip-crown-2-line',
-  //   rank: MEMBERSHIP_RANK,
-  //   children: [
-  //     {
-  //       id: 5001,
-  //       parentId: 5000,
-  //       menuType: 0,
-  //       title: 'menus.pureGameCategory',
-  //       name: 'GameCategory',
-  //       path: '/membership/category/index',
-  //       component: 'membership/category/index',
-  //       icon: 'ri:folder-3-line'
-  //     },
-  //     {
-  //       id: 5002,
-  //       parentId: 5000,
-  //       menuType: 0,
-  //       title: 'menus.pureGameTag',
-  //       name: 'GameTag',
-  //       path: '/membership/tag/index',
-  //       component: 'membership/tag/index',
-  //       icon: 'ri:price-tag-3-line'
-  //     }
-  //   ]
-  // }
+  {
+    id: 5000,
+    parentId: 0,
+    menuType: 0,
+    title: 'menus.pureMembershipCenter',
+    name: 'Membership',
+    path: '/membership',
+    icon: 'ri:vip-crown-2-line',
+    rank: MEMBERSHIP_RANK,
+    children: [
+      {
+        id: 5001,
+        parentId: 5000,
+        menuType: 0,
+        title: 'menus.pureGameCategory',
+        name: 'GameCategory',
+        path: '/membership/category/index',
+        component: 'membership/category/index',
+        icon: 'ri:folder-3-line'
+      },
+      {
+        id: 5002,
+        parentId: 5000,
+        menuType: 0,
+        title: 'menus.pureGameTag',
+        name: 'GameTag',
+        path: '/membership/tag/index',
+        component: 'membership/tag/index',
+        icon: 'ri:price-tag-3-line'
+      },
+      {
+        id: 5003,
+        parentId: 5000,
+        menuType: 0,
+        title: 'menus.pureMemberGame',
+        name: 'MembershipGame',
+        path: '/membership/game/index',
+        component: 'membership/game/index',
+        icon: 'ri:gamepad-line'
+      },
+      {
+        id: 5004,
+        parentId: 5000,
+        menuType: 0,
+        title: 'menus.pureMemberGameAcc',
+        name: 'MembershipGameAccount',
+        path: '/membership/game-account/index',
+        component: 'membership/game-account/index',
+        icon: 'ri:key-2-line'
+      },
+      {
+        id: 5005,
+        parentId: 5000,
+        menuType: 0,
+        title: 'menus.pureMemberList',
+        name: 'MemberList',
+        path: '/membership/member/index',
+        component: 'membership/member/index',
+        icon: 'ri:group-line'
+      }
+    ]
+  }
 ];
 
 /**
