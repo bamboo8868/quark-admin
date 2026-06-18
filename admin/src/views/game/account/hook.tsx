@@ -74,7 +74,7 @@ export function useGameAccount() {
     {
       label: "操作",
       fixed: "right",
-      width: 160,
+      width: 360,
       slot: "operation"
     }
   ];

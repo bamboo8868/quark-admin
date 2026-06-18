@@ -90,7 +90,7 @@ async function syncAccount(account) {
     try {
         await client.connect();
         await client.mailboxOpen('INBOX');
-
+        const lock = await client.getMailboxLock('INBOX', { readOnly: true });
         try {
             // Fetch the most recent emails (last 50 by default)
             let tenMinAgo = new Date(Date.now() - 600000);
@@ -156,7 +156,7 @@ async function syncAccount(account) {
                 );
             }
         } finally {
-            // lock.release();
+            lock.release();
         }
     } catch (error) {
         log.error(`[emailSync] Account ${account.id} (${account.username}) error: ${error.message}`);

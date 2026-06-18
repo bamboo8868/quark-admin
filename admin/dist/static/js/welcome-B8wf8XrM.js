@@ -1,0 +1,1 @@
+import{Dn as e,V as t,dr as n,on as r,yt as i}from"./index-CPCmsvbi.js";import"./utils-C3X2kXKr.js";var a=t(e(r(r({},{name:`Welcome`}),{},{__name:`index`,setup(e){let{isDark:t}=i();return n(1),(e,t)=>null}})),[[`__scopeId`,`data-v-f7a0b3ff`]]);export{a as default};

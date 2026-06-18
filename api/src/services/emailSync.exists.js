@@ -162,7 +162,7 @@ async function runAccountLoop(account, stoppedRef) {
             },
             disableAutoIdle: false, // 默认 false，必须保持关闭，否则不会自动 IDLE
             maxIdleTime: 5 * 60 * 1000,
-            logger: false,
+            logger: true,
             emitLogs: false
         });
 

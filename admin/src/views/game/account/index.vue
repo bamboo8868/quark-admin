@@ -8,6 +8,7 @@ import AddFill from "~icons/ri/add-circle-line";
 import Refresh from "~icons/ep/refresh";
 import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
+import { message } from "@/utils/message";
 
 defineOptions({
   name: "GameAccount"
@@ -29,6 +30,27 @@ const {
   handleDelete,
   handleImport
 } = useGameAccount();
+
+function handleCopy(row: any) {
+  const text = `${row.code}`;
+  if (navigator.clipboard) {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        message("已复制到剪贴板", { type: "success" });
+      })
+      .catch(() => {
+        message("复制失败", { type: "error" });
+      });
+  } else {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
+  }
+}
 </script>
 
 <template>
@@ -70,14 +92,8 @@ const {
             color: 'var(--el-text-color-primary)'
           }" @page-size-change="handleSizeChange" @page-current-change="handleCurrentChange">
           <template #operation="{ row, size }">
-            <el-button
-              class="reset-margin"
-              link
-              type="primary"
-              :size="size"
-              :icon="useRenderIcon(EditPen)"
-              @click="openDialog('修改', row)"
-            >
+            <el-button class="reset-margin" link type="primary" :size="size" :icon="useRenderIcon(EditPen)"
+              @click="openDialog('修改', row)">
               修改
             </el-button>
             <el-popconfirm :title="`是否确认删除账号 ${row.account}`" @confirm="handleDelete(row)">
@@ -87,6 +103,10 @@ const {
                 </el-button>
               </template>
             </el-popconfirm>
+            <el-button @click="handleCopy(row)" class="reset-margin" link type="primary" :size="size"
+              :icon="useRenderIcon(Delete)">
+              复制
+            </el-button>
           </template>
         </pure-table>
       </template>

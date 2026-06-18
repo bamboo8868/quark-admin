@@ -13,6 +13,7 @@ import EditPen from "~icons/ep/edit-pen";
 import View from "~icons/ep/view";
 import CopyDocument from "~icons/ep/copy-document";
 import BackOneIcon from '~icons/icon-park-outline/back-one?width=1em&height=1em';
+import Upload from "~icons/ep/upload";
 
 defineOptions({
   name: "AccountAccessRecords"
@@ -32,8 +33,15 @@ const {
   handleCurrentChange,
   openDialog,
   handleDelete,
-  handleBack
+  handleBack,
+  importLoading,
+  handleImport
 } = useAccountAccess();
+
+function onImportChange(file: any) {
+  handleImport(file);
+  return false;
+}
 
 async function handleView(row: any) {
   const { code, data } = await recordView(row.id);
@@ -89,6 +97,17 @@ function handleCopy(row: any) {
         <el-button type="primary" :icon="useRenderIcon(AddFill)" @click="openDialog()">
           新增
         </el-button>
+        <el-upload
+          :show-file-list="false"
+          accept=".xlsx,.xls"
+          :before-upload="onImportChange"
+          :disabled="importLoading"
+          style="display: inline-block; margin-left: 10px"
+        >
+          <el-button type="success" :icon="useRenderIcon(Upload)" :loading="importLoading">
+            导入Excel
+          </el-button>
+        </el-upload>
       </template>
       <template v-slot="{ size, dynamicColumns }">
         <pure-table align-whole="center" table-layout="auto" :loading="loading" :size="size"

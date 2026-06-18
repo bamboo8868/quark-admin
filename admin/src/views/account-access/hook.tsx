@@ -5,7 +5,8 @@ import {
   createAccountAccess,
   updateAccountAccess,
   deleteAccountAccess,
-  backAccountAccess
+  backAccountAccess,
+  importAccountAccessExcel
 } from "@/api/accountAccess";
 import { ref, reactive, onMounted, h, defineComponent } from "vue";
 import type { PaginationProps } from "@pureadmin/table";
@@ -221,6 +222,23 @@ export function useAccountAccess() {
     }
   }
 
+  /** Import Excel */
+  const importLoading = ref(false);
+  async function handleImport(file: File) {
+    importLoading.value = true;
+    try {
+      const { code, message: msg } = await importAccountAccessExcel(file);
+      if (code === 0) {
+        message(msg || "导入成功", { type: "success" });
+        onSearch();
+      }
+    } catch (err: any) {
+      message(err?.message || "导入失败", { type: "error" });
+    } finally {
+      importLoading.value = false;
+    }
+  }
+
   onMounted(() => {
     onSearch();
   });
@@ -238,7 +256,9 @@ export function useAccountAccess() {
     handleCurrentChange,
     openDialog,
     handleDelete,
-    handleBack
+    handleBack,
+    importLoading,
+    handleImport
   };
 }
 
