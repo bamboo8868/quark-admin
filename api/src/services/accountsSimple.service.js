@@ -1,8 +1,47 @@
 import { AccountsSimpleModel } from '../models/accountsSimple.model.js';
 import { db } from '../utils/db.js';
 import { log } from '../utils/logger.js';
+import SteamCommunity from 'steamcommunity';
+import SteamTotp from 'steam-totp';
 
 const accountsSimpleModel = new AccountsSimpleModel();
+
+
+SteamCommunity.prototype.flushAll = function (sessionID, cookies) {
+    this.httpRequestPost({
+        "uri": "https://store.steampowered.com/twofactor/manage_action",
+        "formData": {
+            "action": 'deauthorize',
+            "sessionid": sessionID
+        },
+    }, function (err, resposne, body) {
+        // console.log(resposne);
+        if (err) {
+            console.log("flush err")
+            // console.log(err);
+        } else {
+            console.log("flush success", sessionID)
+            this.httpRequestPost({
+                uri: 'https://store.steampowered.com/logout',
+                form: {
+                    sessionid: sessionID
+                },
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            }, function (err) {
+                if (err) {
+                    console.log("logout error")
+                } else {
+                    console.log("logout success");
+                }
+            })
+
+        }
+
+    }
+    )
+};
 
 /**
  * Accounts Simple Service - Business logic for game account management
@@ -105,6 +144,37 @@ export const accountsSimpleService = {
       updated,
       skipped: items.length - validItems.length
     };
+  },
+
+  async logout(id) {
+    let accountInfo = await db('accounts_simple')
+      .where('id', id)
+      .first();
+
+    let code = SteamTotp.generateCode(accountInfo.code);
+    let steamObj = new SteamCommunity();
+    steamObj.login({
+      accountName: accountInfo.account,
+      password: accountInfo.password,
+      twoFactorCode: code
+    }, (err, sessionId) => {
+      if (err) {
+        console.log("login error", err);
+        res.json({ code: 1, message: "STEAM登录错误" })
+      } else {
+        if (sessionId && typeof sessionId == 'string' && sessionId.includes(';')) {
+          sessionId = sessionId.split(';')[0];
+        }
+        console.log("login success", sessionId);
+        setTimeout(() => {
+          steamObj.flushAll(sessionId);
+        }, 1000);
+
+        res.json({ code: 0, message: "success" })
+      }
+
+    })
+
   }
 };
 
