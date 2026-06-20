@@ -93,29 +93,6 @@
             {{ loading ? '登录中...' : '登 录' }}
           </button>
 
-          <!-- Divider -->
-          <div class="my-6 flex items-center gap-3">
-            <div class="h-px flex-1 bg-gray-800/50"></div>
-            <span class="text-xs text-gray-600">其他登录方式</span>
-            <div class="h-px flex-1 bg-gray-800/50"></div>
-          </div>
-
-          <!-- Social Login -->
-          <div class="flex justify-center gap-4">
-            <button type="button" class="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-700/50 bg-gray-800/30 text-gray-400 hover:border-violet-500/30 hover:text-violet-400 transition">
-              <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.38 1.5c-.054.217-.068.397-.018.536.044.122.145.2.285.2.1 0 .226-.032.376-.1l2.088-1.006a.94.94 0 01.668-.078 10.27 10.27 0 002.456.298c.18 0 .358-.005.536-.015a5.765 5.765 0 01-.288-1.802c0-3.556 3.39-6.441 7.573-6.441.237 0 .47.012.702.03C16.798 4.588 13.109 2.188 8.69 2.188zm5.395 16.617c-4.002 0-7.242-2.66-7.242-5.941 0-3.282 3.24-5.942 7.242-5.942 4.003 0 7.243 2.66 7.243 5.942 0 3.281-3.24 5.941-7.243 5.941z"/></svg>
-            </button>
-            <button type="button" class="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-700/50 bg-gray-800/30 text-gray-400 hover:border-green-500/30 hover:text-green-400 transition">
-              <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z"/></svg>
-            </button>
-            <button type="button" class="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-700/50 bg-gray-800/30 text-gray-400 hover:border-sky-500/30 hover:text-sky-400 transition">
-              <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M22.46 6c-.85.38-1.78.64-2.73.76 1-.6 1.74-1.55 2.1-2.68-.93.55-1.96.95-3.06 1.17-.88-.94-2.13-1.53-3.51-1.53-2.66 0-4.81 2.16-4.81 4.81 0 .38.04.75.13 1.1-4-.2-7.58-2.11-9.96-5.02-.42.72-.66 1.56-.66 2.46 0 1.68.85 3.16 2.14 4.02-.79-.02-1.53-.24-2.18-.6v.06c0 2.35 1.67 4.31 3.88 4.76-.4.1-.83.16-1.27.16-.31 0-.62-.03-.92-.08.63 1.96 2.45 3.39 4.61 3.43-1.69 1.32-3.83 2.1-6.15 2.1-.4 0-.8-.02-1.19-.07 2.19 1.4 4.78 2.22 7.57 2.22 9.07 0 14.02-7.52 14.02-14.02 0-.21 0-.42-.01-.63.96-.7 1.8-1.56 2.46-2.55z"/></svg>
-            </button>
-            <button type="button" class="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-700/50 bg-gray-800/30 text-gray-400 hover:border-red-500/30 hover:text-red-400 transition">
-              <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-            </button>
-          </div>
-
           <!-- Register link -->
           <p class="mt-6 text-center text-sm text-gray-500">
             还没有账户？
@@ -129,7 +106,12 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
+import { useRouter } from 'vue-router'
 import siteConfig from '../config/site.js'
+import { webLogin } from '../api/index.js'
+import { currentUser, memberLevelToTier } from '../config/membership.js'
+
+const router = useRouter()
 
 const form = reactive({
   username: '',
@@ -141,7 +123,7 @@ const showPassword = ref(false)
 const loading = ref(false)
 const errorMsg = ref('')
 
-function handleLogin() {
+async function handleLogin() {
   errorMsg.value = ''
   if (!form.username.trim()) {
     errorMsg.value = '请输入用户名'
@@ -151,11 +133,33 @@ function handleLogin() {
     errorMsg.value = '请输入密码'
     return
   }
-  // Frontend only — no API call yet
+
   loading.value = true
-  setTimeout(() => {
+  try {
+    const res = await webLogin({ username: form.username, password: form.password })
+    if (res.code === 0) {
+      // Persist token
+      const storage = form.remember ? localStorage : sessionStorage
+      storage.setItem('web_token', res.data.accessToken)
+      storage.setItem('web_user', JSON.stringify({
+        id: res.data.id,
+        username: res.data.username,
+        nickname: res.data.nickname,
+        avatar: res.data.avatar,
+        member_level: res.data.member_level
+      }))
+      // Update reactive state immediately so header reflects login without refresh
+      currentUser.isLoggedIn = true
+      currentUser.username = res.data.username
+      currentUser.membership = memberLevelToTier(res.data.member_level)
+      router.push('/')
+    } else {
+      errorMsg.value = res.message || '登录失败，请重试'
+    }
+  } catch (err) {
+    errorMsg.value = '网络异常，请检查连接后重试'
+  } finally {
     loading.value = false
-    errorMsg.value = '登录功能暂未接入后端，敬请期待'
-  }, 1500)
+  }
 }
 </script>

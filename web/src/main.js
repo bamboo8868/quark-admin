@@ -6,9 +6,13 @@ import Login from './views/Login.vue'
 import Register from './views/Register.vue'
 import Membership from './views/Membership.vue'
 import siteConfig from './config/site.js'
+import { initCurrentUser } from './config/membership.js'
 import './assets/main.css'
 
 document.title = `${siteConfig.siteNameEn} - ${siteConfig.siteNameZh}`
+
+// Hydrate logged-in user from storage before rendering
+initCurrentUser()
 
 const router = createRouter({
   history: createWebHistory(),

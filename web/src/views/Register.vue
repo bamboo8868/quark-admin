@@ -116,6 +116,12 @@
             <span>我已阅读并同意 <a href="#" class="text-violet-400 hover:text-violet-300">用户协议</a> 和 <a href="#" class="text-violet-400 hover:text-violet-300">隐私政策</a></span>
           </label>
 
+          <!-- Success Message -->
+          <div v-if="successMsg" class="mb-4 flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-400">
+            <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            {{ successMsg }}
+          </div>
+
           <!-- Error Message -->
           <div v-if="errorMsg" class="mb-4 flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
             <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -145,7 +151,11 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import siteConfig from '../config/site.js'
+import { webRegister } from '../api/index.js'
+
+const router = useRouter()
 
 const form = reactive({
   username: '',
@@ -158,6 +168,7 @@ const form = reactive({
 const showPassword = ref(false)
 const loading = ref(false)
 const errorMsg = ref('')
+const successMsg = ref('')
 
 const passwordStrength = computed(() => {
   const p = form.password
@@ -177,19 +188,33 @@ const passwordStrengthColor = computed(() => {
   return ['', 'text-red-400', 'text-amber-400', 'text-emerald-400'][passwordStrength.value]
 })
 
-function handleRegister() {
+async function handleRegister() {
   errorMsg.value = ''
+  successMsg.value = ''
   if (!form.username.trim()) { errorMsg.value = '请输入用户名'; return }
   if (!form.email.trim()) { errorMsg.value = '请输入邮箱'; return }
   if (!form.password) { errorMsg.value = '请输入密码'; return }
   if (form.password.length < 6) { errorMsg.value = '密码至少6位'; return }
   if (form.password !== form.confirmPassword) { errorMsg.value = '两次输入的密码不一致'; return }
   if (!form.agree) { errorMsg.value = '请同意用户协议和隐私政策'; return }
-  // Frontend only
+
   loading.value = true
-  setTimeout(() => {
+  try {
+    const res = await webRegister({
+      username: form.username,
+      email: form.email,
+      password: form.password
+    })
+    if (res.code === 0) {
+      successMsg.value = '注册成功，3秒后跳转到登录页...'
+      setTimeout(() => router.push('/login'), 3000)
+    } else {
+      errorMsg.value = res.message || '注册失败，请重试'
+    }
+  } catch (err) {
+    errorMsg.value = '网络异常，请检查连接后重试'
+  } finally {
     loading.value = false
-    errorMsg.value = '注册功能暂未接入后端，敬请期待'
-  }, 1500)
+  }
 }
 </script>

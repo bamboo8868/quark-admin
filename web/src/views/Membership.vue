@@ -116,7 +116,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { membershipTiers, currentUser, getTier } from '../config/membership.js'
+import { membershipTiers, currentUser, getTier, clearUser } from '../config/membership.js'
 import siteConfig from '../config/site.js'
 
 const router = useRouter()
@@ -133,9 +133,7 @@ function mockLogin(tier) {
 }
 
 function mockLogout() {
-  currentUser.isLoggedIn = false
-  currentUser.username = ''
-  currentUser.membership = 'guest'
+  clearUser()
 }
 
 function switchMembership(tier) {

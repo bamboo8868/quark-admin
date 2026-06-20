@@ -59,7 +59,7 @@ export const membershipTiers = [
   },
 ]
 
-// Mock current user (frontend-only, will be replaced with real auth later)
+// Current user state
 import { ref, reactive } from 'vue'
 
 export const currentUser = reactive({
@@ -67,6 +67,53 @@ export const currentUser = reactive({
   username: '',
   membership: 'guest', // 'guest' | 'bronze' | 'gold'
 })
+
+/**
+ * Map numeric member_level from API to membership tier id
+ */
+export function memberLevelToTier(level) {
+  const map = { 0: 'guest', 1: 'bronze', 2: 'gold' }
+  return map[level] ?? 'guest'
+}
+
+/**
+ * Hydrate currentUser from localStorage / sessionStorage on app start
+ */
+export function initCurrentUser() {
+  const storage = localStorage.getItem('web_user')
+    ? localStorage
+    : sessionStorage.getItem('web_user')
+      ? sessionStorage
+      : null
+
+  if (!storage) return
+
+  try {
+    const raw = storage.getItem('web_user')
+    if (!raw) return
+    const user = JSON.parse(raw)
+    currentUser.isLoggedIn = true
+    currentUser.username = user.username || ''
+    currentUser.membership = memberLevelToTier(user.member_level)
+  } catch {
+    // Corrupted data — clean up
+    storage.removeItem('web_user')
+    storage.removeItem('web_token')
+  }
+}
+
+/**
+ * Clear user state and storage (logout)
+ */
+export function clearUser() {
+  currentUser.isLoggedIn = false
+  currentUser.username = ''
+  currentUser.membership = 'guest'
+  localStorage.removeItem('web_user')
+  localStorage.removeItem('web_token')
+  sessionStorage.removeItem('web_user')
+  sessionStorage.removeItem('web_token')
+}
 
 export function getTier(tierId) {
   return membershipTiers.find(t => t.id === tierId) || membershipTiers[0]

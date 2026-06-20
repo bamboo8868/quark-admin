@@ -125,7 +125,7 @@ import { useRoute } from 'vue-router'
 import Sidebar from '../components/Sidebar.vue'
 import GameCard from '../components/GameCard.vue'
 import siteConfig from '../config/site.js'
-import { currentUser, getTier } from '../config/membership.js'
+import { currentUser, getTier, clearUser } from '../config/membership.js'
 import { fetchCategories, fetchTags, fetchGames } from '../api/index.js'
 
 const route = useRoute()
@@ -263,9 +263,7 @@ watch(activeCategory, () => {
 })
 
 function handleLogout() {
-  currentUser.isLoggedIn = false
-  currentUser.username = ''
-  currentUser.membership = 'guest'
+  clearUser()
 }
 
 function handleCategorySelect(id) {
