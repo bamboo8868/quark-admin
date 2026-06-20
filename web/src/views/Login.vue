@@ -74,7 +74,7 @@
               <input type="checkbox" v-model="form.remember" class="h-4 w-4 rounded border-gray-600 bg-gray-800 text-violet-600 focus:ring-violet-500/20" />
               记住我
             </label>
-            <a href="#" class="text-sm text-violet-400 hover:text-violet-300 transition">忘记密码？</a>
+            <router-link to="/forgot-password" class="text-sm text-violet-400 hover:text-violet-300 transition">忘记密码？</router-link>
           </div>
 
           <!-- Error Message -->

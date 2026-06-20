@@ -4,6 +4,7 @@ import App from './App.vue'
 import Home from './views/Home.vue'
 import Login from './views/Login.vue'
 import Register from './views/Register.vue'
+import ForgotPassword from './views/ForgotPassword.vue'
 import Membership from './views/Membership.vue'
 import siteConfig from './config/site.js'
 import { initCurrentUser } from './config/membership.js'
@@ -21,7 +22,8 @@ const router = createRouter({
     { path: '/category/:id', component: Home, props: true },
     { path: '/membership', component: Membership },
     { path: '/login', component: Login },
-    { path: '/register', component: Register }
+    { path: '/register', component: Register },
+    { path: '/forgot-password', component: ForgotPassword }
   ]
 })
 
