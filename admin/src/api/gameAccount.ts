@@ -53,3 +53,8 @@ export const batchDeleteGameAccounts = (ids: number[]) => {
 export const importGameAccounts = (items: Array<any>) => {
   return http.request<Result>("post", "/api/game-accounts/import", { data: { items } });
 };
+
+/** 注销游戏账号 */
+export const logoutGameAccount = (id: number) => {
+  return http.request<Result>("post", "/api/game-accounts/logout", { data: { id } });
+};

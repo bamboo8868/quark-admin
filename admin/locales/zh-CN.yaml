@@ -87,6 +87,7 @@ menus:
   pureAccountManage: 账号管理
   pureGameManagement: 游戏管理
   pureGameAccount: SDA账号管理
+  pureGameAccountSearch: SDA账号查询
   pureDencryptedAccount: D加密账号管理
   pureMembershipCenter: 会员中心
   pureGameCategory: 游戏分类管理

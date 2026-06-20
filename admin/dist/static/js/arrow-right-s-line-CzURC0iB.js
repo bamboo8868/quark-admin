@@ -1,0 +1,1 @@
+import{Sn as e,Wn as t,cr as n,yn as r}from"./index-3moyaH0O.js";var i={viewBox:`0 0 24 24`,width:`1em`,height:`1em`};function a(n,a){return t(),e(`svg`,i,[...a[0]||(a[0]=[r(`path`,{fill:`currentColor`,d:`m13.172 12l-4.95-4.95l1.414-1.413L16 12l-6.364 6.364l-1.414-1.415z`},null,-1)])])}var o=n({name:`ri-arrow-right-s-line`,render:a});export{o as t};

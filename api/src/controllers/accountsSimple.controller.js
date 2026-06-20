@@ -70,6 +70,7 @@ export const accountsSimpleController = {
    */
   updateAccount: async (request, reply) => {
     const { id } = request.params;
+    delete request.body.code;
     const account = await accountsSimpleService.updateAccount(id, request.body);
 
     return {
@@ -153,5 +154,24 @@ export const accountsSimpleController = {
         data: null
       };
     }
+  },
+
+
+  logout: async (request, reply) => {
+    const { id } = request.body || {};
+    if (!id) {
+      return {
+        code: 10001,
+        message: '缺少账号ID',
+        data: null
+      };
+    }
+    await accountsSimpleService.logout(id);
+
+    return {
+      code: 0,
+      message: '注销成功',
+      data: null
+    };
   }
 };
