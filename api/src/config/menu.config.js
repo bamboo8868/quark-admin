@@ -9,6 +9,7 @@ const MONITOR_RANK = 11;
 const EMAIL_RANK = 12;
 const GAME_RANK = 13;
 const MEMBERSHIP_RANK = 14;
+const RENT_RANK = 15;
 
 export const menuConfig = [
   {
@@ -235,9 +236,71 @@ export const menuConfig = [
   //       path: '/membership/member/index',
   //       component: 'membership/member/index',
   //       icon: 'ri:group-line'
+  //     },
+  //     {
+  //       id: 5006,
+  //       parentId: 5000,
+  //       menuType: 0,
+  //       title: 'menus.pureMemberCdk',
+  //       name: 'MemberCdk',
+  //       path: '/membership/cdk/index',
+  //       component: 'membership/cdk/index',
+  //       icon: 'ri:gift-2-line'
   //     }
   //   ]
-  // }
+  // },
+  {
+    id: 6000,
+    parentId: 0,
+    menuType: 0,
+    title: 'menus.pureRentManagement',
+    name: 'Rent',
+    path: '/rent',
+    icon: 'ri:swap-box-line',
+    rank: RENT_RANK,
+    children: [
+      {
+        id: 6001,
+        parentId: 6000,
+        menuType: 0,
+        title: 'menus.pureRentGame',
+        name: 'RentGame',
+        path: '/rent/game/index',
+        component: 'rent/game/index',
+        icon: 'ri:gamepad-line'
+      },
+      {
+        id: 6002,
+        parentId: 6000,
+        menuType: 0,
+        title: 'menus.pureRentAccount',
+        name: 'RentAccount',
+        path: '/rent/account/index',
+        component: 'rent/account/index',
+        icon: 'ri:key-2-line'
+      },
+      {
+        id: 6003,
+        parentId: 6000,
+        menuType: 0,
+        title: 'menus.pureRentCdk',
+        name: 'RentCdk',
+        path: '/rent/cdk/index',
+        component: 'rent/cdk/index',
+        icon: 'ri:gift-2-line'
+      },
+      {
+        id: 6004,
+        parentId: 6000,
+        menuType: 0,
+        title: 'menus.pureRentLog',
+        name: 'RentLog',
+        path: '/rent/log/index',
+        component: 'rent/log/index',
+        icon: 'ri:file-list-3-line'
+      }
+    ]
+  }
 ];
 
 /**

@@ -1,1 +1,0 @@
-import{Dn as e,Lt as t,Sn as n,Wn as r,_r as i,on as a}from"./index-3moyaH0O.js";var o=e(a(a({},{name:`Redirect`}),{},{__name:`redirect`,setup(e){let{currentRoute:a,replace:o}=t(),{params:s,query:c}=i(a),{path:l}=s;return o({path:`/`+(Array.isArray(l)?l.join(`/`):l),query:c}),(e,t)=>(r(),n(`div`))}}));export{o as default};

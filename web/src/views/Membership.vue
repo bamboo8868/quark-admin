@@ -64,65 +64,157 @@
             </div>
           </div>
 
-          <!-- Action button -->
-          <button
-            @click="selectTier(tier.id)"
-            :class="[
-              'mt-6 w-full rounded-xl px-4 py-2.5 text-sm font-bold transition',
-              currentUser.membership === tier.id
-                ? 'bg-gray-800 text-gray-500 cursor-default'
-                : 'bg-gradient-to-r ' + tier.gradientFrom + ' ' + tier.gradientTo + ' shadow-lg hover:opacity-90'
-            ]"
-            :disabled="currentUser.membership === tier.id"
-          >
-            {{ currentUser.membership === tier.id ? '当前等级' : (tier.id === 'guest' ? '免费加入' : '升级会员') }}
-          </button>
+
         </div>
       </div>
 
-      <!-- Mock login panel for testing -->
-      <div class="mt-10 md:mt-14 rounded-2xl border border-gray-800/40 bg-gray-900/30 p-6 md:p-8">
-        <h3 class="text-lg font-bold text-gray-200 mb-4">模拟登录（测试用）</h3>
-        <p class="text-sm text-gray-500 mb-4">此面板仅用于前端测试，登录后可切换会员等级查看不同效果</p>
-        <div class="flex flex-wrap gap-3">
-          <template v-if="!currentUser.isLoggedIn">
-            <input
-              v-model="mockUsername"
-              type="text"
-              placeholder="输入用户名"
-              class="rounded-xl border border-gray-700/50 bg-gray-900/50 px-4 py-2 text-sm text-gray-200 placeholder-gray-500 outline-none focus:border-violet-500/50 w-40"
-            />
-            <button @click="mockLogin('guest')" class="rounded-xl bg-gray-700 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-600 transition">登录为游客</button>
-            <button @click="mockLogin('bronze')" class="rounded-xl bg-gradient-to-r from-amber-700 to-amber-900 px-4 py-2 text-sm font-bold text-amber-100 hover:opacity-90 transition">登录为青铜</button>
-            <button @click="mockLogin('gold')" class="rounded-xl bg-gradient-to-r from-yellow-500 to-amber-600 px-4 py-2 text-sm font-bold text-yellow-100 hover:opacity-90 transition">登录为黄金</button>
-          </template>
-          <template v-else>
-            <div class="flex items-center gap-3 text-sm">
-              <span class="text-gray-400">当前身份：</span>
-              <span :class="['font-bold', currentTier.color]">{{ currentTier.icon }} {{ currentUser.username }} ({{ currentTier.name }})</span>
-            </div>
-            <div class="flex gap-2 ml-auto">
-              <button v-if="currentUser.membership !== 'bronze'" @click="switchMembership('bronze')" class="rounded-lg bg-amber-900/30 px-3 py-1.5 text-xs font-bold text-amber-500 hover:bg-amber-900/50 transition">切换青铜</button>
-              <button v-if="currentUser.membership !== 'gold'" @click="switchMembership('gold')" class="rounded-lg bg-yellow-900/30 px-3 py-1.5 text-xs font-bold text-yellow-400 hover:bg-yellow-900/50 transition">切换黄金</button>
-              <button @click="mockLogout" class="rounded-lg bg-gray-800 px-3 py-1.5 text-xs font-medium text-gray-400 hover:bg-gray-700 transition">退出登录</button>
-            </div>
-          </template>
+
+      <!-- CDK Redemption Section -->
+      <div class="mt-10 md:mt-14 rounded-2xl border border-violet-800/30 bg-gradient-to-br from-violet-950/40 to-indigo-950/30 p-6 md:p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 text-lg">🎁</div>
+          <div>
+            <h3 class="text-lg font-bold text-gray-100">CDK兑换会员</h3>
+            <p class="text-xs text-gray-500">输入CDK兑换码，立即升级您的会员等级</p>
+          </div>
         </div>
+
+        <!-- Not logged in -->
+        <div v-if="!currentUser.isLoggedIn" class="rounded-xl bg-gray-800/30 px-6 py-8 text-center">
+          <p class="text-sm text-gray-400 mb-4">请先登录后再兑换CDK</p>
+          <router-link to="/login" class="inline-block rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-2.5 text-sm font-bold shadow-lg hover:opacity-90 transition">前往登录</router-link>
+        </div>
+
+        <!-- Logged in: redeem form -->
+        <template v-else>
+          <!-- Current member info -->
+          <div v-if="memberInfo" class="mb-5 flex items-center gap-4 rounded-xl bg-gray-800/30 px-5 py-3">
+            <div class="text-sm text-gray-400">当前会员：</div>
+            <div :class="['text-sm font-bold', currentTier.color]">{{ currentTier.icon }} {{ currentTier.name }}</div>
+            <div v-if="memberInfo.member_expire_at" class="text-xs text-gray-500">
+              到期：{{ formatDate(memberInfo.member_expire_at) }}
+            </div>
+          </div>
+
+          <!-- Input -->
+          <div class="flex gap-3">
+            <input
+              v-model="cdkCode"
+              type="text"
+              placeholder="请输入CDK兑换码，例如 XXXX-XXXX-XXXX-XXXX"
+              class="flex-1 rounded-xl border border-gray-700/50 bg-gray-900/50 px-5 py-3 text-sm text-gray-200 placeholder-gray-500 outline-none focus:border-violet-500/50 tracking-wider uppercase"
+              @keyup.enter="handleRedeem"
+            />
+            <button
+              @click="handleRedeem"
+              :disabled="!cdkCode.trim() || redeeming"
+              class="shrink-0 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 md:px-8 py-3 text-sm font-bold shadow-lg shadow-violet-600/25 hover:shadow-violet-600/40 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
+              {{ redeeming ? '兑换中...' : '立即兑换' }}
+            </button>
+          </div>
+
+          <!-- Success result -->
+          <div v-if="redeemResult" class="mt-5 rounded-xl border border-emerald-700/30 bg-emerald-950/30 px-5 py-4">
+            <div class="flex items-center gap-2 text-emerald-400 font-bold mb-3">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              兑换成功！
+            </div>
+            <div class="grid gap-2 text-sm">
+              <div class="flex items-center gap-2">
+                <span class="text-gray-400">会员等级：</span>
+                <span class="font-bold text-emerald-300">{{ redeemResult.member_level_name }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-gray-400">开通时长：</span>
+                <span class="font-bold text-gray-200">{{ redeemResult.duration_months }} 个月</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-gray-400">到期时间：</span>
+                <span class="font-bold text-gray-200">{{ formatDate(redeemResult.member_expire_at) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Error -->
+          <div v-if="redeemError" class="mt-4 rounded-xl border border-red-800/30 bg-red-950/30 px-5 py-3 text-sm text-red-400">
+            {{ redeemError }}
+          </div>
+        </template>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { membershipTiers, currentUser, getTier, clearUser } from '../config/membership.js'
+import { membershipTiers, currentUser, getTier, memberLevelToTier, clearUser } from '../config/membership.js'
 import siteConfig from '../config/site.js'
+import { redeemMemberCdk, fetchMyMemberInfo } from '../api/index.js'
 
 const router = useRouter()
 const mockUsername = ref('')
 
 const currentTier = computed(() => getTier(currentUser.membership))
+
+// CDK redemption state
+const cdkCode = ref('')
+const redeeming = ref(false)
+const redeemResult = ref(null)
+const redeemError = ref('')
+const memberInfo = ref(null)
+
+// Format date
+function formatDate(dateStr) {
+  if (!dateStr) return '-'
+  const d = new Date(dateStr)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+// Fetch member info on mount
+onMounted(async () => {
+  if (currentUser.isLoggedIn) {
+    try {
+      const resp = await fetchMyMemberInfo()
+      if (resp && resp.code === 0 && resp.data) {
+        memberInfo.value = resp.data
+        // Sync membership tier from server
+        currentUser.membership = memberLevelToTier(resp.data.member_level)
+      }
+    } catch {
+      // ignore
+    }
+  }
+})
+
+// Redeem CDK
+async function handleRedeem() {
+  if (!cdkCode.value.trim() || redeeming.value) return
+
+  redeeming.value = true
+  redeemResult.value = null
+  redeemError.value = ''
+
+  try {
+    const resp = await redeemMemberCdk(cdkCode.value.trim())
+    if (resp && resp.code === 0 && resp.data) {
+      redeemResult.value = resp.data
+      cdkCode.value = ''
+      // Update local membership
+      currentUser.membership = memberLevelToTier(resp.data.member_level)
+      // Refresh member info
+      const infoResp = await fetchMyMemberInfo()
+      if (infoResp && infoResp.code === 0) memberInfo.value = infoResp.data
+    } else {
+      redeemError.value = resp?.message || '兑换失败，请检查CDK码是否正确'
+    }
+  } catch (err) {
+    redeemError.value = err.message || '兑换失败，请稍后重试'
+  } finally {
+    redeeming.value = false
+  }
+}
 
 function mockLogin(tier) {
   const name = mockUsername.value.trim() || '测试用户'

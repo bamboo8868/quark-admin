@@ -7,6 +7,7 @@ import { gameTagRoutes } from './gameTag.routes.js';
 import { gameRoutes } from './game.routes.js';
 import { memberRoutes } from './member.routes.js';
 import { gameAccMgrRoutes } from './gameAccMgr.routes.js';
+import { rentRoutes } from './rent.routes.js';
 import { webRoutes } from './web.routes.js';
 import { queryOptimizer, memoryOptimizer } from '../utils/optimizer.js';
 import { cache } from '../utils/cache.js';
@@ -51,6 +52,7 @@ export async function registerRoutes(app) {
   await app.register(gameRoutes, { prefix: '/api' });
   await app.register(memberRoutes, { prefix: '/api' });
   await app.register(gameAccMgrRoutes, { prefix: '/api' });
+  await app.register(rentRoutes, { prefix: '/api' });
 
   // Web project public routes (no admin auth)
   await app.register(webRoutes, { prefix: '/api' });

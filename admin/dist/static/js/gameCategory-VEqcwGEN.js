@@ -1,1 +1,0 @@
-import{w as e}from"./index-3moyaH0O.js";var t=t=>e.request(`post`,`/api/game-categories`,{data:t}),n=t=>e.request(`post`,`/api/game-categories/create`,{data:t}),r=(t,n)=>e.request(`put`,`/api/game-categories/${t}`,{data:n}),i=t=>e.request(`delete`,`/api/game-categories/${t}`);export{r as i,i as n,t as r,n as t};

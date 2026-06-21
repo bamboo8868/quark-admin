@@ -11,6 +11,26 @@ async function request(url, options = {}) {
   return await res.json()
 }
 
+/**
+ * Helper: get web auth token from storage
+ */
+function getAuthToken() {
+  return localStorage.getItem('web_token') || sessionStorage.getItem('web_token') || ''
+}
+
+/**
+ * Helper: request with auth header
+ */
+async function authRequest(url, options = {}) {
+  const token = getAuthToken()
+  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) }
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+  const res = await fetch(`${API_BASE}${url}`, { ...options, headers })
+  return await res.json()
+}
+
 // ==================== Auth ====================
 
 /**
@@ -100,4 +120,55 @@ export async function fetchGameById(id) {
   const res = await fetch(`${API_BASE}/web/games/${id}`)
   const json = await res.json()
   return json.code === 0 ? json.data : null
+}
+
+// ==================== Rent ====================
+
+/**
+ * Fetch available rent games
+ */
+export async function fetchRentGames() {
+  const res = await fetch(`${API_BASE}/web/rent/games`)
+  const json = await res.json()
+  return json.code === 0 ? json.data : []
+}
+
+/**
+ * Redeem a CDK code
+ */
+export async function redeemRentCdk(cdkCode) {
+  return await authRequest('/web/rent/redeem', {
+    method: 'POST',
+    body: JSON.stringify({ cdk_code: cdkCode })
+  })
+}
+
+/**
+ * Get current user's rental history
+ */
+export async function fetchMyRentals() {
+  return await authRequest('/web/rent/my-rentals', {
+    method: 'POST'
+  })
+}
+
+// ==================== Membership CDK ====================
+
+/**
+ * Redeem a membership CDK
+ */
+export async function redeemMemberCdk(cdkCode) {
+  return await authRequest('/web/membership/redeem-cdk', {
+    method: 'POST',
+    body: JSON.stringify({ cdk_code: cdkCode })
+  })
+}
+
+/**
+ * Get current member info
+ */
+export async function fetchMyMemberInfo() {
+  return await authRequest('/web/membership/my-info', {
+    method: 'POST'
+  })
 }
