@@ -46,6 +46,7 @@
     "mailparser": "^3.9.8",
     "mysql2": "^3.9.7",
     "node-cron": "^4.2.1",
+    "nodemailer": "^9.0.1",
     "pg": "^8.11.5",
     "pino": "^8.21.0",
     "pino-pretty": "^11.1.0",
