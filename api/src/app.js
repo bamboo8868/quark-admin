@@ -119,10 +119,10 @@ function registerErrorHandlers(app) {
   });
 
   // Pre-validation hook for security checks
-  app.addHook('preValidation', async (request, reply) => {
-    await detectThreats(request, reply);
-    await sanitizeInput(request, reply);
-  });
+  // app.addHook('preValidation', async (request, reply) => {
+  //   await detectThreats(request, reply);
+  //   await sanitizeInput(request, reply);
+  // });
 
   // Log request with body (body is parsed after preValidation)
   app.addHook('preHandler', async (request, reply) => {
