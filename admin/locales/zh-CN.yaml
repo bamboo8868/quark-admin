@@ -95,6 +95,14 @@ menus:
   pureMemberGame: 游戏管理
   pureMemberGameAcc: 游戏账号
   pureMemberList: 会员列表
+  pureMemberCdk: 会员CDK
+  pureMemberCdkGroup: 会员CDK组
+  pureMemberCdkLog: CDK使用记录
+  pureRentManagement: 租号管理
+  pureRentGame: 游戏管理
+  pureRentAccount: 租号账号管理
+  pureRentCdk: CDK管理
+  pureRentLog: CDK使用记录
   pureCodeMirror: 代码编辑器
   pureMarkdown: Markdown
   pureEditor: 编辑器

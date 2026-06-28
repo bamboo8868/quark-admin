@@ -64,6 +64,32 @@ export const rentWebController = {
     },
 
     /**
+     * Get available accounts for a specific game
+     * GET /web/rent/games/:id/accounts
+     */
+    getGameAccounts: async (request, reply) => {
+        const gameId = request.params.id;
+        if (!gameId) {
+            return { code: 10001, message: '游戏ID不能为空', data: null };
+        }
+
+        const game = await db('rent_games').where('id', gameId).first();
+        if (!game) {
+            return { code: 10002, message: '游戏不存在', data: null };
+        }
+
+        // Get available accounts (status=1) for this game
+        // Only return safe fields (no password, no code/shared_secret)
+        const accounts = await db('rent_game_account')
+            .where('game_id', gameId)
+            .where('status', 1)
+            .select('id', 'account', 'platform', 'status', 'created_at')
+            .orderBy('id', 'asc');
+
+        return { code: 0, message: '操作成功', data: accounts };
+    },
+
+    /**
      * Redeem a CDK code (requires login)
      * POST /web/rent/redeem
      * Body: { cdk_code }
@@ -488,6 +514,59 @@ export const rentWebController = {
         }
 
         return { code: 0, message: '操作成功', data: { code: totp_code } };
+    },
+
+    /**
+     * Get account list with game info (for navigation page)
+     * POST /web/accounts/list
+     * Body: { page?, search? }
+     */
+    getAccountList: async (request, reply) => {
+        const body = request.body || {};
+        const page = body.page || 1;
+        const limit = 50;
+        const search = body.search || '';
+
+        let query = db('rent_game_account as a')
+            .leftJoin('rent_games as g', 'a.game_id', 'g.id')
+            .where('a.status', 1); // only available accounts
+
+        if (search) {
+            query = query.where(function() {
+                this.where('g.name', 'like', `%${search}%`)
+                    .orWhere('a.account', 'like', `%${search}%`);
+            });
+        }
+
+        const countQuery = query.clone();
+        const [{ count }] = await countQuery.count('* as count');
+        const total = parseInt(count, 10);
+
+        const offset = (page - 1) * limit;
+        const list = await query
+            .select(
+                'a.id',
+                'a.account',
+                'a.password',
+                'a.platform',
+                'g.name as game_name',
+                'g.cover as game_cover'
+            )
+            .orderBy('g.name', 'asc')
+            .orderBy('a.id', 'asc')
+            .limit(limit)
+            .offset(offset);
+
+        return {
+            code: 0,
+            message: '操作成功',
+            data: {
+                list,
+                total,
+                pageSize: limit,
+                currentPage: page
+            }
+        };
     }
 };
 

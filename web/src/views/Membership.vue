@@ -22,73 +22,68 @@
       </div>
     </header>
 
-    <div class="mx-auto max-w-5xl px-4 md:px-6 py-8 md:py-14">
+    <div class="mx-auto max-w-5xl px-4 md:px-6 py-4 md:py-6">
       <!-- Title -->
-      <div class="text-center mb-10 md:mb-14">
-        <h2 class="text-2xl md:text-4xl font-bold">会员等级</h2>
-        <p class="mt-2 md:mt-3 text-sm md:text-base text-gray-500">选择适合你的会员等级，解锁更多游戏权益</p>
+      <div class="text-center mb-4 md:mb-5">
+        <h2 class="text-xl md:text-2xl font-bold">会员等级</h2>
+        <p class="mt-1 text-sm text-gray-500">选择适合你的会员等级，解锁更多游戏权益</p>
       </div>
 
       <!-- Tier Cards -->
-      <div class="grid gap-6 md:grid-cols-3">
+      <div class="grid gap-3 md:gap-4 md:grid-cols-3">
         <div
           v-for="tier in membershipTiers"
           :key="tier.id"
+          @click="selectTier(tier.id)"
           :class="[
-            'relative overflow-hidden rounded-2xl border p-6 md:p-8 transition',
+            'relative overflow-hidden rounded-xl border p-4 transition-all duration-300 cursor-pointer',
             tier.borderColor,
-            currentUser.membership === tier.id ? 'ring-2 ring-violet-500' : ''
+            currentUser.membership === tier.id
+              ? 'ring-2 ring-violet-500 scale-[1.02] shadow-lg shadow-violet-600/20'
+              : 'hover:scale-[1.01] hover:shadow-md hover:border-violet-500/40 opacity-80 hover:opacity-100'
           ]"
         >
           <!-- Current badge -->
-          <div v-if="currentUser.membership === tier.id" class="absolute right-3 top-3 rounded-full bg-violet-600 px-2.5 py-0.5 text-[10px] font-bold">当前</div>
+          <Transition name="badge-fade">
+            <div v-if="currentUser.membership === tier.id" class="absolute right-2 top-2 rounded-full bg-violet-600 px-2 py-0.5 text-[10px] font-bold animate-badge-in">当前</div>
+          </Transition>
 
-          <div class="text-3xl mb-3">{{ tier.icon }}</div>
-          <h3 :class="['text-xl font-bold', tier.color]">{{ tier.name }}</h3>
-          <p class="mt-1 text-xs text-gray-500">{{ tier.nameEn }}</p>
-          <p class="mt-3 text-sm text-gray-400 leading-relaxed">{{ tier.description }}</p>
+          <div class="text-xl mb-1 transition-transform duration-300" :class="{ 'scale-110': currentUser.membership === tier.id }">{{ tier.icon }}</div>
+          <h3 :class="['text-lg font-bold transition-colors duration-300', tier.color]">{{ tier.name }}</h3>
+          <p class="mt-0.5 text-xs text-gray-500">{{ tier.nameEn }}</p>
+          <p class="mt-2 text-sm text-gray-400 leading-relaxed">{{ tier.description }}</p>
 
           <!-- Features -->
-          <ul class="mt-5 space-y-2">
-            <li v-for="(feat, idx) in tier.features" :key="idx" class="flex items-start gap-2 text-sm text-gray-300">
-              <svg class="h-4 w-4 shrink-0 mt-0.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          <ul class="mt-3 space-y-1.5">
+            <li v-for="(feat, idx) in tier.features" :key="idx" class="flex items-start gap-1.5 text-sm text-gray-300">
+              <svg class="h-3.5 w-3.5 shrink-0 mt-0.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
               {{ feat }}
             </li>
           </ul>
-
-          <!-- Account limit info -->
-          <div v-if="tier.canViewAccounts" class="mt-5 rounded-xl bg-gray-800/40 px-4 py-3 text-center">
-            <span class="text-xs text-gray-400">可查看游戏账号</span>
-            <div class="mt-1 text-lg font-bold" :class="tier.color">
-              {{ tier.maxAccountViews === Infinity ? '无限' : tier.maxAccountViews + ' 款' }}
-            </div>
-          </div>
-
-
         </div>
       </div>
 
 
       <!-- CDK Redemption Section -->
-      <div class="mt-10 md:mt-14 rounded-2xl border border-violet-800/30 bg-gradient-to-br from-violet-950/40 to-indigo-950/30 p-6 md:p-8">
-        <div class="flex items-center gap-3 mb-6">
-          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 text-lg">🎁</div>
+      <div class="mt-10 md:mt-10 rounded-xl border border-violet-800/30 bg-gradient-to-br from-violet-950/40 to-indigo-950/30 p-4">
+        <div class="flex items-center gap-2.5 mb-3">
+          <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-violet-600 to-indigo-600 text-base">🎁</div>
           <div>
-            <h3 class="text-lg font-bold text-gray-100">CDK兑换会员</h3>
+            <h3 class="text-base font-bold text-gray-100">CDK兑换会员</h3>
             <p class="text-xs text-gray-500">输入CDK兑换码，立即升级您的会员等级</p>
           </div>
         </div>
 
         <!-- Not logged in -->
-        <div v-if="!currentUser.isLoggedIn" class="rounded-xl bg-gray-800/30 px-6 py-8 text-center">
-          <p class="text-sm text-gray-400 mb-4">请先登录后再兑换CDK</p>
-          <router-link to="/login" class="inline-block rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-2.5 text-sm font-bold shadow-lg hover:opacity-90 transition">前往登录</router-link>
+        <div v-if="!currentUser.isLoggedIn" class="rounded-lg bg-gray-800/30 px-4 py-4 text-center">
+          <p class="text-sm text-gray-400 mb-3">请先登录后再兑换CDK</p>
+          <router-link to="/login" class="inline-block rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2 text-sm font-bold shadow-lg hover:opacity-90 transition">前往登录</router-link>
         </div>
 
         <!-- Logged in: redeem form -->
         <template v-else>
           <!-- Current member info -->
-          <div v-if="memberInfo" class="mb-5 flex items-center gap-4 rounded-xl bg-gray-800/30 px-5 py-3">
+          <div v-if="memberInfo" class="mb-3 flex items-center gap-3 rounded-lg bg-gray-800/30 px-3 py-2.5">
             <div class="text-sm text-gray-400">当前会员：</div>
             <div :class="['text-sm font-bold', currentTier.color]">{{ currentTier.icon }} {{ currentTier.name }}</div>
             <div v-if="memberInfo.member_expire_at" class="text-xs text-gray-500">
@@ -97,30 +92,30 @@
           </div>
 
           <!-- Input -->
-          <div class="flex gap-3">
+          <div class="flex gap-2">
             <input
               v-model="cdkCode"
               type="text"
               placeholder="请输入CDK兑换码，例如 XXXX-XXXX-XXXX-XXXX"
-              class="flex-1 rounded-xl border border-gray-700/50 bg-gray-900/50 px-5 py-3 text-sm text-gray-200 placeholder-gray-500 outline-none focus:border-violet-500/50 tracking-wider uppercase"
+              class="flex-1 rounded-lg border border-gray-700/50 bg-gray-900/50 px-4 py-2.5 text-sm text-gray-200 placeholder-gray-500 outline-none focus:border-violet-500/50 tracking-wider uppercase"
               @keyup.enter="handleRedeem"
             />
             <button
               @click="handleRedeem"
               :disabled="!cdkCode.trim() || redeeming"
-              class="shrink-0 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 md:px-8 py-3 text-sm font-bold shadow-lg shadow-violet-600/25 hover:shadow-violet-600/40 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              class="shrink-0 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-sm font-bold shadow-lg shadow-violet-600/25 hover:shadow-violet-600/40 disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
               {{ redeeming ? '兑换中...' : '立即兑换' }}
             </button>
           </div>
 
           <!-- Success result -->
-          <div v-if="redeemResult" class="mt-5 rounded-xl border border-emerald-700/30 bg-emerald-950/30 px-5 py-4">
-            <div class="flex items-center gap-2 text-emerald-400 font-bold mb-3">
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <div v-if="redeemResult" class="mt-3 rounded-lg border border-emerald-700/30 bg-emerald-950/30 px-4 py-3">
+            <div class="flex items-center gap-2 text-emerald-400 font-bold mb-2 text-sm">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               兑换成功！
             </div>
-            <div class="grid gap-2 text-sm">
+            <div class="grid gap-1.5 text-sm">
               <div class="flex items-center gap-2">
                 <span class="text-gray-400">会员等级：</span>
                 <span class="font-bold text-emerald-300">{{ redeemResult.member_level_name }}</span>
@@ -137,7 +132,7 @@
           </div>
 
           <!-- Error -->
-          <div v-if="redeemError" class="mt-4 rounded-xl border border-red-800/30 bg-red-950/30 px-5 py-3 text-sm text-red-400">
+          <div v-if="redeemError" class="mt-3 rounded-lg border border-red-800/30 bg-red-950/30 px-4 py-2.5 text-sm text-red-400">
             {{ redeemError }}
           </div>
         </template>
@@ -216,17 +211,6 @@ async function handleRedeem() {
   }
 }
 
-function mockLogin(tier) {
-  const name = mockUsername.value.trim() || '测试用户'
-  currentUser.isLoggedIn = true
-  currentUser.username = name
-  currentUser.membership = tier
-  mockUsername.value = ''
-}
-
-function mockLogout() {
-  clearUser()
-}
 
 function switchMembership(tier) {
   currentUser.membership = tier
@@ -241,3 +225,39 @@ function selectTier(tierId) {
   currentUser.membership = tierId
 }
 </script>
+
+<style scoped>
+/* Badge fade-in animation */
+.badge-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+.badge-fade-leave-active {
+  transition: all 0.2s ease-in;
+}
+.badge-fade-enter-from {
+  opacity: 0;
+  transform: scale(0.5) translateY(-4px);
+}
+.badge-fade-leave-to {
+  opacity: 0;
+  transform: scale(0.5);
+}
+
+/* Badge pop-in animation */
+@keyframes badge-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-badge-in {
+  animation: badge-in 0.35s ease-out;
+}
+</style>

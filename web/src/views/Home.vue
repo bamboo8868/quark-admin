@@ -33,10 +33,8 @@
           <button @click="mobileSearchOpen = !mobileSearchOpen" class="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:text-white transition md:hidden">
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           </button>
-          <router-link to="/rent" class="flex items-center gap-1.5 rounded-lg bg-violet-600/15 px-2.5 py-1.5 text-xs font-semibold text-violet-400 hover:bg-violet-600/25 transition">
-            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
-            租号
-          </router-link>
+          <router-link to="/accounts" class="text-sm text-gray-400 hover:text-violet-400 transition hidden sm:block">游戏账号</router-link>
+          <router-link to="/rent" class="text-sm text-gray-400 hover:text-violet-400 transition hidden sm:block">兑换会员</router-link>
           <router-link v-if="!currentUser.isLoggedIn" to="/login" class="text-sm text-gray-400 hover:text-violet-400 transition hidden sm:block">登录</router-link>
           <router-link v-if="!currentUser.isLoggedIn" to="/register" class="rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-medium shadow-lg shadow-violet-600/25 hover:shadow-violet-600/40 transition">注册</router-link>
           <!-- Logged in: membership badge + username -->
@@ -110,6 +108,7 @@
             v-for="game in sortedGames"
             :key="game.id"
             :game="game"
+            :account-count="game.accountCount || 0"
           />
         </div>
 
@@ -196,7 +195,8 @@ function mapGame(g) {
       ? g.tag_ids.map(id => tagMap.value[id] || '').filter(Boolean)
       : [],
     member_level: g.member_level || 0,
-    storeUrl: g.detail_url || ''
+    storeUrl: g.detail_url || '',
+    accountCount: g.account_count || 0
   }
 }
 

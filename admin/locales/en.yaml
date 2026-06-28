@@ -95,6 +95,14 @@ menus:
   pureMemberGame: Game Management
   pureMemberGameAcc: Game Account
   pureMemberList: Member List
+  pureMemberCdk: Member CDK
+  pureMemberCdkGroup: CDK Group
+  pureMemberCdkLog: CDK Usage Log
+  pureRentManagement: Rent Management
+  pureRentGame: Game Management
+  pureRentAccount: Account Management
+  pureRentCdk: CDK Management
+  pureRentLog: CDK Usage Log
   pureCodeMirror: CodeMirror
   pureMarkdown: Markdown
   pureEditor: Editor

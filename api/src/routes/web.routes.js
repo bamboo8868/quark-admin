@@ -28,8 +28,12 @@ export async function webRoutes(app) {
 
   // ==================== Rent ====================
   app.get('/web/rent/games', rentWebController.getRentGames);
+  app.get('/web/rent/games/:id/accounts', rentWebController.getGameAccounts);
   app.post('/web/rent/redeem', rentWebController.redeemCdk);
   app.post('/web/rent/my-rentals', rentWebController.getMyRentals);
+
+  // ==================== Account List (Navigation Page) ====================
+  app.post('/web/accounts/list', rentWebController.getAccountList);
 
   // ==================== CDK (no auth required) ====================
   app.get('/web/cdk/config', rentWebController.cdkConfig);

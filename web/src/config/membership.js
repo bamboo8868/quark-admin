@@ -33,6 +33,7 @@ export const membershipTiers = [
       '包含游客全部权益',
       '查看部分游戏账号信息',
       '专属青铜会员标识',
+      '可查看非D加密游戏'
     ],
     canViewAccounts: true,
     maxAccountViews: 10, // 最多查看10款游戏的账号
@@ -53,6 +54,7 @@ export const membershipTiers = [
       '无限查看全部游戏账号信息',
       '专属黄金会员标识',
       '优先客服支持',
+      '不限制D加密游戏'
     ],
     canViewAccounts: true,
     maxAccountViews: Infinity,

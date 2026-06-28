@@ -188,34 +188,52 @@ export function useGameAccount() {
     }
   }
 
-  /** Import accounts from JSON file */
+  /** Import accounts from JSON/maFile files */
   function handleImport() {
     const input = document.createElement("input");
     input.type = "file";
-    input.accept = ".json";
+    input.multiple = true;
+    input.accept = ".json,.mafile";
     input.onchange = async (e: Event) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
+      const files = (e.target as HTMLInputElement).files;
+      if (!files || files.length === 0) return;
 
       try {
-        const text = await file.text();
-        let json = JSON.parse(text);
+        const allItems: any[] = [];
+        const errors: string[] = [];
 
-        // Support both array and object-with-accounts format
-        const items = Array.isArray(json) ? json : json.accounts || [json];
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          try {
+            const text = await file.text();
+            const json = JSON.parse(text);
+            // Support both array and object-with-accounts format
+            const items = Array.isArray(json) ? json : json.accounts || [json];
+            allItems.push(...items);
+          } catch (err: any) {
+            errors.push(`${file.name}: ${err?.message || "解析失败"}`);
+          }
+        }
 
-        if (items.length === 0) {
-          message("JSON 文件中没有有效数据", { type: "warning" });
+        if (errors.length > 0) {
+          message(`部分文件解析失败: ${errors.join("; ")}`, { type: "warning" });
+        }
+
+        if (allItems.length === 0) {
+          message("所选文件中没有有效数据", { type: "warning" });
           return;
         }
 
-        const { code, message: msg } = await importGameAccounts(items);
+        const { code, message: msg } = await importGameAccounts(allItems);
         if (code === 0) {
-          message(msg || "导入成功", { type: "success" });
+          message(
+            msg || `成功导入 ${allItems.length} 条数据（共 ${files.length} 个文件）`,
+            { type: "success" }
+          );
           onSearch();
         }
       } catch (err: any) {
-        message(err?.message || "JSON 文件解析失败", { type: "error" });
+        message(err?.message || "文件处理失败", { type: "error" });
       }
     };
     input.click();

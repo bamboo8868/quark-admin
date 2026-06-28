@@ -47,11 +47,25 @@ export const gameWebController = {
       tag_ids: typeof item.tag_ids === 'string' ? JSON.parse(item.tag_ids) : item.tag_ids || []
     }));
 
+    // Attach available account count for each game from rent_game_account table
+    const listWithAccounts = await Promise.all(
+      parsedList.map(async (game) => {
+        const [{ available }] = await db('rent_game_account')
+          .where('game_id', game.id)
+          .where('status', 1)
+          .count('* as available');
+        return {
+          ...game,
+          account_count: parseInt(available, 10)
+        };
+      })
+    );
+
     return {
       code: 0,
       message: '操作成功',
       data: {
-        list: parsedList,
+        list: listWithAccounts,
         total,
         pageSize: limit,
         currentPage: page

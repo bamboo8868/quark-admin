@@ -1,5 +1,5 @@
 import { memberController } from '../controllers/member.controller.js';
-import { memberCdkController } from '../controllers/memberCdk.controller.js';
+import { memberCdkController, memberCdkGroupController, memberCdkLogController } from '../controllers/memberCdk.controller.js';
 import { authenticate } from '../middlewares/auth.middleware.js';
 
 /**
@@ -38,6 +38,24 @@ export async function memberRoutes(app) {
   app.delete('/members-cdk/:id', memberCdkController.deleteCdk);
   // Batch delete CDKs
   app.post('/members-cdk/batch-delete', memberCdkController.batchDeleteCdks);
+
+  // ==================== Member CDK Group ====================
+  // Get CDK group list
+  app.post('/members-cdk-groups', memberCdkGroupController.getGroups);
+  // Get CDK group by ID
+  app.get('/members-cdk-groups/:id', memberCdkGroupController.getGroupById);
+  // Create CDK group
+  app.post('/members-cdk-groups/create', memberCdkGroupController.createGroup);
+  // Update CDK group
+  app.put('/members-cdk-groups/:id', memberCdkGroupController.updateGroup);
+  // Delete CDK group
+  app.delete('/members-cdk-groups/:id', memberCdkGroupController.deleteGroup);
+
+  // ==================== Member CDK Log ====================
+  // Get CDK log list
+  app.post('/members-cdk-logs', memberCdkLogController.getLogs);
+  // Delete CDK log
+  app.delete('/members-cdk-logs/:id', memberCdkLogController.deleteLog);
 }
 
 export default memberRoutes;

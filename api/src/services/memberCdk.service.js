@@ -1,9 +1,13 @@
 import { MemberCdkModel } from '../models/memberCdk.model.js';
+import { MemberCdkGroupModel } from '../models/memberCdkGroup.model.js';
+import { MemberCdkLogModel } from '../models/memberCdkLog.model.js';
 import { MemberModel } from '../models/member.model.js';
 import { getDatabase } from '../config/database.js';
 import crypto from 'crypto';
 
 const memberCdkModel = new MemberCdkModel();
+const memberCdkGroupModel = new MemberCdkGroupModel();
+const memberCdkLogModel = new MemberCdkLogModel();
 const memberModel = new MemberModel();
 
 /**
@@ -205,12 +209,142 @@ export const memberCdkService = {
         updated_at: now
       });
 
+      // 6. Log the usage
+      const action = (member.member_expire_at && new Date(member.member_expire_at) > now) ? 'renew' : 'redeem';
+      await trx('member_cdk_log').insert({
+        cdk_id: cdk.id,
+        member_id: memberId,
+        cdk_code: cdk.cdk_code,
+        member_level: cdk.member_level,
+        duration_months: cdk.duration_months,
+        action: action,
+        member_name: member.username || member.nickname || '',
+        ip: '',
+        created_at: now
+      });
+
       return {
         member_level: newLevel,
         member_expire_at: newExpireAt,
         duration_months: months
       };
     });
+  }
+};
+
+// ==================== Member CDK Group ====================
+export const memberCdkGroupService = {
+  async getGroups(filters, page, limit) {
+    return await memberCdkGroupModel.getGroupsWithFilters(filters, page, limit);
+  },
+
+  async getGroupById(id) {
+    return await memberCdkGroupModel.findById(id);
+  },
+
+  /**
+   * Create a CDK group and batch-generate CDK codes
+   */
+  async createGroup(data) {
+    const { member_level, duration_months, count, remark } = data;
+    if (!count || count < 1) throw new Error('请输入生成数量');
+    if (count > 500) throw new Error('单次最多生成500个CDK');
+
+    const db = getDatabase();
+    const now = new Date();
+
+    // Auto-generate name based on level and duration
+    const levelName = member_level === 2 ? '黄金' : '青铜';
+    const dateStr = now.toISOString().slice(0, 10);
+    const autoName = `${dateStr}-${levelName}-${duration_months || 3}个月`;
+
+    // 1. Create the group record
+    const group = await memberCdkGroupModel.create({
+      name: autoName,
+      count: parseInt(count, 10),
+      member_level: member_level || 1,
+      duration_months: duration_months || 3,
+      status: 1,
+      remark: remark || ''
+    });
+
+    // 2. Batch generate unique CDK codes
+    const existingCodes = new Set(
+      (await db('members_cdk').select('cdk_code')).map(r => r.cdk_code)
+    );
+
+    const cdkRows = [];
+    let attempts = 0;
+    const maxAttempts = count * 10;
+    while (cdkRows.length < count && attempts < maxAttempts) {
+      const code = generateCdkCode();
+      if (!existingCodes.has(code)) {
+        existingCodes.add(code);
+        cdkRows.push({
+          group_id: group.id,
+          cdk_code: code,
+          member_level: member_level || 1,
+          duration_months: duration_months || 3,
+          status: 1,
+          remark: '',
+          batch_no: `G${group.id}`,
+          created_at: now,
+          updated_at: now
+        });
+      }
+      attempts++;
+    }
+
+    // 3. Bulk insert CDKs
+    if (cdkRows.length > 0) {
+      await db('members_cdk').insert(cdkRows);
+    }
+
+    // 4. Update group count with actual generated count
+    await memberCdkGroupModel.update(group.id, { count: cdkRows.length });
+
+    return { ...group, count: cdkRows.length };
+  },
+
+  async updateGroup(id, data) {
+    const updateData = {};
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.status !== undefined) updateData.status = data.status;
+    if (data.remark !== undefined) updateData.remark = data.remark;
+    return await memberCdkGroupModel.update(id, updateData);
+  },
+
+  /**
+   * Delete group and all its CDKs (only if no CDK has been used)
+   */
+  async deleteGroup(id) {
+    const db = getDatabase();
+    const usedCount = await db('members_cdk')
+      .where('group_id', id)
+      .where('status', 2)
+      .count('* as count')
+      .then(r => parseInt(r[0].count, 10));
+
+    if (usedCount > 0) {
+      throw new Error(`该CDK组有 ${usedCount} 个CDK已被使用，无法删除`);
+    }
+
+    // Delete all CDKs in this group
+    await db('members_cdk').where('group_id', id).del();
+    // Delete the group
+    await memberCdkGroupModel.delete(id);
+    return true;
+  }
+};
+
+// ==================== Member CDK Log ====================
+export const memberCdkLogService = {
+  async getLogs(filters, page, limit) {
+    return await memberCdkLogModel.getLogsWithFilters(filters, page, limit);
+  },
+
+  async deleteLog(id) {
+    return await memberCdkLogModel.delete(id);
   }
 };
 

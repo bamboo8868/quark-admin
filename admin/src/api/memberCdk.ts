@@ -62,3 +62,47 @@ export const batchDeleteMemberCdks = (ids: number[]) => {
     data: { ids }
   });
 };
+
+// ==================== Member CDK Group Management ====================
+
+/** 获取CDK组列表 */
+export const getMemberCdkGroupList = (data?: object) => {
+  return http.request<ResultTable>("post", "/api/members-cdk-groups", { data });
+};
+
+/** 获取CDK组详情 */
+export const getMemberCdkGroupById = (id: number) => {
+  return http.request<Result>("get", `/api/members-cdk-groups/${id}`);
+};
+
+/** 创建CDK组（批量生成CDK） */
+export const createMemberCdkGroup = (data: {
+  member_level: number;
+  duration_months: number;
+  count: number;
+  remark?: string;
+}) => {
+  return http.request<Result>("post", "/api/members-cdk-groups/create", { data });
+};
+
+/** 更新CDK组 */
+export const updateMemberCdkGroup = (id: number, data?: object) => {
+  return http.request<Result>("put", `/api/members-cdk-groups/${id}`, { data });
+};
+
+/** 删除CDK组 */
+export const deleteMemberCdkGroup = (id: number) => {
+  return http.request<Result>("delete", `/api/members-cdk-groups/${id}`);
+};
+
+// ==================== Member CDK Log Management ====================
+
+/** 获取CDK使用记录列表 */
+export const getMemberCdkLogList = (data?: object) => {
+  return http.request<ResultTable>("post", "/api/members-cdk-logs", { data });
+};
+
+/** 删除CDK使用记录 */
+export const deleteMemberCdkLog = (id: number) => {
+  return http.request<Result>("delete", `/api/members-cdk-logs/${id}`);
+};

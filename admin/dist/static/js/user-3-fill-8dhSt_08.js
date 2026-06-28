@@ -1,1 +1,0 @@
-import{Sn as e,Wn as t,cr as n,yn as r}from"./index-XwaNGTZb.js";var i={viewBox:`0 0 24 24`,width:`1em`,height:`1em`};function a(n,a){return t(),e(`svg`,i,[...a[0]||(a[0]=[r(`path`,{fill:`currentColor`,d:`M20 22H4v-2a5 5 0 0 1 5-5h6a5 5 0 0 1 5 5zm-8-9a6 6 0 1 1 0-12a6 6 0 0 1 0 12`},null,-1)])])}var o=n({name:`ri-user-3-fill`,render:a});export{o as t};

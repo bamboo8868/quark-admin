@@ -134,6 +134,29 @@ export async function fetchRentGames() {
 }
 
 /**
+ * Fetch available accounts for a specific game
+ */
+export async function fetchGameAccounts(gameId) {
+  const res = await fetch(`${API_BASE}/web/rent/games/${gameId}/accounts`)
+  const json = await res.json()
+  return json.code === 0 ? json.data : []
+}
+
+/**
+ * Fetch account list with game info (for navigation page)
+ * @param {Object} params - { page, search }
+ */
+export async function fetchAccountList(params = {}) {
+  const res = await fetch(`${API_BASE}/web/accounts/list`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params)
+  })
+  const json = await res.json()
+  return json.code === 0 ? json.data : { list: [], total: 0 }
+}
+
+/**
  * Redeem a CDK code
  */
 export async function redeemRentCdk(cdkCode) {

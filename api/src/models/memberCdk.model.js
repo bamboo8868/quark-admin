@@ -29,6 +29,9 @@ export class MemberCdkModel extends BaseModel {
     if (filters.batch_no) {
       query = query.where('batch_no', filters.batch_no);
     }
+    if (filters.group_id !== undefined && filters.group_id !== null && filters.group_id !== '') {
+      query = query.where('group_id', filters.group_id);
+    }
 
     const countQuery = query.clone();
     const [{ count }] = await countQuery.count('* as count');

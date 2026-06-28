@@ -14,7 +14,7 @@
             </h1>
           </router-link>
           <span class="text-gray-600">|</span>
-          <span class="text-sm font-semibold text-violet-400">租号</span>
+          <span class="text-sm font-semibold text-violet-400">兑换会员</span>
         </div>
         <div class="flex items-center gap-2 md:gap-3">
           <router-link to="/" class="text-sm text-gray-400 hover:text-violet-400 transition">首页</router-link>
@@ -40,8 +40,8 @@
               <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
             </div>
             <div>
-              <h2 class="text-xl font-bold text-white">CDK 兑换</h2>
-              <p class="text-sm text-gray-500">输入 CDK 码即可获取游戏账号，立即体验！</p>
+              <h2 class="text-xl font-bold text-white">CDK 兑换会员</h2>
+              <p class="text-sm text-gray-500">输入 CDK 码即可兑换游戏会员，立即体验！</p>
             </div>
           </div>
 
@@ -120,8 +120,8 @@
               <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
             </div>
             <div>
-              <h2 class="text-xl font-bold text-white">可租游戏</h2>
-              <p class="text-sm text-gray-500">选择心仪游戏，使用 CDK 立即开玩</p>
+              <h2 class="text-xl font-bold text-white">可兑换游戏</h2>
+              <p class="text-sm text-gray-500">选择心仪游戏，使用 CDK 立即兑换</p>
             </div>
           </div>
           <span class="text-xs text-gray-500 bg-gray-800/50 rounded-lg px-3 py-1.5">{{ rentGames.length }} 款游戏</span>
@@ -165,7 +165,7 @@
             <div class="p-4">
               <h3 class="truncate text-sm font-bold text-gray-100 group-hover:text-violet-300 mb-1">{{ game.name }}</h3>
               <p class="text-xs text-gray-500 line-clamp-2 mb-3">{{ game.description }}</p>
-              <div class="flex items-center justify-between">
+              <div class="flex items-center justify-between mb-3">
                 <div class="flex items-baseline gap-1">
                   <span class="text-lg font-bold text-violet-400">¥{{ game.price }}</span>
                   <span class="text-xs text-gray-500">/天</span>
@@ -176,9 +176,18 @@
                     ? 'bg-emerald-600/15 text-emerald-400'
                     : 'bg-gray-700/30 text-gray-500'
                 ]">
-                  {{ game.available_accounts > 0 ? '可租' : '已满' }}
+                  {{ game.available_accounts > 0 ? '可兑换' : '已满' }}
                 </span>
               </div>
+              <button
+                @click="openAccountModal(game)"
+                class="w-full rounded-lg border py-2 text-xs font-semibold transition"
+                :class="game.available_accounts > 0 
+                  ? 'bg-violet-600/10 border-violet-500/20 text-violet-400 hover:bg-violet-600/20 hover:border-violet-500/40' 
+                  : 'bg-gray-800/30 border-gray-700/30 text-gray-500 hover:bg-gray-800/50'"
+              >
+                {{ game.available_accounts > 0 ? `查看游戏账号 (${game.available_accounts})` : '暂无账号' }}
+              </button>
             </div>
           </div>
         </div>
@@ -186,7 +195,7 @@
         <!-- Empty state -->
         <div v-if="!loading && rentGames.length === 0" class="flex flex-col items-center justify-center py-16">
           <div class="text-5xl mb-4">🎮</div>
-          <p class="text-gray-500">暂无可租游戏，敬请期待</p>
+          <p class="text-gray-500">暂无可兑换游戏，敬请期待</p>
         </div>
       </section>
 
@@ -197,7 +206,7 @@
             <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </div>
           <div>
-            <h2 class="text-xl font-bold text-white">租赁记录</h2>
+            <h2 class="text-xl font-bold text-white">兑换记录</h2>
             <p class="text-sm text-gray-500">查看您的 CDK 兑换历史</p>
           </div>
         </div>
@@ -207,7 +216,7 @@
         </div>
 
         <div v-else-if="rentalHistory.length === 0" class="rounded-xl border border-gray-800/40 bg-gray-900/20 py-10 text-center">
-          <p class="text-gray-500 text-sm">暂无租赁记录</p>
+          <p class="text-gray-500 text-sm">暂无兑换记录</p>
         </div>
 
         <div v-else class="overflow-hidden rounded-xl border border-gray-800/40">
@@ -247,13 +256,82 @@
       <section v-else>
         <div class="rounded-xl border border-dashed border-gray-700/50 bg-gray-900/20 py-10 text-center">
           <svg class="mx-auto h-10 w-10 text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-          <p class="text-gray-500 text-sm mb-4">登录后即可兑换 CDK 并查看租赁记录</p>
+          <p class="text-gray-500 text-sm mb-4">登录后即可兑换 CDK 并查看兑换记录</p>
           <router-link to="/login" class="inline-flex rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-600/25 hover:shadow-violet-600/40 transition">
             立即登录
           </router-link>
         </div>
       </section>
 
+    </div>
+
+    <!-- Game Account Modal -->
+    <div
+      v-if="showAccountModal"
+      class="fixed inset-0 z-[60] flex items-center justify-center p-4"
+      @click.self="closeAccountModal"
+    >
+      <!-- Backdrop -->
+      <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="closeAccountModal"></div>
+      
+      <!-- Modal Content -->
+      <div class="relative w-full max-w-lg rounded-2xl border border-gray-800/40 bg-gray-900 shadow-2xl">
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-gray-800/40 px-6 py-4">
+          <div class="flex items-center gap-3">
+            <img v-if="selectedGame?.cover" :src="selectedGame.cover" :alt="selectedGame?.name" class="h-10 w-14 rounded-lg object-cover" @error="(e) => e.target.style.display='none'" />
+            <div>
+              <h3 class="text-lg font-bold text-white">{{ selectedGame?.name }}</h3>
+              <p class="text-xs text-gray-500">{{ selectedGame?.platform }} · 可用账号 {{ gameAccounts.length }} 个</p>
+            </div>
+          </div>
+          <button @click="closeAccountModal" class="rounded-lg p-2 text-gray-500 hover:bg-gray-800 hover:text-gray-300 transition">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="max-h-[400px] overflow-y-auto p-6">
+          <!-- Loading -->
+          <div v-if="loadingAccounts" class="flex items-center justify-center py-10">
+            <svg class="h-6 w-6 animate-spin text-violet-400" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+          </div>
+
+          <!-- Empty -->
+          <div v-else-if="gameAccounts.length === 0" class="py-10 text-center">
+            <p class="text-gray-500 text-sm">暂无可用账号</p>
+          </div>
+
+          <!-- Account List -->
+          <div v-else class="space-y-3">
+            <div
+              v-for="(account, index) in gameAccounts"
+              :key="account.id"
+              class="flex items-center justify-between rounded-xl border border-gray-800/40 bg-gray-800/20 px-4 py-3 hover:border-violet-500/30 transition"
+            >
+              <div class="flex items-center gap-3">
+                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-600/20 text-xs font-bold text-violet-400">{{ index + 1 }}</span>
+                <div>
+                  <p class="font-mono text-sm text-gray-200">{{ account.account }}</p>
+                  <p class="text-xs text-gray-500">{{ account.platform || selectedGame?.platform }}</p>
+                </div>
+              </div>
+              <button
+                @click="copyText(account.account)"
+                class="rounded-lg bg-gray-700/50 p-2 text-gray-400 hover:bg-violet-600/20 hover:text-violet-400 transition"
+                title="复制账号"
+              >
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="border-t border-gray-800/40 px-6 py-4">
+          <p class="text-xs text-gray-500 text-center">输入 CDK 码即可兑换账号，立即体验游戏！</p>
+        </div>
+      </div>
     </div>
 
     <!-- Toast notification -->
@@ -270,7 +348,7 @@
 import { ref, onMounted } from 'vue'
 import siteConfig from '../config/site.js'
 import { currentUser, clearUser } from '../config/membership.js'
-import { fetchRentGames, redeemRentCdk, fetchMyRentals } from '../api/index.js'
+import { fetchRentGames, fetchGameAccounts, redeemRentCdk, fetchMyRentals } from '../api/index.js'
 
 const rentGames = ref([])
 const loading = ref(false)
@@ -282,6 +360,12 @@ const showResultPassword = ref(false)
 const rentalHistory = ref([])
 const loadingHistory = ref(false)
 const toastMsg = ref('')
+
+// Account modal state
+const showAccountModal = ref(false)
+const selectedGame = ref(null)
+const gameAccounts = ref([])
+const loadingAccounts = ref(false)
 
 async function loadRentGames() {
   loading.value = true
@@ -371,6 +455,26 @@ function handleImgError(e) {
 
 function handleLogout() {
   clearUser()
+}
+
+async function openAccountModal(game) {
+  selectedGame.value = game
+  showAccountModal.value = true
+  loadingAccounts.value = true
+  gameAccounts.value = []
+  try {
+    gameAccounts.value = await fetchGameAccounts(game.id)
+  } catch (e) {
+    console.error('Failed to load game accounts:', e)
+  } finally {
+    loadingAccounts.value = false
+  }
+}
+
+function closeAccountModal() {
+  showAccountModal.value = false
+  selectedGame.value = null
+  gameAccounts.value = []
 }
 
 onMounted(() => {
