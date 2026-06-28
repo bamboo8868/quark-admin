@@ -9,6 +9,8 @@ import { memberRoutes } from './member.routes.js';
 import { gameAccMgrRoutes } from './gameAccMgr.routes.js';
 import { rentRoutes } from './rent.routes.js';
 import { webRoutes } from './web.routes.js';
+import { ipRoutes } from './ip.routes.js';
+import { initIp2Region } from '../utils/ip2region.js';
 import { queryOptimizer, memoryOptimizer } from '../utils/optimizer.js';
 import { cache } from '../utils/cache.js';
 import { authenticate, authorize } from '../middlewares/auth.middleware.js';
@@ -17,6 +19,9 @@ import { authenticate, authorize } from '../middlewares/auth.middleware.js';
  * Register all routes
  */
 export async function registerRoutes(app) {
+  // Initialize ip2region searcher at startup
+  initIp2Region();
+
   // Health check endpoint
   app.get('/health', async (request, reply) => {
     return { status: 'ok', timestamp: new Date().toISOString() };
@@ -53,6 +58,9 @@ export async function registerRoutes(app) {
   await app.register(memberRoutes, { prefix: '/api' });
   await app.register(gameAccMgrRoutes, { prefix: '/api' });
   await app.register(rentRoutes, { prefix: '/api' });
+
+  // IP lookup routes (no auth required)
+  await app.register(ipRoutes, { prefix: '/api' });
 
   // Web project public routes (no admin auth)
   await app.register(webRoutes, { prefix: '/api' });
