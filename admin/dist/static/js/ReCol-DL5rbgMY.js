@@ -1,1 +1,0 @@
-import{An as e,Dn as t,Ht as n,on as r}from"./index-BGh09bB-.js";var i=t({name:`ReCol`,props:{value:{type:Number,default:24}},render(){let t=this.$attrs,i=this.value;return e(n,r({xs:i,sm:i,md:i,lg:i,xl:i},t),{default:()=>this.$slots.default()})}});export{i as t};

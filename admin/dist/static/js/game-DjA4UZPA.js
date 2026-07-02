@@ -1,0 +1,1 @@
+import{w as e}from"./index-Czaz-cD4.js";var t=t=>e.request(`post`,`/api/games`,{data:t}),n=t=>e.request(`post`,`/api/games/create`,{data:t}),r=(t,n)=>e.request(`put`,`/api/games/${t}`,{data:n}),i=t=>e.request(`delete`,`/api/games/${t}`);export{r as i,i as n,t as r,n as t};
