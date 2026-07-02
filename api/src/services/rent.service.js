@@ -108,6 +108,7 @@ export const rentCdkService = {
     if (!cdk) throw new AppError('CDK码不存在');
     if (cdk.status === 1) throw new AppError('该CDK已被使用');
     if (cdk.status === 2) throw new AppError('该CDK已过期');
+    if (cdk.status === 3) throw new AppError('该CDK已被禁用');
     if (cdk.expire_at && new Date(cdk.expire_at) < new Date()) {
       await db('rent_cdk').where('id', cdk.id).update({ status: 2 });
       throw new AppError('该CDK已过期');
