@@ -97,6 +97,12 @@ export async function systemRoutes(app) {
   app.post('/get-card-list', systemController.getCardList);
   // Map
   app.get('/get-map-info', systemController.getMapInfo);
+
+  // ==================== Redis 操作 ====================
+  // 获取 is_open_search 当前值
+  app.get('/redis/get-open-search', systemController.getOpenSearch);
+  // 设置 is_open_search (0 或 1)
+  app.post('/redis/set-open-search', systemController.setOpenSearch);
 }
 
 // export default systemRoutes;

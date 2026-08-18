@@ -946,6 +946,41 @@ export const systemController = {
       message: '操作成功',
       data: list
     };
+  },
+
+  // ==================== Redis 操作 ====================
+
+  /**
+   * 获取 Redis key is_open_search 当前值
+   * GET /redis/get-open-search
+   */
+  getOpenSearch: async (request, reply) => {
+    try {
+      const { getRedis } = await import('../config/redis.js');
+      const redis = getRedis();
+      const value = await redis.get('is_open_search');
+      return { code: 0, message: '操作成功', data: { is_open_search: value || '0' } };
+    } catch (err) {
+      return { code: 10002, message: `Redis操作失败: ${err.message}`, data: null };
+    }
+  },
+
+  /**
+   * 设置 Redis key is_open_search (0 或 1)
+   * POST /redis/set-open-search
+   * Body: { value: 0 | 1 }
+   */
+  setOpenSearch: async (request, reply) => {
+    try {
+      const { value } = request.body || {};
+      const val = value === 1 || value === '1' || value === true ? '1' : '0';
+      const { getRedis } = await import('../config/redis.js');
+      const redis = getRedis();
+      await redis.set('is_open_search', val);
+      return { code: 0, message: `is_open_search 已设置为 ${val}`, data: null };
+    } catch (err) {
+      return { code: 10002, message: `Redis操作失败: ${err.message}`, data: null };
+    }
   }
 };
 
