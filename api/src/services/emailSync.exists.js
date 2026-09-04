@@ -40,7 +40,7 @@ function extractSteamLoginInfo(subject, bodyHtml, toAddress) {
         }
         if (!code) {
             if (subject.indexOf('Ubisoft') >= 0) {
-                const m = bodyHtml.match(/<span[^>]*>(\d{6})<\/span>/i);
+                const m = bodyHtml.match(/<td\b[^>]*>\s*(\d{6})\s*<\/td>/i);
                 if (m) code = m[1];
                 gameAccount = toAddress[0].address || ''
             }

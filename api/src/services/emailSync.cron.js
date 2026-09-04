@@ -41,7 +41,7 @@ function extractSteamLoginInfo(subject, bodyHtml, toAddress) {
         }
         if (!code) {
             if (subject.indexOf('Ubisoft') >= 0) {
-                const m = bodyHtml.match(/<span[^>]*>(\d{6})<\/span>/i);
+                const m = bodyHtml.match(/<td\b[^>]*>\s*(\d{6})\s*<\/td>/i);
                 if (m) code = m[1];
                 gameAccount = toAddress[0].address || ''
             }
@@ -95,7 +95,8 @@ async function syncAccount(account) {
             // Fetch the most recent emails (last 50 by default)
             let tenMinAgo = new Date(Date.now() - 600000);
             const messageIds = await client.search({ since: tenMinAgo }, { uid: true });
-
+		log.info(`${account.id} `);
+		console.log(messageIds);
             if (messageIds.length === 0 || messageIds === false) {
                 log.info(`[emailSync] Account ${account.id} (${account.username}): inbox empty`);
                 return;
@@ -206,7 +207,7 @@ export function startEmailSync() {
     }
 
     // Every 5 seconds: "*/5 * * * * *"
-    task = cron.schedule('*/15 * * * * *', runSyncCycle, {
+    task = cron.schedule('*/30 * * * * *', runSyncCycle, {
         scheduled: true
     });
 
