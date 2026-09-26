@@ -103,6 +103,14 @@ menus:
   pureRentAccount: Account Management
   pureRentCdk: CDK Management
   pureRentLog: CDK Usage Log
+  pureOfflineManagement: Offline Game
+  pureOfflineGame: Game Management
+  pureOfflineVersion: Version Management
+  pureOfflineAccount: Account Management
+  pureOfflineCdk: CDK Management
+  pureOfflineLog: Usage Log
+  pureConfigManagement: Configuration
+  pureConfigCarousel: Carousel
   pureCodeMirror: CodeMirror
   pureMarkdown: Markdown
   pureEditor: Editor

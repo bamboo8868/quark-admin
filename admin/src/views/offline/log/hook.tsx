@@ -1,10 +1,11 @@
 import { message } from "@/utils/message";
 import {
-  getRentLogList,
-  deleteRentLog,
-  getAllRentGames,
-  updateRentCdk
-} from "@/api/rent";
+  getOfflineLogList,
+  deleteOfflineLog,
+  getAllOfflineGames,
+  getAllOfflineVersions,
+  updateOfflineCdk
+} from "@/api/offline";
 import { ref, reactive, onMounted } from "vue";
 import type { PaginationProps } from "@pureadmin/table";
 
@@ -15,23 +16,20 @@ const cdkStatusMap: Record<number, { label: string; type: string }> = {
   3: { label: "已禁用", type: "info" }
 };
 
-const actionMap: Record<string, { label: string; type: string }> = {
-  redeem: { label: "兑换", type: "primary" },
-  renew: { label: "续租", type: "warning" }
-};
-
-export function useRentLog() {
+export function useOfflineLog() {
   const loading = ref(false);
   const formRef = ref();
 
-  /** Game options for dropdown */
+  /** Game & version options for dropdown */
   const gameOptions = ref([]);
+  const versionOptions = ref([]);
 
   /** Search form */
   const form = reactive({
+    game_id: null as number | null,
+    version_id: null as number | null,
     cdk_code: "",
-    account: "",
-    game_id: null as number | null
+    username: ""
   });
 
   /** Pagination */
@@ -58,6 +56,11 @@ export function useRentLog() {
       minWidth: 130
     },
     {
+      label: "版本名称",
+      prop: "version_name",
+      minWidth: 110
+    },
+    {
       label: "CDK码",
       prop: "cdk_code",
       minWidth: 170
@@ -68,18 +71,9 @@ export function useRentLog() {
       minWidth: 140
     },
     {
-      label: "时长(小时)",
-      prop: "rent_hours",
-      minWidth: 90
-    },
-    {
-      label: "类型",
-      prop: "action",
-      minWidth: 80,
-      cellRenderer: ({ row }: any) => {
-        const info = actionMap[row.action] || { label: row.action, type: "info" };
-        return <el-tag type={info.type as any} size="small">{info.label}</el-tag>;
-      }
+      label: "操作人",
+      prop: "username",
+      minWidth: 100
     },
     {
       label: "是否使用",
@@ -92,15 +86,6 @@ export function useRentLog() {
         }
         const info = cdkStatusMap[status] || { label: "未知", type: "info" };
         return <el-tag type={info.type as any} size="small">{info.label}</el-tag>;
-      }
-    },
-    {
-      label: "使用时间",
-      prop: "used_at",
-      minWidth: 170,
-      cellRenderer: ({ row }: any) => {
-        if (!row.used_at) return <span>-</span>;
-        return <span>{new Date(row.used_at).toLocaleString("zh-CN")}</span>;
       }
     },
     {
@@ -125,7 +110,7 @@ export function useRentLog() {
 
   async function loadGameOptions() {
     try {
-      const { code, data } = await getAllRentGames();
+      const { code, data } = await getAllOfflineGames();
       if (code === 0) {
         gameOptions.value = (data || []).map((g: any) => ({
           label: g.name,
@@ -137,17 +122,41 @@ export function useRentLog() {
     }
   }
 
+  async function loadVersionOptions(gameId?: number) {
+    try {
+      const { code, data } = await getAllOfflineVersions(gameId);
+      if (code === 0) {
+        versionOptions.value = (data || []).map((v: any) => ({
+          label: v.name,
+          value: v.id
+        }));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function onGameChange(val: number | null) {
+    form.version_id = null;
+    if (val) {
+      loadVersionOptions(val);
+    } else {
+      versionOptions.value = [];
+    }
+  }
+
   async function onSearch() {
     loading.value = true;
     try {
       const payload: any = {
         game_id: form.game_id,
+        version_id: form.version_id,
         cdk_code: form.cdk_code,
-        account: form.account,
+        username: form.username,
         page: pagination.currentPage,
         limit: pagination.pageSize
       };
-      const { code, data } = await getRentLogList(payload);
+      const { code, data } = await getOfflineLogList(payload);
       if (code === 0) {
         dataList.value = data?.list || [];
         pagination.total = data?.total || 0;
@@ -160,9 +169,11 @@ export function useRentLog() {
   const resetForm = (formEl: any) => {
     if (!formEl) return;
     formEl.resetFields();
-    form.cdk_code = "";
-    form.account = "";
     form.game_id = null;
+    form.version_id = null;
+    form.cdk_code = "";
+    form.username = "";
+    versionOptions.value = [];
     pagination.currentPage = 1;
     onSearch();
   };
@@ -178,7 +189,7 @@ export function useRentLog() {
   }
 
   async function handleDelete(row: any) {
-    const { code } = await deleteRentLog(row.id);
+    const { code } = await deleteOfflineLog(row.id);
     if (code === 0) {
       message("删除成功", { type: "success" });
       onSearch();
@@ -194,12 +205,11 @@ export function useRentLog() {
     }
     const currentStatus = row.cdk_status;
     const isDisabling = currentStatus !== 3;
-    // When disabling: set to 3; when re-enabling: restore to 1 (used) or 0 (unused)
     const newStatus = isDisabling ? 3 : (row.used_by ? 1 : 0);
     const actionText = isDisabling ? "禁用" : "启用";
 
     try {
-      const { code } = await updateRentCdk(cdkId, { status: newStatus });
+      const { code } = await updateOfflineCdk(cdkId, { status: newStatus });
       if (code === 0) {
         message(`CDK${actionText}成功`, { type: "success" });
         onSearch();
@@ -222,6 +232,8 @@ export function useRentLog() {
     columns,
     pagination,
     gameOptions,
+    versionOptions,
+    onGameChange,
     onSearch,
     resetForm,
     handleSizeChange,

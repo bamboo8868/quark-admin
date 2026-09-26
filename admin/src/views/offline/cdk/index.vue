@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { useRentLog } from "./hook";
+import { useOfflineCdk } from "./hook";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 
+import AddFill from "~icons/ri/add-circle-line";
 import Refresh from "~icons/ep/refresh";
 import Delete from "~icons/ep/delete";
-import Lock from "~icons/ep/lock";
-import Unlock from "~icons/ep/unlock";
+import EditPen from "~icons/ep/edit-pen";
+import View from "~icons/ep/view";
+import Download from "~icons/ri/download-2-line";
 
 defineOptions({
-  name: "RentLog"
+  name: "OfflineCdk"
 });
 
 const formRef = ref();
@@ -22,28 +24,34 @@ const {
   columns,
   pagination,
   gameOptions,
+  statusMap,
   onSearch,
   resetForm,
   handleSizeChange,
   handleCurrentChange,
-  handleDelete,
-  handleToggleCdkStatus
-} = useRentLog();
+  openCreateDialog,
+  openEditDialog,
+  viewGroupCdks,
+  exportGroupCdks,
+  handleDelete
+} = useOfflineCdk();
 </script>
 
 <template>
   <div class="main">
     <el-form ref="formRef" :inline="true" :model="form" class="search-form bg-bg_color w-full pl-8 pt-3 overflow-auto">
+      <el-form-item label="组名称" prop="name">
+        <el-input v-model="form.name" placeholder="搜索CDK组名称" clearable class="w-45!" />
+      </el-form-item>
       <el-form-item label="所属游戏" prop="game_id">
-        <el-select v-model="form.game_id" placeholder="请选择游戏" clearable class="w-40!">
+        <el-select v-model="form.game_id" placeholder="请选择游戏" clearable class="w-45!">
           <el-option v-for="opt in gameOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
         </el-select>
       </el-form-item>
-      <el-form-item label="CDK码" prop="cdk_code">
-        <el-input v-model="form.cdk_code" placeholder="搜索CDK码" clearable class="w-40!" />
-      </el-form-item>
-      <el-form-item label="使用账号" prop="account">
-        <el-input v-model="form.account" placeholder="搜索使用账号" clearable class="w-35!" />
+      <el-form-item label="状态" prop="status">
+        <el-select v-model="form.status" placeholder="请选择状态" clearable class="w-30!">
+          <el-option v-for="(info, key) in statusMap" :key="key" :label="info.label" :value="Number(key)" />
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" :icon="useRenderIcon('ri/search-line')" :loading="loading" @click="onSearch">
@@ -55,7 +63,12 @@ const {
       </el-form-item>
     </el-form>
 
-    <PureTableBar title="CDK使用记录" :columns="columns" @refresh="onSearch">
+    <PureTableBar title="CDK组管理" :columns="columns" @refresh="onSearch">
+      <template #buttons>
+        <el-button type="primary" :icon="useRenderIcon(AddFill)" @click="openCreateDialog()">
+          创建CDK组
+        </el-button>
+      </template>
       <template v-slot="{ size, dynamicColumns }">
         <pure-table
           align-whole="center"
@@ -77,29 +90,37 @@ const {
         >
           <template #operation="{ row, size }">
             <el-button
-              v-if="row.cdk_status !== 3 && row.cdk_status !== 2"
               class="reset-margin"
               link
-              type="danger"
+              type="primary"
               :size="size"
-              :icon="useRenderIcon(Lock)"
-              @click="handleToggleCdkStatus(row)"
+              :icon="useRenderIcon(View)"
+              @click="viewGroupCdks(row)"
             >
-              禁用
+              查看详情
             </el-button>
             <el-button
-              v-if="row.cdk_status === 3"
               class="reset-margin"
               link
-              type="success"
+              type="primary"
               :size="size"
-              :icon="useRenderIcon(Unlock)"
-              @click="handleToggleCdkStatus(row)"
+              :icon="useRenderIcon(Download)"
+              @click="exportGroupCdks(row)"
             >
-              启用
+              导出
+            </el-button>
+            <el-button
+              class="reset-margin"
+              link
+              type="primary"
+              :size="size"
+              :icon="useRenderIcon(EditPen)"
+              @click="openEditDialog(row)"
+            >
+              编辑
             </el-button>
             <el-popconfirm
-              :title="`确认删除此记录？`"
+              :title="`确认删除CDK组 ${row.name}？（组内未使用的CDK将一并删除）`"
               @confirm="handleDelete(row)"
             >
               <template #reference>

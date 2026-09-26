@@ -96,6 +96,36 @@ const systemMonitorRouter = {
     }
   ]
 };
+const accountAccessRouter = {
+  path: "/game",
+  meta: {
+    icon: "ri:gamepad-line",
+    title: "menus.pureGameManagement",
+    rank: 29
+  },
+  children: [
+    {
+      path: "/game/account/index",
+      component: "game/account/index",
+      name: "GameAccount",
+      meta: {
+        icon: "ri:key-2-line",
+        title: "menus.pureGameAccount",
+        roles: ["admin"]
+      }
+    },
+    {
+      path: "/game/account-access/index",
+      component: "account-access/index",
+      name: "AccountAccessRecords",
+      meta: {
+        icon: "ri:lock-password-line",
+        title: "menus.pureDencryptedAccount",
+        roles: ["admin"]
+      }
+    }
+  ]
+};
 
 
 export default defineFakeRoute([
@@ -109,6 +139,7 @@ export default defineFakeRoute([
         data: [
           systemManagementRouter,
           systemMonitorRouter,
+          accountAccessRouter,
         ]
       };
     }

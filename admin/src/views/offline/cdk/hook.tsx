@@ -1,14 +1,15 @@
 import { message } from "@/utils/message";
 import { addDialog } from "@/components/ReDialog";
 import {
-  getRentCdkGroupList,
-  createRentCdkGroup,
-  updateRentCdkGroup,
-  deleteRentCdkGroup,
-  getRentCdksByGroup,
-  getAllRentGames,
-  updateRentCdk
-} from "@/api/rent";
+  getOfflineCdkGroupList,
+  createOfflineCdkGroup,
+  updateOfflineCdkGroup,
+  deleteOfflineCdkGroup,
+  getOfflineCdksByGroup,
+  getAllOfflineGames,
+  getAllOfflineVersions,
+  updateOfflineCdk
+} from "@/api/offline";
 import { ref, reactive, onMounted, h, defineComponent } from "vue";
 import type { PaginationProps } from "@pureadmin/table";
 
@@ -24,23 +25,14 @@ const cdkStatusMap: Record<number, { label: string; type: string }> = {
   3: { label: "已禁用", type: "info" }
 };
 
-const rentHourOptions = [
-  { label: "1小时", value: 1 },
-  { label: "3小时", value: 3 },
-  { label: "6小时", value: 6 },
-  { label: "12小时", value: 12 },
-  { label: "24小时", value: 24 },
-  { label: "48小时", value: 48 },
-  { label: "72小时", value: 72 }
-];
-
-export function useRentCdkGroup() {
+export function useOfflineCdk() {
   const loading = ref(false);
   const formRef = ref();
   const groupFormRef = ref();
 
-  /** Game options for dropdown */
+  /** Game & version options */
   const gameOptions = ref([]);
+  const versionOptions = ref([]);
 
   /** Search form */
   const form = reactive({
@@ -60,7 +52,7 @@ export function useRentCdkGroup() {
   /** Data list */
   const dataList = ref([]);
 
-  /** CDK detail list for view dialog */
+  /** CDK detail list */
   const cdkDetailList = ref([]);
   const cdkDetailLoading = ref(false);
   const cdkDetailPagination = reactive<PaginationProps>({
@@ -88,6 +80,11 @@ export function useRentCdkGroup() {
       minWidth: 130
     },
     {
+      label: "所属版本",
+      prop: "version_name",
+      minWidth: 120
+    },
+    {
       label: "总数",
       prop: "count",
       minWidth: 70
@@ -109,11 +106,6 @@ export function useRentCdkGroup() {
       cellRenderer: ({ row }: any) => (
         <span class="text-green-600">{(row.count || 0) - (row.used_count || 0)}</span>
       )
-    },
-    {
-      label: "时长(小时)",
-      prop: "rent_hours",
-      minWidth: 90
     },
     {
       label: "状态",
@@ -145,50 +137,9 @@ export function useRentCdkGroup() {
     }
   ];
 
-  /** CDK detail columns */
-  const cdkColumns: TableColumnList = [
-    {
-      label: "ID",
-      prop: "id",
-      minWidth: 60
-    },
-    {
-      label: "CDK码",
-      prop: "cdk_code",
-      minWidth: 180
-    },
-    {
-      label: "时长(小时)",
-      prop: "rent_hours",
-      minWidth: 80
-    },
-    {
-      label: "状态",
-      prop: "status",
-      minWidth: 80,
-      cellRenderer: ({ row }: any) => {
-        const info = cdkStatusMap[row.status] || { label: "未知", type: "info" };
-        return <el-tag size="small" type={info.type as any}>{info.label}</el-tag>;
-      }
-    },
-    {
-      label: "使用者",
-      prop: "used_by",
-      minWidth: 90,
-      cellRenderer: ({ row }: any) => <span>{row.used_by || "-"}</span>
-    },
-    {
-      label: "使用时间",
-      prop: "used_at",
-      minWidth: 160,
-      formatter: ({ used_at }) =>
-        used_at ? new Date(used_at).toLocaleString("zh-CN") : ""
-    }
-  ];
-
   async function loadGameOptions() {
     try {
-      const { code, data } = await getAllRentGames();
+      const { code, data } = await getAllOfflineGames();
       if (code === 0) {
         gameOptions.value = (data || []).map((g: any) => ({
           label: g.name,
@@ -203,7 +154,7 @@ export function useRentCdkGroup() {
   async function onSearch() {
     loading.value = true;
     try {
-      const { code, data } = await getRentCdkGroupList({
+      const { code, data } = await getOfflineCdkGroupList({
         ...form,
         page: pagination.currentPage,
         limit: pagination.pageSize
@@ -244,13 +195,12 @@ export function useRentCdkGroup() {
       props: {
         formInline: {
           game_id: null,
+          version_id: null,
           count: 100,
-          rent_hours: 24,
           remark: ""
-        },
-        gameOptions: gameOptions.value
+        }
       },
-      width: "30%",
+      width: "35%",
       draggable: true,
       closeOnClickModal: false,
       contentRenderer: () =>
@@ -264,7 +214,7 @@ export function useRentCdkGroup() {
         const curData = options.props.formInline;
         FormRef.validate(async (valid: boolean) => {
           if (valid) {
-            const { code, message: errMsg } = await createRentCdkGroup(curData);
+            const { code, message: errMsg } = await createOfflineCdkGroup(curData);
             if (code === 0) {
               message(`成功生成 ${curData.count} 个CDK`, { type: "success" });
               done();
@@ -302,7 +252,7 @@ export function useRentCdkGroup() {
         const curData = options.props.formInline;
         FormRef.validate(async (valid: boolean) => {
           if (valid) {
-            const { code } = await updateRentCdkGroup(row.id, curData);
+            const { code } = await updateOfflineCdkGroup(row.id, curData);
             if (code === 0) {
               message("修改成功", { type: "success" });
               done();
@@ -352,7 +302,7 @@ export function useRentCdkGroup() {
   async function loadGroupCdks(groupId: number) {
     cdkDetailLoading.value = true;
     try {
-      const { code, data } = await getRentCdksByGroup(groupId, {
+      const { code, data } = await getOfflineCdksByGroup(groupId, {
         page: cdkDetailPagination.currentPage,
         limit: cdkDetailPagination.pageSize
       });
@@ -365,14 +315,13 @@ export function useRentCdkGroup() {
     }
   }
 
-  /** Toggle CDK status: disable (status=3) or re-enable (status=0 or 1 based on usage) */
+  /** Toggle CDK status */
   async function toggleCdkStatus(cdkId: number, currentStatus: number, groupId: number, usedBy?: string) {
     const isDisabling = currentStatus !== 3;
-    // When disabling: set to 3; when re-enabling: restore to 1 if used, else 0
     const newStatus = isDisabling ? 3 : (usedBy ? 1 : 0);
     const actionText = isDisabling ? "禁用" : "启用";
     try {
-      const { code } = await updateRentCdk(cdkId, { status: newStatus });
+      const { code } = await updateOfflineCdk(cdkId, { status: newStatus });
       if (code === 0) {
         message(`CDK${actionText}成功`, { type: "success" });
         await loadGroupCdks(groupId);
@@ -384,7 +333,7 @@ export function useRentCdkGroup() {
 
   /** Export CDKs from a group */
   async function exportGroupCdks(row: any) {
-    const { code, data } = await getRentCdksByGroup(row.id, {
+    const { code, data } = await getOfflineCdksByGroup(row.id, {
       page: 1,
       limit: 9999
     });
@@ -411,7 +360,7 @@ export function useRentCdkGroup() {
 
   /** Delete group */
   async function handleDelete(row: any) {
-    const { code, message: errMsg } = await deleteRentCdkGroup(row.id);
+    const { code, message: errMsg } = await deleteOfflineCdkGroup(row.id);
     if (code === 0) {
       message("删除成功", { type: "success" });
       onSearch();
@@ -446,9 +395,9 @@ export function useRentCdkGroup() {
   };
 }
 
-/** Create group form component */
+/** Create group form component with game->version cascade */
 const GroupFormComponent = defineComponent({
-  name: "RentCdkGroupForm",
+  name: "OfflineCdkGroupForm",
   props: {
     formInline: {
       type: Object,
@@ -461,11 +410,27 @@ const GroupFormComponent = defineComponent({
   },
   setup(props, { expose }) {
     const formRef = ref();
+    const localVersionOptions = ref<any[]>([]);
+
     const rules = {
       game_id: [{ required: true, message: "请选择所属游戏", trigger: "change" }],
-      count: [{ required: true, message: "请输入生成数量", trigger: "blur" }],
-      rent_hours: [{ required: true, message: "请选择出租时长", trigger: "change" }]
+      version_id: [{ required: true, message: "请选择所属版本", trigger: "change" }],
+      count: [{ required: true, message: "请输入生成数量", trigger: "blur" }]
     };
+
+    async function onGameChange(gameId: number | null) {
+      (props.formInline as any).version_id = null;
+      localVersionOptions.value = [];
+      if (gameId) {
+        const { code, data } = await getAllOfflineVersions(gameId);
+        if (code === 0) {
+          localVersionOptions.value = (data || []).map((v: any) => ({
+            label: v.name,
+            value: v.id
+          }));
+        }
+      }
+    }
 
     const getRef = () => formRef.value;
     expose({ getRef });
@@ -474,39 +439,41 @@ const GroupFormComponent = defineComponent({
       <el-form ref={formRef} model={props.formInline} rules={rules} label-width="90px">
         <el-form-item label="所属游戏" prop="game_id">
           <el-select
-            v-model={props.formInline.game_id}
+            v-model={(props.formInline as any).game_id}
             placeholder="请选择游戏"
             filterable
             style="width: 100%"
+            onChange={onGameChange}
           >
             {(props.gameOptions as any[]).map((opt: any) => (
               <el-option key={opt.value} label={opt.label} value={opt.value} />
             ))}
           </el-select>
         </el-form-item>
+        <el-form-item label="所属版本" prop="version_id">
+          <el-select
+            v-model={(props.formInline as any).version_id}
+            placeholder="请选择版本"
+            filterable
+            style="width: 100%"
+          >
+            {localVersionOptions.value.map((opt: any) => (
+              <el-option key={opt.value} label={opt.label} value={opt.value} />
+            ))}
+          </el-select>
+        </el-form-item>
         <el-form-item label="生成数量" prop="count">
           <el-input-number
-            v-model={props.formInline.count}
+            v-model={(props.formInline as any).count}
             min={1}
             max={500}
             step={10}
             style="width: 100%"
           />
         </el-form-item>
-        <el-form-item label="出租时长" prop="rent_hours">
-          <el-select
-            v-model={props.formInline.rent_hours}
-            placeholder="请选择时长"
-            style="width: 100%"
-          >
-            {rentHourOptions.map(opt => (
-              <el-option key={opt.value} label={opt.label} value={opt.value} />
-            ))}
-          </el-select>
-        </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input
-            v-model={props.formInline.remark}
+            v-model={(props.formInline as any).remark}
             type="textarea"
             rows={2}
             placeholder="请输入备注(可选)"
@@ -519,7 +486,7 @@ const GroupFormComponent = defineComponent({
 
 /** Edit group form component */
 const GroupEditFormComponent = defineComponent({
-  name: "RentCdkGroupEditForm",
+  name: "OfflineCdkGroupEditForm",
   props: {
     formInline: {
       type: Object,
@@ -538,17 +505,17 @@ const GroupEditFormComponent = defineComponent({
     return () => (
       <el-form ref={formRef} model={props.formInline} rules={rules} label-width="90px">
         <el-form-item label="组名称" prop="name">
-          <el-input v-model={props.formInline.name} placeholder="请输入组名称" />
+          <el-input v-model={(props.formInline as any).name} placeholder="请输入组名称" />
         </el-form-item>
         <el-form-item label="状态" prop="status">
-          <el-radio-group v-model={props.formInline.status}>
+          <el-radio-group v-model={(props.formInline as any).status}>
             <el-radio value={1}>启用</el-radio>
             <el-radio value={0}>禁用</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input
-            v-model={props.formInline.remark}
+            v-model={(props.formInline as any).remark}
             type="textarea"
             rows={2}
             placeholder="请输入备注"
@@ -559,9 +526,9 @@ const GroupEditFormComponent = defineComponent({
   }
 });
 
-/** CDK export component with textarea and copy button */
+/** CDK export component */
 const CdkExportComponent = defineComponent({
-  name: "CdkExport",
+  name: "OfflineCdkExport",
   props: {
     cdkText: { type: String, default: "" },
     count: { type: Number, default: 0 }
@@ -573,11 +540,8 @@ const CdkExportComponent = defineComponent({
       try {
         await navigator.clipboard.writeText(props.cdkText);
         copyBtnText.value = "已复制!";
-        setTimeout(() => {
-          copyBtnText.value = "复制全部";
-        }, 2000);
+        setTimeout(() => { copyBtnText.value = "复制全部"; }, 2000);
       } catch {
-        // Fallback for older browsers
         const textarea = document.createElement("textarea");
         textarea.value = props.cdkText;
         document.body.appendChild(textarea);
@@ -585,9 +549,7 @@ const CdkExportComponent = defineComponent({
         document.execCommand("copy");
         document.body.removeChild(textarea);
         copyBtnText.value = "已复制!";
-        setTimeout(() => {
-          copyBtnText.value = "复制全部";
-        }, 2000);
+        setTimeout(() => { copyBtnText.value = "复制全部"; }, 2000);
       }
     }
 
@@ -611,9 +573,9 @@ const CdkExportComponent = defineComponent({
   }
 });
 
-/** CDK detail component for viewing CDKs in a group */
+/** CDK detail component */
 const CdkDetailComponent = defineComponent({
-  name: "CdkDetail",
+  name: "OfflineCdkDetail",
   props: {
     cdkList: { type: Array, default: () => [] },
     loading: { type: Boolean, default: false },
@@ -636,13 +598,17 @@ const CdkDetailComponent = defineComponent({
         >
           <el-table-column prop="id" label="ID" width="60" />
           <el-table-column prop="cdk_code" label="CDK码" min-width="180" />
-          <el-table-column prop="rent_hours" label="时长(h)" width="70" />
           <el-table-column prop="status" label="状态" width="80">
             {{
               default: ({ row }: any) => {
                 const info = cdkStatusMap[row.status] || { label: "未知", type: "info" };
                 return <el-tag size="small" type={info.type as any}>{info.label}</el-tag>;
               }
+            }}
+          </el-table-column>
+          <el-table-column prop="game_account" label="关联账号" min-width="130">
+            {{
+              default: ({ row }: any) => <span>{row.game_account || "-"}</span>
             }}
           </el-table-column>
           <el-table-column prop="used_by" label="使用者" width="90">
@@ -659,7 +625,6 @@ const CdkDetailComponent = defineComponent({
           <el-table-column label="操作" width="90" fixed="right">
             {{
               default: ({ row }: any) => {
-                // Allow toggle for unused (0), used (1), or disabled (3) CDKs
                 if (row.status === 0 || row.status === 1 || row.status === 3) {
                   const isDisabled = row.status === 3;
                   return (

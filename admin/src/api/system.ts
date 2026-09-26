@@ -205,3 +205,15 @@ export const batchDeleteSystemLogs = (ids: number[]) => {
 export const clearSystemLogs = () => {
   return http.request<Result>("post", "/api/system-logs/clear");
 };
+
+// ==================== Redis 操作 ====================
+
+/** 获取 Redis key is_open_search 当前值 */
+export const getOpenSearch = () => {
+  return http.request<Result>("get", "/api/redis/get-open-search");
+};
+
+/** 设置 Redis key is_open_search (0 或 1) */
+export const setOpenSearch = (value: number) => {
+  return http.request<Result>("post", "/api/redis/set-open-search", { data: { value } });
+};

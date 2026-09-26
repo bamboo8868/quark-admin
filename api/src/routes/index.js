@@ -8,6 +8,8 @@ import { gameRoutes } from './game.routes.js';
 import { memberRoutes } from './member.routes.js';
 import { gameAccMgrRoutes } from './gameAccMgr.routes.js';
 import { rentRoutes } from './rent.routes.js';
+import { offlineRoutes } from './offline.routes.js';
+import { configRoutes } from './config.routes.js';
 import { webRoutes } from './web.routes.js';
 import { ipRoutes } from './ip.routes.js';
 import { initIp2Region } from '../utils/ip2region.js';
@@ -58,6 +60,8 @@ export async function registerRoutes(app) {
   await app.register(memberRoutes, { prefix: '/api' });
   await app.register(gameAccMgrRoutes, { prefix: '/api' });
   await app.register(rentRoutes, { prefix: '/api' });
+  await app.register(offlineRoutes, { prefix: '/api' });
+  await app.register(configRoutes, { prefix: '/api' });
 
   // IP lookup routes (no auth required)
   await app.register(ipRoutes, { prefix: '/api' });

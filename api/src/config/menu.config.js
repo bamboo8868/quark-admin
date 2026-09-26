@@ -10,6 +10,8 @@ const EMAIL_RANK = 12;
 const GAME_RANK = 13;
 const MEMBERSHIP_RANK = 14;
 const RENT_RANK = 15;
+const OFFLINE_RANK = 16;
+const CONFIG_RANK = 17;
 
 export const menuConfig = [
   {
@@ -259,55 +261,139 @@ export const menuConfig = [
   //     }
   //   ]
   // },
+  // {
+  //   id: 6000,
+  //   parentId: 0,
+  //   menuType: 0,
+  //   title: 'menus.pureRentManagement',
+  //   name: 'Rent',
+  //   path: '/rent',
+  //   icon: 'ri:swap-box-line',
+  //   rank: RENT_RANK,
+  //   children: [
+  //     {
+  //       id: 6001,
+  //       parentId: 6000,
+  //       menuType: 0,
+  //       title: 'menus.pureRentGame',
+  //       name: 'RentGame',
+  //       path: '/rent/game/index',
+  //       component: 'rent/game/index',
+  //       icon: 'ri:gamepad-line'
+  //     },
+  //     {
+  //       id: 6002,
+  //       parentId: 6000,
+  //       menuType: 0,
+  //       title: 'menus.pureRentAccount',
+  //       name: 'RentAccount',
+  //       path: '/rent/account/index',
+  //       component: 'rent/account/index',
+  //       icon: 'ri:key-2-line'
+  //     },
+  //     {
+  //       id: 6003,
+  //       parentId: 6000,
+  //       menuType: 0,
+  //       title: 'menus.pureRentCdk',
+  //       name: 'RentCdk',
+  //       path: '/rent/cdk/index',
+  //       component: 'rent/cdk/index',
+  //       icon: 'ri:gift-2-line'
+  //     },
+  //     {
+  //       id: 6004,
+  //       parentId: 6000,
+  //       menuType: 0,
+  //       title: 'menus.pureRentLog',
+  //       name: 'RentLog',
+  //       path: '/rent/log/index',
+  //       component: 'rent/log/index',
+  //       icon: 'ri:file-list-3-line'
+  //     }
+  //   ]
+  // },
   {
-    id: 6000,
+    id: 7000,
     parentId: 0,
     menuType: 0,
-    title: 'menus.pureRentManagement',
-    name: 'Rent',
-    path: '/rent',
-    icon: 'ri:swap-box-line',
-    rank: RENT_RANK,
+    title: 'menus.pureOfflineManagement',
+    name: 'Offline',
+    path: '/offline',
+    icon: 'ri:hard-drive-2-line',
+    rank: OFFLINE_RANK,
     children: [
       {
-        id: 6001,
-        parentId: 6000,
+        id: 7001,
+        parentId: 7000,
         menuType: 0,
-        title: 'menus.pureRentGame',
-        name: 'RentGame',
-        path: '/rent/game/index',
-        component: 'rent/game/index',
+        title: 'menus.pureOfflineGame',
+        name: 'OfflineGame',
+        path: '/offline/game/index',
+        component: 'offline/game/index',
         icon: 'ri:gamepad-line'
       },
       {
-        id: 6002,
-        parentId: 6000,
+        id: 7002,
+        parentId: 7000,
         menuType: 0,
-        title: 'menus.pureRentAccount',
-        name: 'RentAccount',
-        path: '/rent/account/index',
-        component: 'rent/account/index',
+        title: 'menus.pureOfflineVersion',
+        name: 'OfflineVersion',
+        path: '/offline/version/index',
+        component: 'offline/version/index',
+        icon: 'ri:git-branch-line'
+      },
+      {
+        id: 7003,
+        parentId: 7000,
+        menuType: 0,
+        title: 'menus.pureOfflineAccount',
+        name: 'OfflineAccount',
+        path: '/offline/account/index',
+        component: 'offline/account/index',
         icon: 'ri:key-2-line'
       },
       {
-        id: 6003,
-        parentId: 6000,
+        id: 7004,
+        parentId: 7000,
         menuType: 0,
-        title: 'menus.pureRentCdk',
-        name: 'RentCdk',
-        path: '/rent/cdk/index',
-        component: 'rent/cdk/index',
+        title: 'menus.pureOfflineCdk',
+        name: 'OfflineCdk',
+        path: '/offline/cdk/index',
+        component: 'offline/cdk/index',
         icon: 'ri:gift-2-line'
       },
       {
-        id: 6004,
-        parentId: 6000,
+        id: 7005,
+        parentId: 7000,
         menuType: 0,
-        title: 'menus.pureRentLog',
-        name: 'RentLog',
-        path: '/rent/log/index',
-        component: 'rent/log/index',
+        title: 'menus.pureOfflineLog',
+        name: 'OfflineLog',
+        path: '/offline/log/index',
+        component: 'offline/log/index',
         icon: 'ri:file-list-3-line'
+      }
+    ]
+  },
+  {
+    id: 8000,
+    parentId: 0,
+    menuType: 0,
+    title: 'menus.pureConfigManagement',
+    name: 'Config',
+    path: '/config',
+    icon: 'ri:settings-4-line',
+    rank: CONFIG_RANK,
+    children: [
+      {
+        id: 8001,
+        parentId: 8000,
+        menuType: 0,
+        title: 'menus.pureConfigCarousel',
+        name: 'ConfigCarousel',
+        path: '/config/carousel/index',
+        component: 'config/carousel/index',
+        icon: 'ri:image-2-line'
       }
     ]
   }

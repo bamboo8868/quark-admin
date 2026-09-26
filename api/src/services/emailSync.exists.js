@@ -39,13 +39,13 @@ function extractSteamLoginInfo(subject, bodyHtml, toAddress) {
             code = codeMatch[1].trim().toUpperCase();
         }
         if (!code) {
-            if (subject.indexOf('Ubisoft') >= 0) {
+            if (subject && subject.indexOf('Ubisoft') >= 0) {
                 const m = bodyHtml.match(/<span[^>]*>(\d{6})<\/span>/i);
                 if (m) code = m[1];
                 gameAccount = toAddress[0].address || ''
             }
 
-            if (subject.indexOf('EA') >= 0) {
+            if (subject && subject.indexOf('EA') >= 0) {
                 const m = subject.match(/(\d{6})/i);
                 if (m) code = m[1];
                 gameAccount = toAddress[0].address || ''

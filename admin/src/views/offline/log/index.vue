@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { useRentLog } from "./hook";
+import { useOfflineLog } from "./hook";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 
@@ -10,7 +10,7 @@ import Lock from "~icons/ep/lock";
 import Unlock from "~icons/ep/unlock";
 
 defineOptions({
-  name: "RentLog"
+  name: "OfflineLog"
 });
 
 const formRef = ref();
@@ -22,28 +22,35 @@ const {
   columns,
   pagination,
   gameOptions,
+  versionOptions,
+  onGameChange,
   onSearch,
   resetForm,
   handleSizeChange,
   handleCurrentChange,
   handleDelete,
   handleToggleCdkStatus
-} = useRentLog();
+} = useOfflineLog();
 </script>
 
 <template>
   <div class="main">
     <el-form ref="formRef" :inline="true" :model="form" class="search-form bg-bg_color w-full pl-8 pt-3 overflow-auto">
       <el-form-item label="所属游戏" prop="game_id">
-        <el-select v-model="form.game_id" placeholder="请选择游戏" clearable class="w-40!">
+        <el-select v-model="form.game_id" placeholder="请选择游戏" clearable class="w-40!" @change="onGameChange">
           <el-option v-for="opt in gameOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="所属版本" prop="version_id">
+        <el-select v-model="form.version_id" placeholder="请选择版本" clearable class="w-40!">
+          <el-option v-for="opt in versionOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="CDK码" prop="cdk_code">
         <el-input v-model="form.cdk_code" placeholder="搜索CDK码" clearable class="w-40!" />
       </el-form-item>
-      <el-form-item label="使用账号" prop="account">
-        <el-input v-model="form.account" placeholder="搜索使用账号" clearable class="w-35!" />
+      <el-form-item label="操作人" prop="username">
+        <el-input v-model="form.username" placeholder="搜索操作人" clearable class="w-35!" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" :icon="useRenderIcon('ri/search-line')" :loading="loading" @click="onSearch">
@@ -55,7 +62,7 @@ const {
       </el-form-item>
     </el-form>
 
-    <PureTableBar title="CDK使用记录" :columns="columns" @refresh="onSearch">
+    <PureTableBar title="使用记录" :columns="columns" @refresh="onSearch">
       <template v-slot="{ size, dynamicColumns }">
         <pure-table
           align-whole="center"

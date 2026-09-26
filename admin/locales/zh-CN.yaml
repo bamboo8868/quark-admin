@@ -103,6 +103,14 @@ menus:
   pureRentAccount: 租号账号管理
   pureRentCdk: CDK管理
   pureRentLog: CDK使用记录
+  pureOfflineManagement: 离线游戏管理
+  pureOfflineGame: 游戏管理
+  pureOfflineVersion: 版本管理
+  pureOfflineAccount: 账号管理
+  pureOfflineCdk: CDK管理
+  pureOfflineLog: 使用记录
+  pureConfigManagement: 配置管理
+  pureConfigCarousel: 轮播图管理
   pureCodeMirror: 代码编辑器
   pureMarkdown: Markdown
   pureEditor: 编辑器

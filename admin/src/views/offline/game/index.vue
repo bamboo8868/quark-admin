@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { useRentLog } from "./hook";
+import { useOfflineGame } from "./hook";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 
+import AddFill from "~icons/ri/add-circle-line";
 import Refresh from "~icons/ep/refresh";
 import Delete from "~icons/ep/delete";
-import Lock from "~icons/ep/lock";
-import Unlock from "~icons/ep/unlock";
+import EditPen from "~icons/ep/edit-pen";
+import Grid from "~icons/ri/grid-line";
 
 defineOptions({
-  name: "RentLog"
+  name: "OfflineGame"
 });
 
 const formRef = ref();
@@ -21,29 +22,21 @@ const {
   dataList,
   columns,
   pagination,
-  gameOptions,
   onSearch,
   resetForm,
   handleSizeChange,
   handleCurrentChange,
+  openDialog,
   handleDelete,
-  handleToggleCdkStatus
-} = useRentLog();
+  openVersionDialog
+} = useOfflineGame();
 </script>
 
 <template>
   <div class="main">
     <el-form ref="formRef" :inline="true" :model="form" class="search-form bg-bg_color w-full pl-8 pt-3 overflow-auto">
-      <el-form-item label="所属游戏" prop="game_id">
-        <el-select v-model="form.game_id" placeholder="请选择游戏" clearable class="w-40!">
-          <el-option v-for="opt in gameOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="CDK码" prop="cdk_code">
-        <el-input v-model="form.cdk_code" placeholder="搜索CDK码" clearable class="w-40!" />
-      </el-form-item>
-      <el-form-item label="使用账号" prop="account">
-        <el-input v-model="form.account" placeholder="搜索使用账号" clearable class="w-35!" />
+      <el-form-item label="游戏名称" prop="name">
+        <el-input v-model="form.name" placeholder="搜索游戏名称" clearable class="w-45!" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" :icon="useRenderIcon('ri/search-line')" :loading="loading" @click="onSearch">
@@ -55,53 +48,41 @@ const {
       </el-form-item>
     </el-form>
 
-    <PureTableBar title="CDK使用记录" :columns="columns" @refresh="onSearch">
+    <PureTableBar title="离线游戏管理" :columns="columns" @refresh="onSearch">
+      <template #buttons>
+        <el-button type="primary" :icon="useRenderIcon(AddFill)" @click="openDialog()">
+          新增游戏
+        </el-button>
+      </template>
       <template v-slot="{ size, dynamicColumns }">
-        <pure-table
-          align-whole="center"
-          showOverflowTooltip
-          table-layout="auto"
-          :loading="loading"
-          :size="size"
-          adaptive
-          :adaptiveConfig="{ offsetBottom: 108 }"
-          :data="dataList"
-          :columns="dynamicColumns"
-          :pagination="{ ...pagination, size }"
-          :header-cell-style="{
+        <pure-table align-whole="center" showOverflowTooltip table-layout="auto" :loading="loading" :size="size"
+          adaptive :adaptiveConfig="{ offsetBottom: 108 }" :data="dataList" :columns="dynamicColumns"
+          :pagination="{ ...pagination, size }" :header-cell-style="{
             background: 'var(--el-fill-color-light)',
             color: 'var(--el-text-color-primary)'
-          }"
-          @page-size-change="handleSizeChange"
-          @page-current-change="handleCurrentChange"
-        >
+          }" @page-size-change="handleSizeChange" @page-current-change="handleCurrentChange">
           <template #operation="{ row, size }">
             <el-button
-              v-if="row.cdk_status !== 3 && row.cdk_status !== 2"
               class="reset-margin"
               link
-              type="danger"
+              type="primary"
               :size="size"
-              :icon="useRenderIcon(Lock)"
-              @click="handleToggleCdkStatus(row)"
+              :icon="useRenderIcon(Grid)"
+              @click="openVersionDialog(row)"
             >
-              禁用
+              版本
             </el-button>
             <el-button
-              v-if="row.cdk_status === 3"
               class="reset-margin"
               link
-              type="success"
+              type="primary"
               :size="size"
-              :icon="useRenderIcon(Unlock)"
-              @click="handleToggleCdkStatus(row)"
+              :icon="useRenderIcon(EditPen)"
+              @click="openDialog('修改', row)"
             >
-              启用
+              修改
             </el-button>
-            <el-popconfirm
-              :title="`确认删除此记录？`"
-              @confirm="handleDelete(row)"
-            >
+            <el-popconfirm :title="`是否确认删除游戏 ${row.name}`" @confirm="handleDelete(row)">
               <template #reference>
                 <el-button class="reset-margin" link type="primary" :size="size" :icon="useRenderIcon(Delete)">
                   删除
