@@ -284,7 +284,7 @@ export function useOfflineAccount() {
     }
   }
 
-  /** Import JSON (SDA format) */
+  /** Import accounts from JSON/maFile files (SDA format) */
   const importLoading = ref(false);
   const importSelectRef = ref();
 
@@ -319,7 +319,7 @@ export function useOfflineAccount() {
     const input = document.createElement("input");
     input.type = "file";
     input.multiple = true;
-    input.accept = ".json";
+    input.accept = ".json,.mafile";
     input.onchange = async (e: Event) => {
       const files = (e.target as HTMLInputElement).files;
       if (!files || files.length === 0) return;
