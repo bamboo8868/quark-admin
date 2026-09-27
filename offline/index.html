@@ -449,7 +449,7 @@
       },
       methods: {
         fetchCarousels() {
-          axios.get('http://127.0.0.1:3000/api/web/config/carousels')
+          axios.get('/api/web/config/carousels')
             .then(res => {
               if (res.data.code === 0 && Array.isArray(res.data.data)) {
                 this.carousels = res.data.data.filter(it => it && it.image);
@@ -489,7 +489,7 @@
         redeem() {
           if (!this.cdk) { this.showMessage('请输入兑换码'); return; }
           this.loading = true;
-          axios.post('http://127.0.0.1:3000/api/web/offline/redeem', { cdk: this.cdk })
+          axios.post('/api/web/offline/redeem', { cdk: this.cdk })
             .then(res => {
               if (res.data.code === 0) {
                 this.result = res.data.data;
@@ -504,7 +504,7 @@
         refreshTotp() {
           if (!this.cdk) return;
           this.loading = true;
-          axios.post('http://127.0.0.1:3000/api/web/offline/refresh', { cdk: this.cdk })
+          axios.post('/api/web/offline/refresh', { cdk: this.cdk })
             .then(res => {
               if (res.data.code === 0 && this.result) {
                 this.result = Object.assign({}, this.result, { totp_code: res.data.data.totp_code });
