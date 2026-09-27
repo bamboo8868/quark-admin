@@ -137,32 +137,26 @@ export const offlineAccountController = {
   },
 
   /**
-   * Import accounts from SDA JSON format
+   * Bind SDA shared_secret to EXISTING offline accounts (no new inserts).
+   * Match scope: account_name ONLY (cross-game / cross-version). Every matching row is updated.
+   * Non-matching account_names are skipped and reported.
    * POST /offline/accounts/import
-   * Body: { game_id, version_id, items: [{ account_name, shared_secret, ... }] }
+   * Body: { items: [{ account_name, shared_secret, ... }] }
    */
   importAccounts: async (request, reply) => {
     try {
-      const { game_id, version_id, items } = request.body || {};
-
-      if (!game_id) return { code: 10001, message: '请选择所属游戏', data: null };
-      if (!version_id) return { code: 10001, message: '请选择所属版本', data: null };
+      const { items } = request.body || {};
 
       const data = Array.isArray(items) ? items : (items ? [items] : null);
       if (!data || data.length === 0) return { code: 10001, message: '导入数据不能为空', data: null };
 
-      // Check game and version exist
-      const game = await db('offline_games').where('id', game_id).first();
-      if (!game) return { code: 10002, message: '游戏不存在', data: null };
-      const version = await db('offline_game_version').where('id', version_id).first();
-      if (!version) return { code: 10002, message: '版本不存在', data: null };
-
       const validItems = data.filter(item => item.account_name);
       if (validItems.length === 0) return { code: 10003, message: '未找到有效的 account_name 数据', data: null };
 
-      let inserted = 0;
-      let updated = 0;
-      let skipped = 0;
+      let bound = 0;            // 更新的总行数（同一账号跨游戏/版本可能命中多行）
+      let matchedAccounts = 0;  // 命中的账号个数
+      let skipped = 0;          // account_name 为空被跳过
+      const notFound = [];      // 未匹配到任何离线账号行的 account_name
 
       for (const item of validItems) {
         const account = String(item.account_name || '').trim();
@@ -170,34 +164,28 @@ export const offlineAccountController = {
 
         if (!account) { skipped++; continue; }
 
-        const existing = await db('offline_game_account')
-          .where('game_id', game_id)
-          .where('version_id', version_id)
+        // 按账号名跨游戏/版本更新所有已存在的离线账号行；knex .update() 返回受影响行数
+        const affected = await db('offline_game_account')
           .where('account', account)
-          .first();
+          .update({ code, updated_at: new Date() });
 
-        if (existing) {
-          await db('offline_game_account')
-            .where('id', existing.id)
-            .update({ code, updated_at: new Date() });
-          updated++;
+        if (affected > 0) {
+          bound += affected;
+          matchedAccounts++;
         } else {
-          await offlineAccountService.createAccount({
-            game_id,
-            version_id,
-            account,
-            password: '',
-            code,
-            status: 1
-          });
-          inserted++;
+          // 只绑定已存在的账号，未匹配的直接跳过，不新增
+          notFound.push(account);
         }
       }
 
+      const notFoundHint = notFound.length
+        ? `；未匹配 ${notFound.length} 个${notFound.length <= 5 ? `：${notFound.join(', ')}` : `（前 5 个：${notFound.slice(0, 5).join(', ')}）`}`
+        : '';
+
       return {
         code: 0,
-        message: `导入完成：新增 ${inserted} 条，更新 ${updated} 条，跳过 ${skipped} 条`,
-        data: { inserted, updated, skipped }
+        message: `绑定完成：命中 ${matchedAccounts} 个账号，更新 ${bound} 行${notFoundHint}`,
+        data: { bound, matchedAccounts, skipped, notFound }
       };
     } catch (err) {
       return { code: 10002, message: err.message || '导入失败', data: null };
