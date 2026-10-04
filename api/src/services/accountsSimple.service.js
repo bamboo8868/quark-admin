@@ -223,6 +223,9 @@ export const accountsSimpleService = {
       throw new AppError('STEAM登录失败,请重试');
     }
 
+    // Wait 1s after login before editing the profile so the Steam session settles
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     try {
       await new Promise((resolve, reject) => {
         steamObj.editProfile({ name: nickname }, (err) => {
