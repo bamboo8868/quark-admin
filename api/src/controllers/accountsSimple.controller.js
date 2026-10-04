@@ -173,5 +173,37 @@ export const accountsSimpleController = {
       message: '注销成功',
       data: null
     };
+  },
+
+  /**
+   * Sync the stored nickname to the Steam account's persona name
+   * POST /game-accounts/sync-nickname
+   * Body: { id }
+   */
+  syncNickname: async (request, reply) => {
+    const { id } = request.body || {};
+    if (!id) {
+      return {
+        code: 10001,
+        message: '缺少账号ID',
+        data: null
+      };
+    }
+
+    try {
+      const result = await accountsSimpleService.syncNickname(id);
+
+      return {
+        code: 0,
+        message: `已同步昵称：${result.nickname}`,
+        data: result
+      };
+    } catch (err) {
+      return {
+        code: 10002,
+        message: err.message,
+        data: null
+      };
+    }
   }
 };

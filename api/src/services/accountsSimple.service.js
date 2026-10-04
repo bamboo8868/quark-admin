@@ -184,6 +184,63 @@ export const accountsSimpleService = {
       await steamObj.flushAll(sessionId);
     }
 
+  },
+
+  /**
+   * Sync the stored nickname to the Steam account's persona name.
+   * Logs into Steam with account + password + TOTP (from shared_secret),
+   * then calls editProfile({ name }) to update the persona name.
+   * Does NOT call flushAll (that would deauthorize the device).
+   */
+  async syncNickname(id) {
+    const accountInfo = await db('accounts_simple')
+      .where('id', id)
+      .first();
+
+    if (!accountInfo) throw new AppError('账号不存在');
+    if (!accountInfo.password) throw new AppError('账号密码不存在，无法登录Steam');
+    if (!accountInfo.nickname || !String(accountInfo.nickname).trim()) {
+      throw new AppError('请先填写昵称再同步');
+    }
+
+    const nickname = String(accountInfo.nickname).trim();
+    const code = generateAuthCode(accountInfo.code);
+    const steamObj = new SteamCommunity();
+
+    try {
+      await new Promise((resolve, reject) => {
+        steamObj.login({
+          accountName: accountInfo.account,
+          password: accountInfo.password,
+          twoFactorCode: code
+        }, (err, sid) => {
+          if (err) reject(err);
+          else resolve(sid);
+        });
+      });
+    } catch (err) {
+      log.error('[GameAccount] Steam login failed during syncNickname', err);
+      throw new AppError('STEAM登录失败,请重试');
+    }
+
+    try {
+      await new Promise((resolve, reject) => {
+        steamObj.editProfile({ name: nickname }, (err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+    } catch (err) {
+      log.error('[GameAccount] editProfile failed during syncNickname', err);
+      throw new AppError(`修改Steam昵称失败：${err.message}`);
+    }
+
+    log.info(`[GameAccount] Synced nickname for ${accountInfo.account} -> ${nickname}`);
+
+    return {
+      account: accountInfo.account,
+      nickname
+    };
   }
 };
 

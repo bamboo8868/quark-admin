@@ -284,38 +284,11 @@ export function useOfflineAccount() {
     }
   }
 
-  /** Import accounts from JSON/maFile files (SDA format) */
+  /** Import SDA/maFile — binds shared_secret to EXISTING offline accounts by
+   *  account_name across all games/versions. Non-matching entries are skipped. */
   const importLoading = ref(false);
-  const importSelectRef = ref();
 
   function handleImport() {
-    addDialog({
-      title: "选择所属游戏和版本",
-      width: "35%",
-      draggable: true,
-      closeOnClickModal: false,
-      contentRenderer: () =>
-        h(ImportSelectComponent, {
-          ref: importSelectRef,
-          gameOptions: gameOptions.value
-        }),
-      beforeSure: async (done) => {
-        const formData = importSelectRef.value?.getFormData();
-        if (!formData?.game_id) {
-          message("请选择游戏", { type: "warning" });
-          return;
-        }
-        if (!formData?.version_id) {
-          message("请选择版本", { type: "warning" });
-          return;
-        }
-        done();
-        openFilePicker(formData.game_id, formData.version_id);
-      }
-    });
-  }
-
-  function openFilePicker(gameId: number, versionId: number) {
     const input = document.createElement("input");
     input.type = "file";
     input.multiple = true;
@@ -337,7 +310,7 @@ export function useOfflineAccount() {
             const items = Array.isArray(json) ? json : json.accounts || [json];
             allItems.push(...items);
           } catch (err: any) {
-            errors.push(`${file.name}: ${err?.message || "JSON 解析失败"}`);
+            errors.push(`${file.name}: ${err?.message || "解析失败"}`);
           }
         }
 
@@ -350,9 +323,9 @@ export function useOfflineAccount() {
           return;
         }
 
-        const { code, message: msg } = await importOfflineAccounts(gameId, versionId, allItems);
+        const { code, message: msg } = await importOfflineAccounts(allItems);
         if (code === 0) {
-          message(msg || `成功导入 ${allItems.length} 条数据`, { type: "success" });
+          message(msg || `成功绑定 ${allItems.length} 条数据`, { type: "success" });
           onSearch();
         } else {
           message(msg || "导入失败", { type: "error" });
@@ -504,74 +477,6 @@ const AccountFormComponent = defineComponent({
             <el-radio value={1}>可用</el-radio>
             <el-radio value={0}>禁用</el-radio>
           </el-radio-group>
-        </el-form-item>
-      </el-form>
-    );
-  }
-});
-
-/** Import select component: game + version */
-const ImportSelectComponent = defineComponent({
-  name: "OfflineImportSelect",
-  props: {
-    gameOptions: {
-      type: Array,
-      default: () => []
-    }
-  },
-  setup(props, { expose }) {
-    const formRef = ref();
-    const formInline = reactive({
-      game_id: null as number | null,
-      version_id: null as number | null
-    });
-    const localVersionOptions = ref<any[]>([]);
-
-    async function onGameChange(gameId: number | null) {
-      formInline.version_id = null;
-      localVersionOptions.value = [];
-      if (gameId) {
-        const { code, data } = await getAllOfflineVersions(gameId);
-        if (code === 0) {
-          localVersionOptions.value = (data || []).map((v: any) => ({
-            label: v.name,
-            value: v.id
-          }));
-        }
-      }
-    }
-
-    expose({
-      getRef: () => formRef.value,
-      getFormData: () => formInline
-    });
-
-    return () => (
-      <el-form ref={formRef} model={formInline} label-width="90px">
-        <el-form-item label="所属游戏" prop="game_id">
-          <el-select
-            v-model={formInline.game_id}
-            placeholder="请选择游戏"
-            filterable
-            style="width: 100%"
-            onChange={onGameChange}
-          >
-            {(props.gameOptions as any[]).map((opt: any) => (
-              <el-option key={opt.value} label={opt.label} value={opt.value} />
-            ))}
-          </el-select>
-        </el-form-item>
-        <el-form-item label="所属版本" prop="version_id">
-          <el-select
-            v-model={formInline.version_id}
-            placeholder="请选择版本"
-            filterable
-            style="width: 100%"
-          >
-            {localVersionOptions.value.map((opt: any) => (
-              <el-option key={opt.value} label={opt.label} value={opt.value} />
-            ))}
-          </el-select>
         </el-form-item>
       </el-form>
     );

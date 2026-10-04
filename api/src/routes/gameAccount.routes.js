@@ -23,6 +23,9 @@ export async function gameAccountRoutes(app) {
   app.post('/game-accounts/import', accountsSimpleController.importAccounts);
 
   app.post('/game-accounts/logout', accountsSimpleController.logout);
+
+  // Sync stored nickname to Steam account persona name
+  app.post('/game-accounts/sync-nickname', accountsSimpleController.syncNickname);
 }
 
 export default gameAccountRoutes;

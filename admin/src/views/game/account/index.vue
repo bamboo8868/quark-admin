@@ -31,7 +31,8 @@ const {
   openDialog,
   handleDelete,
   handleImport,
-  handleLogout
+  handleLogout,
+  handleSyncNickname
 } = useGameAccount();
 
 function handleCopy(row: any) {
@@ -110,6 +111,13 @@ function handleCopy(row: any) {
               :icon="useRenderIcon(CopyDocument)">
               复制
             </el-button>
+            <el-popconfirm :title="`是否确认同步账号 ${row.account} 的昵称到Steam`" @confirm="handleSyncNickname(row)">
+              <template #reference>
+                <el-button class="reset-margin" link type="primary" :size="size" :icon="useRenderIcon(Refresh)">
+                  同步昵称
+                </el-button>
+              </template>
+            </el-popconfirm>
             <el-popconfirm :title="`是否确认注销账号 ${row.account}`" @confirm="handleLogout(row)">
               <template #reference>
                 <el-button class="reset-margin" link type="danger" :size="size"

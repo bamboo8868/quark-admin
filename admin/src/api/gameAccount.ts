@@ -58,3 +58,8 @@ export const importGameAccounts = (items: Array<any>) => {
 export const logoutGameAccount = (id: number) => {
   return http.request<Result>("post", "/api/game-accounts/logout", { data: { id } });
 };
+
+/** 同步Steam昵称 */
+export const syncGameAccountNickname = (id: number) => {
+  return http.request<Result>("post", "/api/game-accounts/sync-nickname", { data: { id } });
+};

@@ -6,7 +6,8 @@ import {
   updateGameAccount,
   deleteGameAccount,
   importGameAccounts,
-  logoutGameAccount
+  logoutGameAccount,
+  syncGameAccountNickname
 } from "@/api/gameAccount";
 import { ref, reactive, onMounted, h, defineComponent } from "vue";
 import type { PaginationProps } from "@pureadmin/table";
@@ -61,6 +62,11 @@ export function useGameAccount() {
       minWidth: 150
     },
     {
+      label: "昵称",
+      prop: "nickname",
+      minWidth: 150
+    },
+    {
       label: "可查询",
       prop: "visible",
       minWidth: 100,
@@ -80,7 +86,7 @@ export function useGameAccount() {
     {
       label: "操作",
       fixed: "right",
-      width: 360,
+      width: 480,
       slot: "operation"
     }
   ];
@@ -131,6 +137,7 @@ export function useGameAccount() {
       props: {
         formInline: {
           account: row?.account ?? "",
+          nickname: row?.nickname ?? "",
           password: row?.password ?? "",
           code: row?.code ?? "",
           visible: row?.visible ?? 1
@@ -185,6 +192,17 @@ export function useGameAccount() {
     if (code === 0) {
       message("注销成功", { type: "success" });
       onSearch();
+    }
+  }
+
+  /** Sync stored nickname to the Steam account */
+  async function handleSyncNickname(row: any) {
+    const { code, message: msg } = await syncGameAccountNickname(row.id);
+    if (code === 0) {
+      message(msg || "同步成功", { type: "success" });
+      onSearch();
+    } else {
+      message(msg || "同步失败", { type: "error" });
     }
   }
 
@@ -257,7 +275,8 @@ export function useGameAccount() {
     openDialog,
     handleDelete,
     handleImport,
-    handleLogout
+    handleLogout,
+    handleSyncNickname
   };
 }
 
@@ -287,6 +306,12 @@ const AccountFormComponent = defineComponent({
         rules={rules}
         label-width="90px"
       >
+        <el-form-item label="昵称" prop="nickname">
+          <el-input
+            v-model={props.formInline.nickname}
+            placeholder="请输入Steam昵称"
+          />
+        </el-form-item>
         <el-form-item label="密码" prop="password">
           <el-input
             v-model={props.formInline.password}

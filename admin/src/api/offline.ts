@@ -117,14 +117,10 @@ export const batchDeleteOfflineAccounts = (ids: number[]) => {
   });
 };
 
-/** 导入SDA账号 */
-export const importOfflineAccounts = (
-  game_id: number,
-  version_id: number,
-  items: Array<any>
-) => {
+/** 导入 SDA/maFile（按账号名跨游戏/版本绑定到已存在的离线账号，未匹配的跳过） */
+export const importOfflineAccounts = (items: Array<any>) => {
   return http.request<Result>("post", "/api/offline/accounts/import", {
-    data: { game_id, version_id, items }
+    data: { items }
   });
 };
 
