@@ -1,18 +1,21 @@
 #!/usr/bin/env node
 
 /**
- * Change Steam Nickname Script
+ * Change Steam Nickname Script (steam-user edition)
  *
- * Logs into Steam and changes the account's persona name (nickname).
- * Mirrors syncNickname() in src/services/accountsSimple.service.js:
- *   login (account + password + TOTP from shared_secret) -> wait -> editProfile({ name })
- * Deliberately does NOT call flushAll (that would deauthorize the device).
+ * Logs into Steam via the steam-user client protocol and changes the account's
+ * persona name (nickname) using setPersona().
+ *
+ * Flow:
+ *   logOn(accountName, password, twoFactorCode)
+ *     → on 'loggedOn' → setPersona(Online, nickname)
+ *     → wait → logOff()
  *
  * Usage:
  *   # DB mode — pull password + shared_secret(code) from accounts_simple
  *   node scripts/change-steam-nickname.js --id 1 --nickname "NewName"
  *   node scripts/change-steam-nickname.js --account someSteamUser --nickname "NewName"
- *   # DB mode — push the nickname already stored in the DB (like the admin "同步昵称" button)
+ *   # DB mode — push the nickname already stored in the DB
  *   node scripts/change-steam-nickname.js --account someSteamUser
  *
  *   # Standalone mode — pass credentials directly (no database needed)
@@ -32,7 +35,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import knex from 'knex';
-import SteamCommunity from 'steamcommunity';
+import SteamUser from 'steam-user';
 import { generateAuthCode } from 'steam-totp';
 
 // Load environment variables from api/.env
@@ -63,8 +66,6 @@ function parseArgs() {
   }
   return options;
 }
-
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /** Turn a raw error into a message, adding a hint for network-level failures. */
 function describeError(err) {
@@ -166,10 +167,7 @@ async function main() {
   console.log(`  Delay:     ${delayMs}ms after login`);
   console.log('========================================\n');
 
-  const steam = new SteamCommunity();
-
-  // Step 1: login
-  console.log('[1/3] 登录 Steam...');
+  // Generate the TOTP code from shared_secret
   let twoFactorCode;
   try {
     twoFactorCode = generateAuthCode(sharedSecret);
@@ -178,36 +176,88 @@ async function main() {
     if (db) await db.destroy();
     process.exit(1);
   }
-  try {
-    await new Promise((resolve, reject) => {
-      steam.login({ accountName, password, twoFactorCode }, (err, sid) => {
-        if (err) reject(err);
-        else resolve(sid);
-      });
-    });
-    console.log('[✓] 登录成功');
-  } catch (err) {
-    console.error('[✗] 登录失败:', describeError(err));
-    if (db) await db.destroy();
-    process.exit(1);
-  }
 
-  // Step 2: wait so the session settles
-  console.log(`[2/3] 等待 ${delayMs}ms...`);
-  await sleep(delayMs);
+  const client = new SteamUser({
+    autoRelogin: false,   // Don't auto-relogin; we want a one-shot session
+    machineName: 'nickname-script'
+  });
 
-  // Step 3: edit persona name
-  console.log('[3/3] 修改昵称...');
-  try {
-    await new Promise((resolve, reject) => {
-      steam.editProfile({ name: nickname }, (err) => {
-        if (err) reject(err);
-        else resolve();
+  /**
+   * Wrap the steam-user event flow in a single Promise so we can use async/await.
+   * Resolves when the persona name has been set; rejects on login/protocol error.
+   */
+  const changeNickname = () =>
+    new Promise((resolve, reject) => {
+      let settled = false;
+      const fail = (msg) => {
+        if (settled) return;
+        settled = true;
+        reject(new Error(msg));
+      };
+
+      // Fatal login / protocol error
+      client.on('error', (err) => {
+        const eresult = err.eresult;
+        const name = eresult !== undefined && SteamUser.EResult[eresult]
+          ? SteamUser.EResult[eresult]
+          : eresult;
+        fail(`Steam 登录/协议错误: ${err.message}${name ? ` (EResult: ${name})` : ''}`);
       });
+
+      // Steam Guard prompt — we already supply twoFactorCode, so this means it was wrong
+      client.on('steamGuard', (domain, callback, lastCodeWrong) => {
+        fail(lastCodeWrong
+          ? 'Steam Guard 验证码错误 (twoFactorCode 无效或已过期)'
+          : `Steam Guard 请求验证码 (domain=${domain}) — 脚本未提供，请检查 shared_secret`);
+      });
+
+      // Login succeeded
+      client.on('loggedOn', (details) => {
+        if (settled) return;
+        console.log('[✓] 登录成功 (steamID:', details.client_supplied_steamid || client.steamID, ')');
+
+        // Wait for the session to settle, then change the persona name
+        console.log(`[2/3] 等待 ${delayMs}ms...`);
+        setTimeout(() => {
+          if (settled) return;
+          console.log('[3/3] 修改昵称:', nickname);
+          try {
+            // Online state + new name. The name is what shows as the persona/nickname.
+            client.setPersona(SteamUser.EPersonaState.Online, nickname);
+          } catch (e) {
+            fail(`setPersona 抛出异常: ${e.message}`);
+            return;
+          }
+
+          // Give Steam a moment to process the change, then log off cleanly
+          setTimeout(() => {
+            if (settled) return;
+            settled = true;
+            try { client.logOff(); } catch (_) { /* ignore */ }
+            resolve();
+          }, 1500);
+        }, delayMs);
+      });
+
+      // Step 1: initiate login
+      console.log('[1/3] 登录 Steam (steam-user)...');
+      try {
+        client.logOn({
+          accountName,
+          password,
+          twoFactorCode
+        });
+      } catch (e) {
+        fail(`logOn 调用失败: ${e.message}`);
+      }
     });
+
+  try {
+    await changeNickname();
     console.log('[✓] 昵称修改成功:', nickname);
   } catch (err) {
     console.error('[✗] 修改昵称失败:', describeError(err));
+    try { client.logOff(); } catch (_) { /* ignore */ }
     if (db) await db.destroy();
     process.exit(1);
   }
