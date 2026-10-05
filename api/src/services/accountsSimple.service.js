@@ -2,6 +2,7 @@ import { AccountsSimpleModel } from '../models/accountsSimple.model.js';
 import { db } from '../utils/db.js';
 import { log } from '../utils/logger.js';
 import SteamCommunity from 'steamcommunity';
+import SteamUser from 'steam-user';
 import { generateAuthCode } from 'steam-totp';
 import { AppError } from '../middlewares/error.middleware.js';
 
@@ -188,8 +189,8 @@ export const accountsSimpleService = {
 
   /**
    * Sync the stored nickname to the Steam account's persona name.
-   * Logs into Steam with account + password + TOTP (from shared_secret),
-   * then calls editProfile({ name }) to update the persona name.
+   * Uses the steam-user client protocol: logOn -> setPersona(Online, name) -> logOff.
+   * This permanently changes the Steam persona name (same as editing the profile name).
    * Does NOT call flushAll (that would deauthorize the device).
    */
   async syncNickname(id) {
@@ -204,37 +205,91 @@ export const accountsSimpleService = {
     }
 
     const nickname = String(accountInfo.nickname).trim();
-    const code = generateAuthCode(accountInfo.code);
-    const steamObj = new SteamCommunity();
 
+    let twoFactorCode;
     try {
-      await new Promise((resolve, reject) => {
-        steamObj.login({
-          accountName: accountInfo.account,
-          password: accountInfo.password,
-          twoFactorCode: code
-        }, (err, sid) => {
-          if (err) reject(err);
-          else resolve(sid);
-        });
-      });
+      twoFactorCode = generateAuthCode(accountInfo.code);
     } catch (err) {
-      log.error('[GameAccount] Steam login failed during syncNickname', err);
-      throw new AppError('STEAM登录失败,请重试');
+      log.error('[GameAccount] generateAuthCode failed during syncNickname', err);
+      throw new AppError('生成Steam验证码失败，请检查shared_secret');
     }
 
-    // Wait 1s after login before editing the profile so the Steam session settles
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const client = new SteamUser({
+      autoRelogin: false,   // One-shot session; don't auto-relogin
+      machineName: 'nickname-sync'
+    });
+
+    /**
+     * Wrap the steam-user event flow in a single Promise.
+     * Resolves when the persona name has been set; rejects on login/protocol error.
+     */
+    const changeNickname = () =>
+      new Promise((resolve, reject) => {
+        let settled = false;
+        const fail = (msg) => {
+          if (settled) return;
+          settled = true;
+          reject(new Error(msg));
+        };
+
+        // Fatal login / protocol error
+        client.on('error', (err) => {
+          const eresult = err.eresult;
+          const name = eresult !== undefined && SteamUser.EResult[eresult]
+            ? SteamUser.EResult[eresult]
+            : eresult;
+          fail(`Steam 登录/协议错误: ${err.message}${name ? ` (EResult: ${name})` : ''}`);
+        });
+
+        // Steam Guard prompt — we already supply twoFactorCode, so this means it was wrong
+        client.on('steamGuard', (domain, callback, lastCodeWrong) => {
+          fail(lastCodeWrong
+            ? 'Steam Guard 验证码错误 (twoFactorCode 无效或已过期)'
+            : `Steam Guard 请求验证码 (domain=${domain}) — 请检查 shared_secret`);
+        });
+
+        // Login succeeded
+        client.on('loggedOn', () => {
+          if (settled) return;
+
+          // Give the session a moment to settle, then change the persona name
+          setTimeout(() => {
+            if (settled) return;
+            try {
+              // Online state + new name. The name is what shows as the persona/nickname.
+              client.setPersona(SteamUser.EPersonaState.Online, nickname);
+            } catch (e) {
+              fail(`setPersona 抛出异常: ${e.message}`);
+              return;
+            }
+
+            // Let Steam process the change, then log off cleanly
+            setTimeout(() => {
+              if (settled) return;
+              settled = true;
+              try { client.logOff(); } catch (_) { /* ignore */ }
+              resolve();
+            }, 1500);
+          }, 1000);
+        });
+
+        // Initiate login
+        try {
+          client.logOn({
+            accountName: accountInfo.account,
+            password: accountInfo.password,
+            twoFactorCode
+          });
+        } catch (e) {
+          fail(`logOn 调用失败: ${e.message}`);
+        }
+      });
 
     try {
-      await new Promise((resolve, reject) => {
-        steamObj.editProfile({ name: nickname }, (err) => {
-          if (err) reject(err);
-          else resolve();
-        });
-      });
+      await changeNickname();
     } catch (err) {
-      log.error('[GameAccount] editProfile failed during syncNickname', err);
+      try { client.logOff(); } catch (_) { /* ignore */ }
+      log.error('[GameAccount] syncNickname failed', err);
       throw new AppError(`修改Steam昵称失败：${err.message}`);
     }
 
