@@ -17,9 +17,20 @@ import EditPen from "~icons/ep/edit-pen";
 /** Member level map */
 const levelMap: Record<number, { label: string; type: string }> = {
   0: { label: "游客", type: "info" },
-  1: { label: "青铜", type: "warning" },
-  2: { label: "黄金", type: "success" }
+  1: { label: "会员", type: "warning" },
+  2: { label: "高级会员", type: "success" }
 };
+
+/** Format a date value to 'YYYY-MM-DD HH:mm:ss' (local time) */
+function formatDateTime(val: any): string {
+  if (!val) return "";
+  const d = new Date(val);
+  if (isNaN(d.getTime())) return "";
+  const p = (n: number) => (n < 10 ? "0" + n : "" + n);
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(
+    d.getHours()
+  )}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
 
 export function useMemberList() {
   const loading = ref(false);
@@ -92,6 +103,21 @@ export function useMemberList() {
             {info.label}
           </el-tag>
         );
+      }
+    },
+    {
+      label: "到期时间",
+      prop: "member_expire_at",
+      minWidth: 170,
+      cellRenderer: ({ row }) => {
+        if (!row.member_expire_at) {
+          return (
+            <span style={{ color: "var(--el-text-color-secondary)" }}>
+              {row.member_level > 0 ? "永久有效" : "—"}
+            </span>
+          );
+        }
+        return <span>{formatDateTime(row.member_expire_at)}</span>;
       }
     },
     {
@@ -199,6 +225,9 @@ export function useMemberList() {
           phone: row?.phone ?? "",
           status: row?.status ?? 1,
           member_level: row?.member_level ?? 0,
+          member_expire_at: row?.member_expire_at
+            ? formatDateTime(row.member_expire_at)
+            : null,
           signature: row?.signature ?? ""
         }
       },
@@ -334,9 +363,20 @@ const MemberFormComponent = defineComponent({
         <el-form-item label="会员等级" prop="member_level">
           <el-radio-group v-model={props.formInline.member_level}>
             <el-radio value={0}>游客</el-radio>
-            <el-radio value={1}>青铜</el-radio>
-            <el-radio value={2}>黄金</el-radio>
+            <el-radio value={1}>会员</el-radio>
+            <el-radio value={2}>高级会员</el-radio>
           </el-radio-group>
+        </el-form-item>
+        <el-form-item label="到期时间" prop="member_expire_at">
+          <el-date-picker
+            v-model={props.formInline.member_expire_at}
+            type="datetime"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            format="YYYY-MM-DD HH:mm:ss"
+            placeholder="留空表示永久有效"
+            clearable
+            style={{ width: "100%" }}
+          />
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model={props.formInline.status}>

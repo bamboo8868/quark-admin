@@ -11,6 +11,9 @@ export class ConfigCarouselModel extends BaseModel {
     if (filters.title) {
       query = query.where('title', 'like', `%${filters.title}%`);
     }
+    if (filters.type) {
+      query = query.where('type', filters.type);
+    }
     if (filters.status !== undefined && filters.status !== null && filters.status !== '') {
       query = query.where('status', filters.status);
     }

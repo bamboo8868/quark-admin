@@ -15,6 +15,31 @@ function genTotp(secret) {
     }
 }
 
+/**
+ * Format a date as yyyy-MM-dd HH:mm:ss (project-wide API time format)
+ */
+function formatDate(date) {
+    if (!date) return '';
+    const d = date instanceof Date ? date : new Date(date);
+    if (isNaN(d.getTime())) return '';
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+// Offline accounts are valid for this many years from the redemption time (used_at)
+const OFFLINE_VALID_YEARS = 1;
+
+/**
+ * Compute the offline account expiry date: redemption time + OFFLINE_VALID_YEARS.
+ * Returns a new Date (the input is never mutated).
+ */
+function offlineExpireDate(usedAt) {
+    const base = usedAt ? new Date(usedAt) : new Date();
+    const d = isNaN(base.getTime()) ? new Date() : base;
+    d.setFullYear(d.getFullYear() + OFFLINE_VALID_YEARS);
+    return d;
+}
+
 // Max verification-code (TOTP) fetches allowed per CDK per day via /refresh
 const TOTP_DAILY_LIMIT = 3;
 
@@ -123,7 +148,8 @@ export const offlineWebController = {
                     password: account.password,
                     totp_code: '',
                     game_name: game?.name || '',
-                    version_name: version?.name || ''
+                    version_name: version?.name || '',
+                    expire_time: formatDate(offlineExpireDate(cdk.used_at))
                 }
             };
         }
@@ -198,7 +224,8 @@ export const offlineWebController = {
                 password: account.password,
                 totp_code: '',
                 game_name: game?.name || '',
-                version_name: version?.name || ''
+                version_name: version?.name || '',
+                expire_time: formatDate(offlineExpireDate(now))
             }
         };
     },

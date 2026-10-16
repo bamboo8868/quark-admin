@@ -12,8 +12,8 @@ import type { PaginationProps } from "@pureadmin/table";
 
 /** Member level map */
 const levelMap: Record<number, { label: string; type: string }> = {
-  1: { label: "青铜", type: "warning" },
-  2: { label: "黄金", type: "success" }
+  1: { label: "会员", type: "warning" },
+  2: { label: "高级会员", type: "success" }
 };
 
 /** Duration options */

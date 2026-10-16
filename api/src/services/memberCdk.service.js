@@ -254,7 +254,7 @@ export const memberCdkGroupService = {
     const now = new Date();
 
     // Auto-generate name based on level and duration
-    const levelName = member_level === 2 ? '黄金' : '青铜';
+    const levelName = member_level === 2 ? '高级会员' : '会员';
     const dateStr = now.toISOString().slice(0, 10);
     const autoName = `${dateStr}-${levelName}-${duration_months || 3}个月`;
 

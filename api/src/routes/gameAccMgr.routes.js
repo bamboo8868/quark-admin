@@ -13,6 +13,8 @@ export async function gameAccMgrRoutes(app) {
   app.get('/game-account-mgr/:id', gameAccountController.getAccountById);
   // Create game account
   app.post('/game-account-mgr/create', gameAccountController.createAccount);
+  // Import SDA/maFile (bind shared_secret to existing accounts only)
+  app.post('/game-account-mgr/import', gameAccountController.importAccounts);
   // Update game account
   app.put('/game-account-mgr/:id', gameAccountController.updateAccount);
   // Delete game account

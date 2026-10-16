@@ -1,7 +1,6 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
-import rateLimit from '@fastify/rate-limit';
 import multipart from '@fastify/multipart';
 import { config } from './config/env.js';
 import { log } from './utils/logger.js';
@@ -83,22 +82,6 @@ async function registerPlugins(app) {
       files: 1
     }
   })
-
-
-  // Rate limiting - stricter for auth endpoints
-  await app.register(rateLimit, {
-    max: 100,
-    timeWindow: '1 minute',
-    keyGenerator: (request) => request.user?.id || request.ip,
-    errorResponseBuilder: (request, context) => ({
-      success: false,
-      error: {
-        code: 'RATE_LIMIT_EXCEEDED',
-        message: `Rate limit exceeded. Try again in ${context.after}`
-      }
-    }),
-    skipOnError: false
-  });
 }
 
 /**

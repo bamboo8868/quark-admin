@@ -253,41 +253,15 @@ export function useRentAccount() {
     }
   }
 
-  /** Import JSON (SDA format) */
+  /** Import SDA/maFile — binds shared_secret to EXISTING rent accounts by
+   *  account_name across all games. Non-matching entries are skipped. */
   const importLoading = ref(false);
-  const gameSelectRef = ref();
 
   function handleImport() {
-    // Show game selection dialog first
-    addDialog({
-      title: "选择所属游戏",
-      width: "30%",
-      draggable: true,
-      closeOnClickModal: false,
-      contentRenderer: () =>
-        h(GameSelectComponent, {
-          ref: gameSelectRef,
-          gameOptions: gameOptions.value
-        }),
-      beforeSure: async (done) => {
-        const formData = gameSelectRef.value?.getFormData();
-        const selectedGameId = formData?.game_id;
-        if (!selectedGameId) {
-          message("请选择游戏", { type: "warning" });
-          return;
-        }
-        done();
-        // Open file picker after dialog closes
-        openFilePicker(selectedGameId);
-      }
-    });
-  }
-
-  function openFilePicker(gameId: number) {
     const input = document.createElement("input");
     input.type = "file";
     input.multiple = true;
-    input.accept = ".json";
+    input.accept = ".json,.mafile";
     input.onchange = async (e: Event) => {
       const files = (e.target as HTMLInputElement).files;
       if (!files || files.length === 0) return;
@@ -302,11 +276,10 @@ export function useRentAccount() {
           try {
             const text = await file.text();
             const json = JSON.parse(text);
-            // Support both array and object-with-accounts format
             const items = Array.isArray(json) ? json : json.accounts || [json];
             allItems.push(...items);
           } catch (err: any) {
-            errors.push(`${file.name}: ${err?.message || "JSON 解析失败"}`);
+            errors.push(`${file.name}: ${err?.message || "解析失败"}`);
           }
         }
 
@@ -319,12 +292,9 @@ export function useRentAccount() {
           return;
         }
 
-        const { code, message: msg } = await importRentAccounts(gameId, allItems);
+        const { code, message: msg } = await importRentAccounts(allItems);
         if (code === 0) {
-          message(
-            msg || `成功导入 ${allItems.length} 条数据（共 ${files.length} 个文件）`,
-            { type: "success" }
-          );
+          message(msg || `成功绑定 ${allItems.length} 条数据`, { type: "success" });
           onSearch();
         } else {
           message(msg || "导入失败", { type: "error" });
@@ -428,7 +398,7 @@ const AccountFormComponent = defineComponent({
         <el-form-item label="动态码" prop="code">
           <el-input
             v-model={props.formInline.code}
-            placeholder="请输入动态验证码(可选)"
+            placeholder="请输入动态验证码(shared_secret)"
           />
         </el-form-item>
         <el-form-item label="状态" prop="status">
@@ -442,41 +412,3 @@ const AccountFormComponent = defineComponent({
   }
 });
 
-/** Game select component for import dialog */
-const GameSelectComponent = defineComponent({
-  name: "GameSelectForm",
-  props: {
-    gameOptions: {
-      type: Array,
-      default: () => []
-    }
-  },
-  setup(props, { expose }) {
-    const formRef = ref();
-    const formInline = reactive({
-      game_id: null as number | null
-    });
-
-    expose({
-      getRef: () => formRef.value,
-      getFormData: () => formInline
-    });
-
-    return () => (
-      <el-form ref={formRef} model={formInline} label-width="90px">
-        <el-form-item label="所属游戏" prop="game_id" rules={[{ required: true, message: "请选择游戏", trigger: "change" }]}>
-          <el-select
-            v-model={formInline.game_id}
-            placeholder="请选择游戏"
-            filterable
-            style="width: 100%"
-          >
-            {(props.gameOptions as any[]).map((opt: any) => (
-              <el-option key={opt.value} label={opt.label} value={opt.value} />
-            ))}
-          </el-select>
-        </el-form-item>
-      </el-form>
-    );
-  }
-});

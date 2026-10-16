@@ -83,10 +83,10 @@ export const batchDeleteRentAccounts = (ids: number[]) => {
   });
 };
 
-/** 导入SDA账号（JSON数据） */
-export const importRentAccounts = (game_id: number, items: Array<any>) => {
+/** 导入 SDA/maFile（按账号名跨游戏绑定到已存在的租号账号，未匹配的跳过） */
+export const importRentAccounts = (items: Array<any>) => {
   return http.request<Result>("post", "/api/rent/accounts/import", {
-    data: { game_id, items }
+    data: { items }
   });
 };
 

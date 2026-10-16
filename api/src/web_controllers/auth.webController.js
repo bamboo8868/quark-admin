@@ -139,10 +139,51 @@ export const authWebController = {
       updated_at: new Date()
     });
 
+    // --- Auto login after register: issue the same tokens as /login ---
+    const accessToken = jwt.sign(
+      {
+        memberId: id,
+        username: username.trim(),
+        type: 'web'
+      },
+      config.jwt.secret,
+      { expiresIn: config.jwt.expiresIn }
+    );
+
+    const refreshToken = jwt.sign(
+      {
+        memberId: id,
+        type: 'web_refresh'
+      },
+      config.jwt.refreshSecret,
+      { expiresIn: config.jwt.refreshExpiresIn }
+    );
+
+    await db('members')
+      .where('id', id)
+      .update({
+        last_login_at: new Date(),
+        last_login_ip: request.ip || '',
+        login_count: 1,
+        updated_at: new Date()
+      });
+
+    logger.info(`User ${username.trim()} registered and auto-logged in`);
+
     return {
       code: 0,
       message: '注册成功',
-      data: { id, username: username.trim(), email: email.trim() }
+      data: {
+        id,
+        username: username.trim(),
+        nickname: username.trim(),
+        avatar: null,
+        email: email.trim(),
+        member_level: 0,
+        accessToken,
+        refreshToken,
+        expires: new Date(Date.now() + 7 * 86400000).toISOString()
+      }
     };
   },
 

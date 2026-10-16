@@ -17,6 +17,7 @@ export function useConfigCarousel() {
   /** Search form */
   const form = reactive({
     title: "",
+    type: "" as string,
     status: "" as string | number
   });
 
@@ -37,6 +38,12 @@ export function useConfigCarousel() {
       label: "ID",
       prop: "id",
       minWidth: 70
+    },
+    {
+      label: "类型",
+      prop: "type",
+      width: 90,
+      slot: "type"
     },
     {
       label: "图片",
@@ -96,6 +103,7 @@ export function useConfigCarousel() {
     if (!formEl) return;
     formEl.resetFields();
     form.title = "";
+    form.type = "";
     form.status = "";
     pagination.currentPage = 1;
     onSearch();
@@ -117,6 +125,7 @@ export function useConfigCarousel() {
       title: `${title}轮播图`,
       props: {
         formInline: {
+          type: row?.type ?? "offline",
           title: row?.title ?? "",
           image: row?.image ?? "",
           link: row?.link ?? "",
@@ -230,6 +239,12 @@ const CarouselFormComponent = defineComponent({
         rules={rules}
         label-width="90px"
       >
+        <el-form-item label="类型" prop="type">
+          <el-select v-model={props.formInline.type} placeholder="请选择类型">
+            <el-option label="离线" value="offline" />
+            <el-option label="租号" value="rent" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="轮播图片" prop="image">
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <el-upload

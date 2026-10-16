@@ -1,4 +1,4 @@
-import { carouselController } from '../controllers/config.controller.js';
+import { carouselController, qaController, announcementController } from '../controllers/config.controller.js';
 import { authenticate } from '../middlewares/auth.middleware.js';
 
 export async function configRoutes(app) {
@@ -10,6 +10,20 @@ export async function configRoutes(app) {
   app.post('/config/carousels/create', carouselController.createCarousel);
   app.put('/config/carousels/:id', carouselController.updateCarousel);
   app.delete('/config/carousels/:id', carouselController.deleteCarousel);
+
+  // ==================== Config QA (常见问题) ====================
+  app.post('/config/qas', qaController.getQas);
+  app.get('/config/qas/:id', qaController.getQaById);
+  app.post('/config/qas/create', qaController.createQa);
+  app.put('/config/qas/:id', qaController.updateQa);
+  app.delete('/config/qas/:id', qaController.deleteQa);
+
+  // ==================== Config Announcement (公告) ====================
+  app.post('/config/announcements', announcementController.getAnnouncements);
+  app.get('/config/announcements/:id', announcementController.getAnnouncementById);
+  app.post('/config/announcements/create', announcementController.createAnnouncement);
+  app.put('/config/announcements/:id', announcementController.updateAnnouncement);
+  app.delete('/config/announcements/:id', announcementController.deleteAnnouncement);
 }
 
 export default configRoutes;

@@ -5,24 +5,27 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="会员中心 - 注册登录、CDK 兑换会员、浏览会员游戏">
+  <meta name="description" content="会员中心 - 注册登录、CDK 兑换会员、浏览会员游戏库">
   <meta name="renderer" content="webkit">
   <title>会员中心</title>
   <style>
     :root {
-      --bg: #f0f5ff;
-      --card-bg: rgba(255, 255, 255, 0.97);
-      --card-border: #d9e4f0;
+      --bg: #eef2f8;
+      --heading: #17263a;
+      --panel: rgba(255, 255, 255, 0.97);
+      --panel-solid: #ffffff;
+      --card: rgba(255, 255, 255, 0.97);
+      --border: #d9e4f0;
+      --border-soft: #e6eef8;
+      --chip-bg: #eef5ff;
       --primary: #1677ff;
       --primary-dark: #0f6ff0;
-      --chip-bg: #eef5ff;
+      --orange: #fa8c16;
       --text: #152238;
-      --heading: #17263a;
       --muted: #657487;
       --muted-2: #4f5f72;
       --success: #13a663;
       --danger: #e5484d;
-      --warning: #f59e0b;
       --gold: #d4a017;
       --bronze: #b06a2c;
     }
@@ -36,723 +39,518 @@
       font-size: 14px;
       -webkit-font-smoothing: antialiased;
     }
+    body { min-height: 100vh; }
 
-    [v-cloak], .hidden { display: none !important; }
+    [v-cloak] { display: none !important; }
+    .grad-text {
+      background: linear-gradient(90deg, #1677ff, #38bdf8);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
 
     /* ---------- Navbar ---------- */
     .navbar {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: 64px;
+      position: sticky; top: 0; z-index: 100;
       background: #fff;
       box-shadow: rgba(22, 36, 56, 0.08) 0 2px 12px;
-      display: flex;
-      align-items: center;
-      padding: 0 24px;
-      z-index: 100;
     }
-    .navbar .logo-chip {
-      width: 38px; height: 38px;
-      border-radius: 10px;
+    .nav-inner {
+      width: 100%;
+      height: 64px;
+      display: flex; align-items: center;
+      padding: 0 24px;
+    }
+    .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; flex-shrink: 0; }
+    .logo-chip {
+      width: 38px; height: 38px; border-radius: 10px;
       background: var(--primary);
       display: flex; align-items: center; justify-content: center;
-      margin-right: 12px;
       flex-shrink: 0;
     }
-    .navbar .logo-chip svg { width: 22px; height: 22px; stroke: #fff; }
-    .navbar .brand {
-      font-size: 18px; font-weight: 900; color: #333;
-      line-height: 1.2;
-    }
-    .navbar .brand small {
-      display: block; font-size: 11px; font-weight: 600; color: var(--muted);
-    }
-    .navbar .nav-link {
+    .logo-chip svg { width: 22px; height: 22px; stroke: #fff; }
+    .logo-text { line-height: 1.2; }
+    .logo-text .name { font-size: 18px; font-weight: 900; color: #333; }
+    .logo-text .sub { display: block; font-size: 11px; color: var(--muted); font-weight: 600; }
+    .nav-links { display: flex; align-items: center; }
+    .nav-links a {
       margin-left: 28px;
       font-size: 13px; font-weight: 800; color: var(--muted);
-      text-decoration: none;
-      padding: 6px 2px;
+      text-decoration: none; padding: 6px 2px;
       border-bottom: 2.4px solid transparent;
       transition: color .15s, border-color .15s;
     }
-    .navbar .nav-link:hover { color: var(--primary-dark); }
-    .navbar .nav-link.active {
-      color: #1677b8;
-      border-bottom-color: var(--primary);
+    .nav-links a:hover { color: var(--primary-dark); }
+    .nav-links a.active { color: #1677b8; border-bottom-color: var(--primary); }
+    .nav-search { flex: 1; max-width: 560px; margin: 0 28px; display: flex; align-items: center; position: relative; }
+    .nav-search svg {
+      position: absolute; left: 12px; width: 16px; height: 16px;
+      stroke: #9aa7b8; pointer-events: none;
     }
-    .navbar .user-chip {
-      margin-left: auto;
-      display: flex; align-items: center; gap: 8px;
-      padding: 6px 12px 6px 8px;
-      border-radius: 999px;
-      background: var(--chip-bg);
-      font-size: 12px; font-weight: 800; color: var(--primary-dark);
-      cursor: pointer;
+    .nav-search input {
+      flex: 1; height: 40px;
+      border-radius: 10px 0 0 10px;
+      border: 0.8px solid var(--border); border-right: none;
+      background: #f5f7fa;
+      padding: 0 14px 0 36px;
+      font-size: 13px; color: var(--text);
+      outline: none; transition: border-color .15s, box-shadow .15s;
     }
-    .navbar .user-chip .avatar {
-      width: 26px; height: 26px; border-radius: 50%;
+    .nav-search input::placeholder { color: #9aa7b8; }
+    .nav-search input:focus { border-color: #2680f7; box-shadow: rgba(22, 119, 255, 0.1) 0 0 0 3px; }
+    .nav-search .btn-search {
+      height: 40px; padding: 0 26px; border: none; border-radius: 0 10px 10px 0;
       background: var(--primary); color: #fff;
+      font-size: 13px; font-weight: 800; cursor: pointer; flex-shrink: 0;
+      transition: filter .15s;
+    }
+    .nav-search .btn-search:hover { filter: brightness(1.06); }
+    .nav-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+    .user-wrap { position: relative; }
+    .user-badge {
+      display: flex; align-items: center; gap: 8px;
+      padding: 5px 14px 5px 6px; border-radius: 999px;
+      background: #f7faff; border: 0.8px solid var(--border);
+      font-size: 13px; font-weight: 700; color: var(--heading);
+      cursor: pointer; transition: border-color .15s;
+    }
+    .user-badge:hover { border-color: #2680f7; }
+    .user-badge .caret { font-size: 10px; color: var(--muted); }
+    .tier-dot {
+      width: 26px; height: 26px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: 900;
+      font-size: 14px;
+      background: linear-gradient(135deg, #64748b, #94a3b8);
     }
-
-    /* ---------- Layout ---------- */
-    .page {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 88px 16px 40px;
+    .tier-dot.bronze { background: linear-gradient(135deg, #b06a2c, #d97706); }
+    .tier-dot.gold { background: linear-gradient(135deg, #d4a017, #fbbf24); }
+    .menu-backdrop { position: fixed; inset: 0; z-index: 140; }
+    .user-menu {
+      position: absolute; right: 0; top: calc(100% + 8px); z-index: 150;
+      min-width: 210px; padding: 10px;
+      background: #fff; border: 0.8px solid var(--border-soft); border-radius: 14px;
+      box-shadow: rgba(36, 65, 96, 0.16) 0 14px 36px;
+      animation: menuIn .16s ease;
     }
-
-    .card {
-      background: var(--card-bg);
-      border: 0.8px solid var(--card-border);
-      border-radius: 14px;
-      box-shadow: rgba(36, 65, 96, 0.043) 0 10px 28px;
-      padding: 20px 24px;
-      margin-bottom: 20px;
+    @keyframes menuIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+    .user-menu .um-row {
+      display: flex; justify-content: space-between; gap: 12px;
+      padding: 8px 10px; font-size: 12px; font-weight: 600;
     }
-
-    .card-head {
-      display: flex; align-items: center; gap: 12px;
-      margin-bottom: 18px;
+    .user-menu .um-row span:first-child { color: var(--muted-2); }
+    .user-menu .um-row span:last-child { color: var(--heading); font-weight: 800; }
+    .user-menu .um-divider { height: 0.8px; background: var(--border-soft); margin: 6px 4px; }
+    .user-menu .um-logout {
+      width: 100%; padding: 9px 10px; border: none; border-radius: 9px;
+      background: #fdecec; color: var(--danger);
+      font-size: 12px; font-weight: 800; cursor: pointer; transition: filter .15s;
     }
-    .card-head .icon-chip {
-      width: 36px; height: 36px;
-      border-radius: 9px;
-      background: var(--chip-bg);
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-    .card-head .icon-chip svg { width: 20px; height: 20px; stroke: var(--primary-dark); }
-    .card-head h2 {
-      font-size: 20px; font-weight: 900; color: var(--heading);
-    }
-    .card-head .spacer { flex: 1; }
-
-    /* ---------- Alert ---------- */
-    .alert {
-      border-radius: 9px;
-      padding: 12px 16px;
-      margin-bottom: 16px;
-      font-size: 13px; font-weight: 700;
-      display: none;
-    }
-    .alert.show { display: block; }
-    .alert.error { background: #fdecec; color: var(--danger); border: 0.8px solid #f5c2c2; }
-    .alert.success { background: #e8f7ef; color: var(--success); border: 0.8px solid #bfe6d0; }
-
-    /* ---------- Auth tabs ---------- */
-    .auth-tabs {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 18px;
-      background: #f4f7fb;
-      padding: 4px;
-      border-radius: 10px;
-    }
-    .auth-tabs .tab {
-      flex: 1;
-      height: 38px;
-      border: none;
-      border-radius: 8px;
-      background: transparent;
-      color: var(--muted-2);
-      font-size: 13px; font-weight: 800;
-      cursor: pointer;
-      transition: background .15s, color .15s;
-    }
-    .auth-tabs .tab.active {
-      background: #fff;
-      color: var(--primary-dark);
-      box-shadow: 0 1px 3px rgba(22, 36, 56, 0.06);
-    }
-
-    /* ---------- Form ---------- */
-    .form-group { margin-bottom: 14px; }
-    .form-label {
-      display: block;
-      font-size: 12px; font-weight: 800; color: var(--muted-2);
-      margin-bottom: 6px;
-    }
-    .form-input {
-      width: 100%;
-      height: 46px;
-      border: 0.8px solid #cfdcec;
-      border-radius: 9px;
-      padding: 0 15px;
-      font-size: 16px; font-weight: 600; color: var(--heading);
-      outline: none;
-      background: #fff;
-      transition: box-shadow .15s, border-color .15s;
-    }
-    .form-input::placeholder { color: #a4b1c2; font-weight: 500; }
-    .form-input:focus {
-      border-color: #2680f7;
-      box-shadow: rgba(22, 119, 255, 0.10) 0 0 0 3px;
-    }
-    .btn-primary {
-      width: 100%;
-      height: 48px;
-      border: none;
-      border-radius: 9px;
+    .user-menu .um-logout:hover { filter: brightness(0.97); }
+    .btn-login {
+      height: 38px; padding: 0 20px; border: none; border-radius: 10px;
       background: var(--primary);
-      color: #fff;
-      font-size: 15px; font-weight: 800;
-      cursor: pointer;
-      box-shadow: rgba(22, 119, 255, 0.17) 0 9px 20px;
+      color: #fff; font-size: 13px; font-weight: 800; cursor: pointer;
+      box-shadow: rgba(22, 119, 255, 0.2) 0 6px 16px;
       transition: filter .15s, transform .05s;
     }
-    .btn-primary:hover { filter: brightness(1.06); }
-    .btn-primary:active { transform: translateY(1px); }
-    .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
-    .btn-ghost {
-      border: 0.8px solid #b8cce2;
-      background: #f7faff;
-      color: #28506f;
-      border-radius: 8px;
-      padding: 6px 12px;
-      font-size: 12px; font-weight: 800;
-      cursor: pointer;
-    }
-    .btn-ghost:hover { background: #eef5ff; }
-    .link-btn {
-      background: none; border: none;
-      color: var(--primary-dark);
-      font-size: 12px; font-weight: 800;
-      cursor: pointer; padding: 0;
-      text-decoration: underline;
-    }
+    .btn-login:hover { filter: brightness(1.06); }
+    .btn-login:active { transform: translateY(1px); }
 
-    /* ---------- Member card ---------- */
-    .member-hero {
-      display: flex; align-items: center; gap: 16px;
-      flex-wrap: wrap;
+    /* ---------- Hero ---------- */
+    .hero-wrap { max-width: 1400px; margin: 0 auto; padding: 20px 24px 0; }
+    .hero-grid { display: grid; grid-template-columns: 1.55fr 0.92fr 1fr; gap: 16px; align-items: stretch; }
+    .hero-intro {
+      background: var(--card); border: 0.8px solid var(--border-soft); border-radius: 16px;
+      padding: 34px 38px 26px;
+      box-shadow: rgba(36, 65, 96, 0.05) 0 10px 28px;
+      display: flex; flex-direction: column;
     }
-    .member-avatar {
-      width: 64px; height: 64px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary), #4b9cff);
-      color: #fff;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 24px; font-weight: 900;
-      flex-shrink: 0;
-      box-shadow: rgba(22, 119, 255, 0.24) 0 8px 20px;
-    }
-    .member-avatar.gold { background: linear-gradient(135deg, #d4a017, #f4c648); box-shadow: rgba(212, 160, 23, 0.28) 0 8px 20px; }
-    .member-avatar.bronze { background: linear-gradient(135deg, #b06a2c, #d89257); box-shadow: rgba(176, 106, 44, 0.28) 0 8px 20px; }
-    .member-info { flex: 1; min-width: 200px; }
-    .member-info .name {
-      font-size: 18px; font-weight: 900; color: var(--heading);
-      display: flex; align-items: center; gap: 8px;
-      flex-wrap: wrap;
-    }
-    .level-badge {
-      display: inline-flex; align-items: center; gap: 4px;
-      padding: 3px 10px;
-      border-radius: 999px;
-      font-size: 11px; font-weight: 900;
-      color: #fff;
-      background: var(--muted);
-    }
-    .level-badge.lv1 { background: linear-gradient(135deg, #b06a2c, #d89257); }
-    .level-badge.lv2 { background: linear-gradient(135deg, #d4a017, #f4c648); }
-    .member-info .expire {
-      margin-top: 6px;
-      font-size: 12px; font-weight: 700; color: var(--muted);
-    }
-    .member-info .expire strong { color: var(--danger); font-weight: 900; }
+    .hero-intro h1 { font-size: 34px; font-weight: 900; color: var(--heading); letter-spacing: -0.5px; }
+    .hero-intro p.lead { margin-top: 14px; font-size: 13px; color: var(--muted); font-weight: 600; line-height: 1.9; max-width: 560px; }
+    .intro-stats { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: auto; padding-top: 26px; }
+    .intro-stats .col { padding: 16px 18px 6px 18px; border-top: 0.8px solid var(--border-soft); }
+    .intro-stats .col + .col { border-left: 0.8px solid var(--border-soft); }
+    .intro-stats .col:first-child { padding-left: 0; }
+    .intro-stats .lbl { font-size: 10px; font-weight: 800; color: #9aa7b8; letter-spacing: 1.2px; }
+    .intro-stats .val { margin-top: 8px; font-size: 14px; font-weight: 800; color: var(--heading); }
 
-    /* ---------- CDK redeem ---------- */
-    .redeem-row {
-      display: flex; gap: 12px;
+    .redeem-card {
+      background: var(--card); border: 1.6px solid rgba(22, 119, 255, 0.55); border-radius: 16px;
+      padding: 26px 24px;
+      box-shadow: rgba(22, 119, 255, 0.1) 0 12px 32px;
+      display: flex; flex-direction: column; gap: 14px;
     }
-    .redeem-row input {
-      flex: 1;
-      height: 54px;
-      border: 0.8px solid #2680f7;
-      border-radius: 9px;
-      padding: 0 19px;
-      font-size: 16px; font-weight: 600; color: var(--heading);
-      outline: none;
-      background: #fff;
+    .rc-title { text-align: center; font-size: 20px; font-weight: 900; color: var(--heading); }
+    .rc-title .rc-hl { color: var(--orange); }
+    .rc-meta { text-align: center; font-size: 12px; color: var(--muted); font-weight: 700; margin-top: -6px; }
+    .rc-meta strong { color: var(--gold); font-weight: 900; }
+    .redeem-card input {
+      width: 100%; height: 46px; border-radius: 10px;
+      border: 0.8px solid #2680f7; background: #fff;
+      padding: 0 16px; font-size: 14px; font-weight: 600; color: var(--heading);
+      outline: none; letter-spacing: 1px;
       transition: box-shadow .15s, border-color .15s;
     }
-    .redeem-row input::placeholder { color: #9aa7b8; font-weight: 500; }
-    .redeem-row input:focus {
-      border-color: #2680f7;
-      box-shadow: rgba(22, 119, 255, 0.10) 0 0 0 3px;
-    }
+    .redeem-card input::placeholder { color: #9aa7b8; font-weight: 500; letter-spacing: 0; }
+    .redeem-card input:focus { box-shadow: rgba(22, 119, 255, 0.1) 0 0 0 3px; }
     .btn-redeem {
-      height: 54px;
-      min-width: 145px;
-      border: none;
-      border-radius: 9px;
-      background: var(--primary);
-      color: #fff;
-      font-size: 15px; font-weight: 800;
-      cursor: pointer;
-      box-shadow: rgba(22, 119, 255, 0.17) 0 9px 20px;
+      width: 100%; height: 44px; border: none; border-radius: 10px;
+      background: var(--primary); color: #fff;
+      font-size: 14px; font-weight: 800; cursor: pointer;
+      box-shadow: rgba(22, 119, 255, 0.2) 0 8px 20px;
       transition: filter .15s, transform .05s;
     }
     .btn-redeem:hover { filter: brightness(1.06); }
     .btn-redeem:active { transform: translateY(1px); }
     .btn-redeem:disabled { opacity: .6; cursor: not-allowed; }
+    .btn-buy {
+      width: 100%; height: 44px; border: 0.8px solid #bae0ff; border-radius: 10px;
+      background: #e6f4ff; color: var(--primary);
+      font-size: 14px; font-weight: 800; cursor: pointer;
+      transition: filter .15s, transform .05s;
+    }
+    .btn-buy:hover { filter: brightness(0.98); }
+    .btn-buy:active { transform: translateY(1px); }
 
-    .note {
-      display: flex; align-items: center; gap: 8px;
-      margin-top: 14px;
-      color: var(--muted);
-      font-size: 12px; font-weight: 850;
-    }
-    .note svg { width: 15px; height: 15px; stroke: var(--muted); flex-shrink: 0; }
-
-    /* ---------- Filter bar ---------- */
-    .filter-bar {
-      display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
-    }
-    .filter-bar input, .filter-bar select {
-      height: 40px;
-      border: 0.8px solid #cfdcec;
-      border-radius: 8px;
-      padding: 0 12px;
-      font-size: 13px; font-weight: 700; color: var(--heading);
-      outline: none;
-      background: #fff;
-      transition: box-shadow .15s, border-color .15s;
-    }
-    .filter-bar input { flex: 1; min-width: 180px; }
-    .filter-bar input:focus, .filter-bar select:focus {
-      border-color: #2680f7;
-      box-shadow: rgba(22, 119, 255, 0.10) 0 0 0 3px;
-    }
-    .filter-bar select { cursor: pointer; }
-    .chip-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-    .chip {
-      padding: 5px 12px;
-      border-radius: 999px;
-      background: #f4f7fb;
-      color: var(--muted-2);
-      font-size: 12px; font-weight: 800;
-      cursor: pointer;
-      border: 0.8px solid transparent;
-      transition: background .15s, color .15s, border-color .15s;
-    }
-    .chip:hover { background: var(--chip-bg); }
-    .chip.active {
-      background: var(--primary);
+    .hero-dark {
+      background: linear-gradient(150deg, #16283c, #101c2b);
+      border-radius: 16px; padding: 34px 30px;
       color: #fff;
-      border-color: var(--primary);
+      box-shadow: rgba(16, 28, 43, 0.35) 0 14px 34px;
+      display: flex; flex-direction: column; justify-content: center;
     }
+    .hero-dark .hd-icon {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: rgba(56, 189, 248, 0.14); border: 1px solid rgba(56, 189, 248, 0.3);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 22px;
+    }
+    .hero-dark .hd-icon svg { width: 24px; height: 24px; stroke: #7dd3fc; }
+    .hero-dark .hd-label { font-size: 12px; font-weight: 700; color: #9fb3c8; }
+    .hero-dark h2 { margin-top: 10px; font-size: 24px; font-weight: 900; letter-spacing: -0.3px; }
+    .hero-dark p { margin-top: 12px; font-size: 12px; color: #9fb3c8; font-weight: 600; line-height: 1.8; }
 
-    /* ---------- Masonry game grid ---------- */
-    .masonry {
-      column-count: 4;
-      column-gap: 16px;
+    /* ---------- Feature strip ---------- */
+    .feature-strip { max-width: 1400px; margin: 16px auto 0; padding: 0 24px; }
+    .feature-inner {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      background: var(--card); border: 0.8px solid var(--border-soft); border-radius: 14px;
+      box-shadow: rgba(36, 65, 96, 0.043) 0 10px 28px;
+      padding: 18px 0;
     }
+    .ft-item { display: flex; align-items: flex-start; gap: 10px; padding: 4px 26px; }
+    .ft-item + .ft-item { border-left: 0.8px solid var(--border-soft); }
+    .ft-item .ft-icon {
+      width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; margin-top: 2px;
+      border: 1.6px solid var(--success);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .ft-item .ft-icon::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+    .ft-item .ft-title { font-size: 13px; font-weight: 800; color: var(--heading); }
+    .ft-item .ft-sub { margin-top: 5px; font-size: 11px; color: #9aa7b8; font-weight: 600; }
+
+    /* ---------- Game library ---------- */
+    .library-wrap { max-width: 1400px; margin: 16px auto 0; padding: 0 24px 40px; }
+    .library {
+      background: var(--card); border: 0.8px solid var(--border-soft); border-radius: 16px;
+      padding: 24px 26px 28px;
+      box-shadow: rgba(36, 65, 96, 0.043) 0 10px 28px;
+    }
+    .lib-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .lib-label { font-size: 11px; font-weight: 800; color: var(--primary); letter-spacing: 1.4px; }
+    .lib-head h2 { margin-top: 6px; font-size: 22px; font-weight: 900; color: var(--heading); display: flex; align-items: baseline; gap: 10px; }
+    .lib-head h2 .lib-count { font-size: 12px; color: var(--muted); font-weight: 600; }
+    .lib-tools { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .lib-search { position: relative; display: flex; align-items: center; }
+    .lib-search svg { position: absolute; left: 12px; width: 15px; height: 15px; stroke: #9aa7b8; pointer-events: none; }
+    .lib-search input {
+      width: 300px; height: 40px; border-radius: 10px;
+      border: 0.8px solid var(--border); background: #f7faff;
+      padding: 0 14px 0 34px; font-size: 13px; color: var(--text);
+      outline: none; transition: border-color .15s, box-shadow .15s;
+    }
+    .lib-search input::placeholder { color: #9aa7b8; }
+    .lib-search input:focus { border-color: #2680f7; box-shadow: rgba(22, 119, 255, 0.1) 0 0 0 3px; }
+    .lib-sort {
+      display: flex; align-items: center; gap: 8px;
+      height: 40px; padding: 0 12px;
+      border: 0.8px solid var(--border); border-radius: 10px; background: #fff;
+    }
+    .lib-sort .ls-label { font-size: 12px; color: var(--muted); font-weight: 700; }
+    .lib-sort select {
+      border: none; outline: none; background: transparent;
+      font-size: 13px; font-weight: 800; color: var(--heading); cursor: pointer;
+    }
+    .lib-filter { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 18px 0 16px; flex-wrap: wrap; }
+    .rf-chips { display: flex; gap: 10px; }
+    .rf-chip {
+      padding: 7px 18px; border-radius: 999px;
+      background: #fff; border: 0.8px solid var(--border);
+      color: var(--muted); font-size: 12px; font-weight: 700; cursor: pointer;
+      transition: all .15s;
+    }
+    .rf-chip:hover { color: var(--heading); border-color: rgba(22, 119, 255, 0.35); }
+    .rf-chip.active { background: var(--chip-bg); border-color: rgba(22, 119, 255, 0.5); color: var(--primary-dark); font-weight: 800; }
+    .lib-range { margin-left: auto; font-size: 12px; color: var(--muted); font-weight: 600; }
+
+    /* ---------- Game grid ---------- */
+    .game-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
     .game-card {
-      break-inside: avoid;
-      -webkit-column-break-inside: avoid;
-      page-break-inside: avoid;
-      display: inline-block;
-      width: 100%;
-      background: #fff;
-      border: 0.8px solid var(--card-border);
-      border-radius: 12px;
-      overflow: hidden;
-      margin-bottom: 16px;
+      border-radius: 12px; overflow: hidden;
+      background: var(--card); border: 0.8px solid var(--border-soft);
       box-shadow: rgba(36, 65, 96, 0.05) 0 6px 18px;
-      transition: transform .18s, box-shadow .18s;
-      position: relative;
-      cursor: pointer;
+      transition: transform .2s, border-color .2s, box-shadow .2s;
+      display: flex; flex-direction: column;
     }
     .game-card:hover {
-      transform: translateY(-3px);
-      box-shadow: rgba(36, 65, 96, 0.14) 0 12px 26px;
+      transform: translateY(-4px);
+      border-color: rgba(22, 119, 255, 0.4);
+      box-shadow: rgba(36, 65, 96, 0.14) 0 16px 36px;
     }
-    .game-cover {
-      width: 100%;
-      display: block;
-      background: linear-gradient(135deg, #eaf2ff, #f7faff);
-      min-height: 100px;
+    .gc-cover { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: #eef3fb; }
+    .gc-cover img { width: 100%; height: 100%; object-fit: cover; transition: transform .35s; display: block; }
+    .game-card:hover .gc-cover img { transform: scale(1.06); }
+    .gc-badge {
+      position: absolute; top: 10px; left: 10px;
+      padding: 4px 12px; border-radius: 999px;
+      background: var(--primary); color: #fff;
+      font-size: 10px; font-weight: 800;
+      box-shadow: rgba(22, 119, 255, 0.35) 0 4px 10px;
     }
-    .game-body { padding: 12px 14px 14px; }
-    .game-title {
-      font-size: 15px; font-weight: 900; color: var(--heading);
-      margin-bottom: 6px;
-      display: -webkit-box;
-      -webkit-line-clamp: 1;
-      line-clamp: 1;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+    .gc-badge.off { background: #94a3b8; box-shadow: rgba(100, 116, 139, 0.3) 0 4px 10px; }
+    .gc-lock {
+      position: absolute; top: 10px; left: 10px;
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 11px; border-radius: 999px;
+      background: rgba(21, 34, 56, 0.7); backdrop-filter: blur(4px);
+      color: #fff; font-size: 11px; font-weight: 800; line-height: 1.4;
+      cursor: pointer; box-shadow: rgba(15, 23, 42, 0.25) 0 4px 12px;
+      transition: background .16s;
     }
-    .game-desc {
-      font-size: 12px; font-weight: 600; color: var(--muted);
-      line-height: 1.6;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      margin-bottom: 8px;
+    .gc-lock:hover { background: rgba(21, 34, 56, 0.85); }
+    .gc-lock svg { width: 13px; height: 13px; stroke: #fff; flex-shrink: 0; }
+    .gc-body { padding: 14px 14px 16px; display: flex; flex-direction: column; flex: 1; }
+    .gc-title {
+      font-size: 14px; font-weight: 800; color: var(--heading);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .game-meta {
-      display: flex; align-items: center; gap: 6px;
-      flex-wrap: wrap;
+    .gc-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; }
+    .gc-platform {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 7px;
+      background: #f0f4f9; color: var(--muted-2);
+      font-size: 10px; font-weight: 800; letter-spacing: .4px;
     }
-    .tag {
-      padding: 2px 8px;
-      border-radius: 4px;
-      background: var(--chip-bg);
-      color: var(--primary-dark);
-      font-size: 11px; font-weight: 800;
+    .gc-platform svg { width: 12px; height: 12px; stroke: var(--muted-2); }
+    .gc-id { font-size: 11px; color: #9aa7b8; font-weight: 700; }
+    .gc-foot { display: flex; justify-content: flex-end; margin-top: 12px; }
+    .btn-pick {
+      height: 32px; padding: 0 18px; border: none; border-radius: 8px;
+      background: var(--primary); color: #fff;
+      font-size: 12px; font-weight: 800; cursor: pointer;
+      box-shadow: rgba(22, 119, 255, 0.2) 0 5px 14px;
+      transition: filter .15s, transform .05s;
     }
-    .tag.acct { background: #eaf7ef; color: var(--success); }
-    .game-lock {
-      position: absolute;
-      inset: 0;
-      background: rgba(21, 34, 56, 0.55);
-      backdrop-filter: blur(2px);
-      display: flex; align-items: center; justify-content: center;
-      flex-direction: column;
-      gap: 6px;
-      color: #fff;
-      font-size: 12px; font-weight: 900;
-      text-align: center;
-      padding: 0 12px;
-    }
-    .game-lock svg { width: 30px; height: 30px; stroke: #fff; }
+    .btn-pick:hover { filter: brightness(1.06); }
+    .btn-pick:active { transform: translateY(1px); }
 
-    .empty {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--muted);
-      font-size: 13px; font-weight: 700;
+    /* ---------- Game account modal ---------- */
+    .value-copy { display: flex; align-items: center; gap: 8px; }
+    .value-copy .v-text { min-width: 0; word-break: break-all; }
+    .btn-copy-sm {
+      flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px;
+      font-size: 12px; font-weight: 800; color: var(--primary);
+      background: #eef5ff; border: 0.8px solid #cfe0ff; border-radius: 7px;
+      padding: 4px 10px; cursor: pointer;
+      transition: background .16s, border-color .16s, color .16s;
     }
+    .btn-copy-sm:hover { background: #dfeaff; border-color: #a9c8ff; }
+    .btn-copy-sm.copied { color: var(--success); background: #e8f7ef; border-color: #a7e3bf; }
+    .btn-copy-sm svg { width: 13px; height: 13px; }
+    .ga-list { display: flex; flex-direction: column; gap: 12px; }
+    .ga-item { border: 0.8px solid var(--border); border-radius: 12px; padding: 14px; background: #f7faff; }
+    .ga-idx {
+      display: inline-block; font-size: 11px; font-weight: 800; color: var(--primary);
+      background: #e7f0ff; border-radius: 6px; padding: 2px 8px; margin-bottom: 4px;
+    }
+    .ga-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+    .ga-row .ga-k { flex-shrink: 0; width: 40px; font-size: 12px; font-weight: 700; color: var(--muted-2); }
+    .ga-row .value-copy { flex: 1; min-width: 0; }
+    .ga-row .v-text {
+      flex: 1; font-size: 13px; font-weight: 700; color: var(--heading);
+      background: #fff; border: 0.8px solid var(--border); border-radius: 7px; padding: 6px 10px;
+    }
+    .ga-empty, .ga-loading { text-align: center; padding: 40px 20px; color: var(--muted-2); font-weight: 600; }
+    .modal-dialog.ga-dialog { max-width: 600px; }
+    .value-copy.totp-copy { flex-wrap: wrap; }
+    .ga-totp { font-variant-numeric: tabular-nums; letter-spacing: 2px; font-weight: 900; color: var(--primary-dark); }
+    .ga-totp.placeholder { color: var(--muted-2); font-weight: 700; letter-spacing: 0; }
+    .btn-mini {
+      flex-shrink: 0; border: 0.8px solid #a9c8ff; background: #eaf2ff; color: var(--primary-dark);
+      border-radius: 7px; padding: 5px 12px; font-size: 12px; font-weight: 800; cursor: pointer;
+      transition: background .16s, opacity .16s;
+    }
+    .btn-mini:hover:not(:disabled) { background: #dfeaff; }
+    .btn-mini:disabled { opacity: .55; cursor: not-allowed; }
+    .ga-hint { flex-shrink: 0; font-size: 11px; color: var(--muted-2); font-weight: 700; }
+
+    .empty { text-align: center; padding: 70px 20px; color: var(--muted-2); }
+    .empty .emoji { font-size: 52px; margin-bottom: 12px; }
+    .empty p { font-size: 14px; font-weight: 600; }
     .load-more {
-      display: block;
-      margin: 6px auto 0;
-      padding: 10px 28px;
-      border-radius: 999px;
-      border: 0.8px solid #cfdcec;
-      background: #fff;
-      color: var(--primary-dark);
-      font-size: 13px; font-weight: 800;
-      cursor: pointer;
+      display: block; margin: 24px auto 0; padding: 12px 36px;
+      border-radius: 999px; border: 0.8px solid var(--border);
+      background: #fff; color: var(--heading);
+      font-size: 13px; font-weight: 800; cursor: pointer; transition: all .15s;
     }
-    .load-more:hover { background: var(--chip-bg); }
-    .load-more:disabled { opacity: .6; cursor: not-allowed; }
+    .load-more:hover { background: var(--chip-bg); border-color: rgba(22, 119, 255, 0.4); color: var(--primary-dark); }
+    .load-more:disabled { opacity: .5; cursor: not-allowed; }
 
-    /* ---------- Notice ---------- */
-    .notice {
-      display: flex;
-      background: #fdf8ec;
-      border-left: 4px solid var(--warning);
-      border-radius: 6px;
-      padding: 14px 16px;
-      margin-bottom: 12px;
-      gap: 16px;
+    /* ---------- Alert ---------- */
+    .alert {
+      position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+      z-index: 400; min-width: 260px; max-width: 90vw;
+      padding: 13px 22px; border-radius: 12px;
+      font-size: 13px; font-weight: 800; text-align: center;
+      display: none;
+      box-shadow: rgba(36, 65, 96, 0.18) 0 12px 32px;
     }
-    .notice:last-child { margin-bottom: 0; }
-    .notice .n-label {
-      flex-shrink: 0;
-      width: 76px;
-      font-weight: 900; color: var(--heading);
-    }
-    .notice .n-body { font-weight: 800; color: var(--heading); line-height: 1.7; }
-    .notice mark {
-      background: #ffe58f;
-      padding: 0 3px;
-      border-radius: 3px;
-      color: inherit;
-    }
-
-    /* ---------- Footer ---------- */
-    .footer {
-      text-align: center;
-      color: #bbbbbb;
-      font-size: 11px; font-weight: 800;
-      padding: 12px 0 28px;
-    }
-
-    /* ---------- Navbar auth button ---------- */
-    .navbar .btn-login {
-      margin-left: auto;
-      height: 38px;
-      padding: 0 20px;
-      border: none;
-      border-radius: 999px;
-      background: linear-gradient(135deg, var(--primary), #4b9cff);
-      color: #fff;
-      font-size: 13px; font-weight: 800;
-      cursor: pointer;
-      box-shadow: rgba(22, 119, 255, 0.24) 0 6px 16px;
-      transition: filter .15s, transform .05s;
-      display: flex; align-items: center; gap: 6px;
-    }
-    .navbar .btn-login:hover { filter: brightness(1.06); }
-    .navbar .btn-login:active { transform: translateY(1px); }
-    .navbar .btn-login svg { width: 16px; height: 16px; stroke: #fff; }
-
-    /* ---------- Guest hero ---------- */
-    .guest-hero {
-      text-align: center;
-      padding: 46px 24px;
-      background: linear-gradient(135deg, #eaf2ff 0%, #f7faff 55%, #eef5ff 100%);
-      border: 0.8px solid var(--card-border);
-      border-radius: 16px;
-      margin-bottom: 20px;
-      box-shadow: rgba(36, 65, 96, 0.05) 0 10px 28px;
-    }
-    .guest-hero .gh-icon {
-      width: 64px; height: 64px;
-      margin: 0 auto 16px;
-      border-radius: 18px;
-      background: linear-gradient(135deg, var(--primary), #4b9cff);
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: rgba(22, 119, 255, 0.28) 0 10px 24px;
-    }
-    .guest-hero .gh-icon svg { width: 32px; height: 32px; stroke: #fff; }
-    .guest-hero h2 {
-      font-size: 24px; font-weight: 900; color: var(--heading);
-      margin-bottom: 8px;
-    }
-    .guest-hero p {
-      font-size: 13px; font-weight: 600; color: var(--muted);
-      margin-bottom: 22px;
-      line-height: 1.8;
-    }
-    .guest-hero .gh-actions {
-      display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
-    }
-    .guest-hero .gh-btn {
-      height: 46px;
-      padding: 0 32px;
-      border-radius: 999px;
-      font-size: 14px; font-weight: 800;
-      cursor: pointer;
-      border: none;
-      transition: filter .15s, transform .05s;
-    }
-    .guest-hero .gh-btn.primary {
-      background: linear-gradient(135deg, var(--primary), #4b9cff);
-      color: #fff;
-      box-shadow: rgba(22, 119, 255, 0.24) 0 8px 20px;
-    }
-    .guest-hero .gh-btn.ghost {
-      background: #fff;
-      color: var(--primary-dark);
-      border: 0.8px solid #cfdcec;
-    }
-    .guest-hero .gh-btn:hover { filter: brightness(1.05); }
-    .guest-hero .gh-btn:active { transform: translateY(1px); }
+    .alert.show { display: block; animation: alertIn .25s ease; }
+    .alert.error { background: #fdecec; color: var(--danger); border: 0.8px solid #f5c2c2; }
+    .alert.success { background: #e8f7ef; color: var(--success); border: 0.8px solid #bfe6d0; }
+    @keyframes alertIn { from { opacity: 0; transform: translate(-50%, -12px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
     /* ---------- Modal ---------- */
     .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.45);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 300;
-      padding: 20px;
+      position: fixed; inset: 0; z-index: 300;
+      background: rgba(21, 34, 56, 0.35); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center; padding: 20px;
       animation: overlayFade .2s ease;
     }
     .modal-dialog {
-      width: 100%;
-      max-width: 420px;
-      max-height: calc(100vh - 40px);
-      overflow-y: auto;
-      background: #fff;
-      border-radius: 18px;
-      box-shadow: rgba(15, 23, 42, 0.28) 0 24px 60px;
-      padding: 28px 28px 24px;
-      position: relative;
+      width: 100%; max-width: 420px; max-height: calc(100vh - 40px); overflow-y: auto;
+      background: var(--panel-solid); border: 0.8px solid var(--border);
+      border-radius: 18px; padding: 30px 28px 26px; position: relative;
+      box-shadow: rgba(36, 65, 96, 0.28) 0 24px 60px;
       animation: dialogPop .3s cubic-bezier(.16, 1, .3, 1);
     }
     .modal-close {
-      position: absolute;
-      top: 16px; right: 16px;
-      width: 32px; height: 32px;
-      border: none;
-      border-radius: 50%;
-      background: #f1f5f9;
-      color: var(--muted-2);
-      font-size: 20px;
-      line-height: 1;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: background .15s, color .15s;
-      z-index: 2;
+      position: absolute; top: 16px; right: 16px;
+      width: 32px; height: 32px; border: none; border-radius: 50%;
+      background: var(--chip-bg); color: var(--muted);
+      font-size: 20px; line-height: 1; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: all .15s;
     }
-    .modal-close:hover { background: #e2e8f0; color: var(--heading); }
-    .modal-head {
-      text-align: center;
-      margin-bottom: 20px;
-    }
+    .modal-close:hover { background: #e2ecfb; color: var(--heading); }
+    .modal-head { text-align: center; margin-bottom: 22px; }
     .modal-head .mh-icon {
-      width: 52px; height: 52px;
-      margin: 0 auto 12px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, var(--primary), #4b9cff);
+      width: 54px; height: 54px; margin: 0 auto 14px; border-radius: 15px;
+      background: var(--primary);
       display: flex; align-items: center; justify-content: center;
-      box-shadow: rgba(22, 119, 255, 0.24) 0 8px 18px;
+      box-shadow: rgba(22, 119, 255, 0.3) 0 8px 22px;
     }
     .modal-head .mh-icon svg { width: 26px; height: 26px; stroke: #fff; }
-    .modal-head h3 {
-      font-size: 20px; font-weight: 900; color: var(--heading);
+    .modal-head h3 { font-size: 20px; font-weight: 900; color: var(--heading); }
+    .modal-head p { font-size: 12px; color: var(--muted-2); margin-top: 5px; font-weight: 600; }
+    .auth-tabs {
+      display: flex; gap: 4px; margin-bottom: 20px;
+      background: var(--chip-bg); padding: 4px; border-radius: 11px;
     }
-    .modal-head p {
-      font-size: 12px; font-weight: 600; color: var(--muted);
-      margin-top: 4px;
+    .auth-tabs .tab {
+      flex: 1; height: 38px; border: none; border-radius: 8px;
+      background: transparent; color: var(--muted); font-size: 13px; font-weight: 800;
+      cursor: pointer; transition: all .15s;
     }
-
+    .auth-tabs .tab.active { background: #fff; color: var(--primary-dark); box-shadow: rgba(36, 65, 96, 0.08) 0 2px 8px; }
+    .form-group { margin-bottom: 14px; }
+    .form-label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 7px; }
+    .form-input {
+      width: 100%; height: 46px; border-radius: 10px;
+      border: 0.8px solid var(--border); background: #fff;
+      padding: 0 15px; font-size: 15px; font-weight: 600; color: var(--heading);
+      outline: none; transition: border-color .15s, box-shadow .15s;
+    }
+    .form-input::placeholder { color: #9aa7b8; font-weight: 500; }
+    .form-input:focus { border-color: #2680f7; box-shadow: rgba(22, 119, 255, 0.1) 0 0 0 3px; }
+    /* Password field with show/hide toggle */
+    .pwd-wrap { position: relative; }
+    .pwd-wrap .form-input { padding-right: 58px; }
+    .pwd-toggle {
+      position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      border: none; background: none; padding: 4px 6px;
+      font-size: 12px; font-weight: 700; color: var(--muted);
+      cursor: pointer; transition: color .15s;
+    }
+    .pwd-toggle:hover { color: var(--primary); }
+    .btn-submit {
+      width: 100%; height: 48px; border: none; border-radius: 10px;
+      background: var(--primary);
+      color: #fff; font-size: 15px; font-weight: 800; cursor: pointer;
+      box-shadow: rgba(22, 119, 255, 0.2) 0 8px 22px; transition: filter .15s, transform .05s;
+    }
+    .btn-submit:hover { filter: brightness(1.06); }
+    .btn-submit:active { transform: translateY(1px); }
+    .btn-submit:disabled { opacity: .6; cursor: not-allowed; }
+    .form-note {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 14px; font-size: 12px; color: var(--muted-2); font-weight: 600;
+    }
+    .form-note.center { justify-content: center; gap: 6px; }
+    .link-btn { background: none; border: none; color: var(--primary); font-size: 12px; font-weight: 800; cursor: pointer; padding: 0; }
+    .link-btn:hover { color: var(--primary-dark); text-decoration: underline; }
     @keyframes overlayFade { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes dialogPop {
-      from { opacity: 0; transform: translateY(20px) scale(.96); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
+    @keyframes dialogPop { from { opacity: 0; transform: translateY(20px) scale(.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+    /* ---------- Footer ---------- */
+    .footer {
+      border-top: 0.8px solid var(--border-soft);
+      text-align: center; color: #9aa7b8;
+      font-size: 12px; font-weight: 700; padding: 28px 0 36px;
     }
 
     /* ---------- Responsive ---------- */
+    @media (min-width: 640px) { .game-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 1024px) { .game-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 1280px) { .game-grid { grid-template-columns: repeat(4, 1fr); } }
+    @media (min-width: 1600px) { .game-grid { grid-template-columns: repeat(5, 1fr); } }
     @media (max-width: 1024px) {
-      .masonry { column-count: 3; }
+      .hero-grid { grid-template-columns: 1fr; }
+      .feature-inner { grid-template-columns: repeat(2, 1fr); gap: 14px 0; }
+      .ft-item:nth-child(3) { border-left: none; }
+      .nav-search { margin: 0 16px; }
     }
     @media (max-width: 768px) {
-      .masonry { column-count: 2; }
-      .navbar .nav-link { margin-left: 16px; font-size: 12px; }
-      .navbar .user-chip { display: none; }
+      .nav-search { display: none; }
+      .nav-links a { margin-left: 18px; }
+      .hero-wrap, .feature-strip, .library-wrap { padding-left: 16px; padding-right: 16px; }
+      .hero-intro { padding: 26px 22px 20px; }
+      .hero-intro h1 { font-size: 26px; }
+      .intro-stats { grid-template-columns: 1fr; }
+      .intro-stats .col + .col { border-left: none; border-top: 0.8px solid var(--border-soft); }
+      .intro-stats .col { padding-left: 0; }
+      .lib-search input { width: 100%; }
     }
     @media (max-width: 560px) {
-      .page { padding: 80px 12px 32px; }
-      .masonry { column-count: 1; }
-      .card { padding: 16px 16px; }
-      .redeem-row { flex-direction: column; gap: 10px; }
-      .redeem-row input {
-        flex: none;
-        width: 100%;
-        height: 50px;
-        font-size: 16px;
-        padding: 0 16px;
-      }
-      .btn-redeem {
-        width: 100%;
-        min-width: 0;
-        height: 50px;
-      }
-      .notice { flex-direction: column; gap: 6px; }
-      .notice .n-label { width: auto; }
-      .member-hero { gap: 12px; }
-      .member-avatar { width: 52px; height: 52px; font-size: 20px; }
-      .navbar .brand { font-size: 15px; }
-      .navbar .brand small { display: none; }
-      .navbar .btn-login { padding: 0 14px; font-size: 12px; }
-      .navbar .btn-login span { display: none; }
-      .guest-hero { padding: 34px 18px; }
-      .guest-hero h2 { font-size: 20px; }
-      .guest-hero .gh-btn { flex: 1; min-width: 130px; padding: 0 20px; }
-      .modal-overlay { padding: 16px; align-items: flex-start; padding-top: 8vh; }
-      .modal-dialog { padding: 24px 20px 20px; border-radius: 16px; }
+      .game-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .nav-inner { padding: 0 14px; }
+      .logo-text { display: none; }
+      .nav-links a { margin-left: 14px; font-size: 12px; }
+      .btn-login { padding: 0 14px; }
+      .user-badge { padding: 5px 10px 5px 5px; font-size: 12px; }
+      .feature-inner { grid-template-columns: 1fr; }
+      .ft-item + .ft-item { border-left: none; border-top: 0.8px solid var(--border-soft); }
+      .modal-overlay { align-items: flex-start; padding-top: 8vh; }
     }
   </style>
 </head>
 
 <body>
+  <div id="app" v-cloak>
   <!-- Navbar -->
-  <div class="navbar">
-    <div class="logo-chip">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-        <circle cx="12" cy="7" r="4"></circle>
-      </svg>
-    </div>
-    <div class="brand">会员中心<small>注册登录 · CDK 兑换 · 会员游戏</small></div>
-    <a class="nav-link" href="./index.html">离线兑换</a>
-    <a class="nav-link" href="./rent.html">租号兑换</a>
-    <a class="nav-link active" href="./member.html">会员中心</a>
-    <div class="user-chip" v-if="user" @click="scrollToMember">
-      <span class="avatar">{{ avatarChar }}</span>
-      <span>{{ user.nickname || user.username }}</span>
-    </div>
-    <button class="btn-login" v-else @click="openAuthModal('login')">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-        <polyline points="10 17 15 12 10 7"></polyline>
-        <line x1="15" y1="12" x2="3" y2="12"></line>
-      </svg>
-      <span>登录 / 注册</span>
-    </button>
-  </div>
-
-  <div class="page" id="app" v-cloak>
-    <!-- Alert -->
-    <div class="alert" :class="[alert.type, { show: alert.show }]">{{ alert.text }}</div>
-
-    <!-- ============ Guest hero (not logged in) ============ -->
-    <div class="guest-hero" v-if="!user">
-      <div class="gh-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-          <circle cx="12" cy="7" r="4"></circle>
-        </svg>
-      </div>
-      <h2>加入会员中心</h2>
-      <p>注册登录后即可兑换会员 CDK，解锁青铜 / 黄金专属游戏库<br>享受更长租号时长与专属会员权益</p>
-      <div class="gh-actions">
-        <button class="gh-btn primary" @click="openAuthModal('login')">立即登录</button>
-        <button class="gh-btn ghost" @click="openAuthModal('register')">注册账号</button>
-      </div>
-    </div>
-
-    <!-- ============ Member hero card (logged in) ============ -->
-    <div class="card" v-if="user" id="member-card">
-      <div class="member-hero">
-        <div class="member-avatar" :class="levelClass">{{ avatarChar }}</div>
-        <div class="member-info">
-          <div class="name">
-            {{ user.nickname || user.username }}
-            <span class="level-badge" :class="levelBadgeClass">{{ levelName }}</span>
-          </div>
-          <div class="expire">
-            <span>会员到期：<strong>{{ expireText }}</strong></span>
-            <span style="margin-left: 12px;">@{{ user.username }}</span>
-          </div>
-        </div>
-        <button class="btn-ghost" @click="logout">退出登录</button>
-      </div>
-    </div>
-
-    <!-- ============ CDK redeem card (logged in) ============ -->
-    <div class="card" v-if="user">
-      <div class="card-head">
-        <div class="icon-chip">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path>
-            <path d="M13 5v2"></path><path d="M13 17v2"></path><path d="M13 11v2"></path>
-          </svg>
-        </div>
-        <h2>会员 CDK 兑换</h2>
-      </div>
-
-      <div class="redeem-row">
-        <input type="text" v-model.trim="cdkCode" placeholder="请输入会员 CDK，例如 XXXX-XXXX-XXXX-XXXX"
-          autocomplete="off" @keyup.enter="redeemMemberCdk" :disabled="loading">
-        <button class="btn-redeem" @click="redeemMemberCdk" :disabled="loading">
-          {{ loading ? '兑换中…' : '立即兑换' }}
-        </button>
-      </div>
-
-      <div class="note">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path>
-        </svg>
-        <span>兑换成功后会员等级 / 到期时间自动更新，可解锁更多游戏</span>
-      </div>
-    </div>
-
-    <!-- ============ Game grid ============ -->
-    <div class="card">
-      <div class="card-head">
-        <div class="icon-chip">
+  <header class="navbar">
+    <div class="nav-inner">
+      <a class="logo" href="./member.html">
+        <div class="logo-chip">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="6" y1="12" x2="10" y2="12"></line>
             <line x1="8" y1="10" x2="8" y2="14"></line>
@@ -761,87 +559,205 @@
             <rect x="2" y="6" width="20" height="12" rx="2"></rect>
           </svg>
         </div>
-        <h2>会员游戏库</h2>
-        <div class="spacer"></div>
-        <span style="font-size:12px;color:var(--muted);font-weight:700;">共 {{ total }} 款</span>
+        <div class="logo-text">
+          <span class="name">会员中心</span>
+          <span class="sub">专属游戏 · 尊享权益</span>
+        </div>
+      </a>
+      <nav class="nav-links">
+        <a href="./member.html" class="active">会员中心</a>
+        <a href="./index.html">离线兑换</a>
+        <a href="./rent.html">租号兑换</a>
+      </nav>
+      <div class="nav-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path>
+        </svg>
+        <input type="text" v-model.trim="search" placeholder="搜索游戏名 / Steam ID" @keyup.enter="reloadGames">
+        <button class="btn-search" @click="reloadGames">搜索</button>
       </div>
-
-      <div class="filter-bar">
-        <input type="text" v-model.trim="search" placeholder="搜索游戏名称…" @keyup.enter="reloadGames">
-        <select v-model="categoryId" @change="reloadGames">
-          <option value="">全部分类</option>
-          <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
-        </select>
-        <button class="btn-ghost" @click="reloadGames" style="height:40px;">搜索</button>
+      <div class="nav-right">
+        <div class="user-wrap" v-if="user">
+          <!-- 遮罩必须和菜单同处 navbar 层叠上下文内，否则会盖住菜单导致退出按钮点不到 -->
+          <div class="menu-backdrop" v-if="userMenuOpen" @click="userMenuOpen = false"></div>
+          <div class="user-badge" @click="userMenuOpen = !userMenuOpen">
+            <span class="tier-dot" :class="tierClass">{{ tierIcon }}</span>
+            <span>{{ user.nickname || user.username }}</span>
+            <span class="caret">▼</span>
+          </div>
+          <div class="user-menu" v-if="userMenuOpen">
+            <div class="um-row"><span>会员等级</span><span>{{ levelName }}</span></div>
+            <div class="um-row"><span>到期时间</span><span>{{ expireText }}</span></div>
+            <div class="um-divider"></div>
+            <button class="um-logout" @click="logout">退出登录</button>
+          </div>
+        </div>
+        <button class="btn-login" v-else @click="openAuthModal('login')">登录 / 注册</button>
       </div>
+    </div>
+  </header>
 
-      <div class="chip-row">
-        <span class="chip" :class="{ active: levelFilter === '' }" @click="setLevel('')">全部等级</span>
-        <span class="chip" :class="{ active: levelFilter === 0 }" @click="setLevel(0)">普通用户</span>
-        <span class="chip" :class="{ active: levelFilter === 1 }" @click="setLevel(1)">青铜会员</span>
-        <span class="chip" :class="{ active: levelFilter === 2 }" @click="setLevel(2)">黄金会员</span>
-      </div>
+    <!-- Alert -->
+    <div class="alert" :class="[alert.type, { show: alert.show }]">{{ alert.text }}</div>
 
-      <div class="masonry" style="margin-top: 16px;" v-if="games.length">
-        <div class="game-card" v-for="g in games" :key="g.id" @click="openGame(g)">
-          <img class="game-cover" :src="g.img_url || placeholderCover" :alt="g.name"
-            onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 300 180%22><rect width=%22300%22 height=%22180%22 fill=%22%23eaf2ff%22/><text x=%22150%22 y=%2295%22 font-size=%2216%22 fill=%22%2390a4bd%22 text-anchor=%22middle%22 font-family=%22sans-serif%22>暂无封面</text></svg>'">
-          <div class="game-body">
-            <div class="game-title">{{ g.name }}</div>
-            <div class="game-desc">{{ g.desc || '暂无简介' }}</div>
-            <div class="game-meta">
-              <span class="tag" v-if="g.category_name">{{ g.category_name }}</span>
-              <span class="tag" v-for="t in (g._tags || []).slice(0, 2)" :key="t">{{ t }}</span>
-              <span class="tag acct" v-if="g.account_count > 0">可租 {{ g.account_count }}</span>
+    <!-- ============ Hero ============ -->
+    <section class="hero-wrap">
+      <div class="hero-grid">
+        <div class="hero-intro">
+          <h1>开通会员，<span class="grad-text">畅玩全站游戏</span></h1>
+          <p class="lead">会员有效期内无需逐款购买，选择游戏即可取号；兑换成功后即时生效，专属会员权益立即开通。</p>
+          <div class="intro-stats">
+            <div class="col">
+              <div class="lbl">MEMBER ACCESS</div>
+              <div class="val">会员畅玩全站游戏</div>
+            </div>
+            <div class="col">
+              <div class="lbl">GAME LIBRARY</div>
+              <div class="val">正版游戏持续更新</div>
+            </div>
+            <div class="col">
+              <div class="lbl">MEMBER LOGIN</div>
+              <div class="val">会员码快捷登录</div>
             </div>
           </div>
-          <div class="game-lock" v-if="isLocked(g)">
+        </div>
+
+        <div class="redeem-card">
+          <div class="rc-title">会员卡密<span class="rc-hl">兑换</span></div>
+          <div class="rc-meta" v-if="user">当前会员：<strong>{{ levelName }}</strong>　到期：{{ expireText }}</div>
+          <input type="text" v-model.trim="cdkCode" placeholder="请输入兑换码，例如 M64KTDB2" @keyup.enter="redeemMemberCdk">
+          <button class="btn-redeem" :disabled="loading" @click="redeemMemberCdk">{{ loading ? '兑换中…' : '立即兑换' }}</button>
+          <button class="btn-buy" @click="buyMember">购买会员</button>
+        </div>
+
+        <div class="hero-dark">
+          <div class="hd-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              <circle cx="7.5" cy="15.5" r="5.5"></circle>
+              <path d="m21 2-9.6 9.6"></path>
+              <path d="m15.5 7.5 3 3L22 7l-3-3"></path>
             </svg>
-            <span>需要 {{ levelLabel(g.member_level) }}</span>
+          </div>
+          <div class="hd-label">核心服务</div>
+          <h2>无需上号器，直接登录</h2>
+          <p>兑换成功后可直接获取账号信息，流程简单清晰。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Feature strip ============ -->
+    <section class="feature-strip">
+      <div class="feature-inner">
+        <div class="ft-item">
+          <span class="ft-icon"></span>
+          <div>
+            <div class="ft-title">极速兑换</div>
+            <div class="ft-sub">验证后立即交付</div>
+          </div>
+        </div>
+        <div class="ft-item">
+          <span class="ft-icon"></span>
+          <div>
+            <div class="ft-title">安全透明</div>
+            <div class="ft-sub">订单记录随时可查</div>
+          </div>
+        </div>
+        <div class="ft-item">
+          <span class="ft-icon"></span>
+          <div>
+            <div class="ft-title">正版体验</div>
+            <div class="ft-sub">覆盖热门游戏平台</div>
+          </div>
+        </div>
+        <div class="ft-item">
+          <span class="ft-icon"></span>
+          <div>
+            <div class="ft-title">售后支持</div>
+            <div class="ft-sub">使用问题及时处理</div>
           </div>
         </div>
       </div>
-      <div class="empty" v-else-if="!gamesLoading">暂无符合条件的游戏</div>
-      <div class="empty" v-else>加载中…</div>
+    </section>
 
-      <button class="load-more" v-if="games.length < total" @click="loadMoreGames" :disabled="gamesLoading">
-        {{ gamesLoading ? '加载中…' : '加载更多' }}
-      </button>
-    </div>
-
-    <!-- ============ Notice ============ -->
-    <div class="card">
-      <div class="card-head">
-        <div class="icon-chip">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 7v14"></path>
-            <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path>
-          </svg>
+    <!-- ============ Game library ============ -->
+    <section class="library-wrap">
+      <div class="library">
+        <div class="lib-head">
+          <div>
+            <div class="lib-label">GAME LIBRARY</div>
+            <h2>全部游戏 <span class="lib-count">共 {{ total }} 款</span></h2>
+          </div>
+          <div class="lib-tools">
+            <div class="lib-search">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path>
+              </svg>
+              <input type="text" v-model.trim="search" placeholder="搜索游戏名称或 Steam ID" @keyup.enter="reloadGames">
+            </div>
+            <div class="lib-sort">
+              <span class="ls-label">排序</span>
+              <select v-model="sortBy">
+                <option value="hot">热门游戏</option>
+                <option value="new">最新上架</option>
+              </select>
+            </div>
+          </div>
         </div>
-        <h2>会员权益说明</h2>
-      </div>
-      <div class="notice">
-        <div class="n-label">普通用户</div>
-        <div class="n-body"><mark>可浏览普通游戏库，兑换普通 CDK 使用基础功能。</mark></div>
-      </div>
-      <div class="notice">
-        <div class="n-label">青铜会员</div>
-        <div class="n-body"><mark>解锁青铜专属游戏，享受更长的租号时长和优先客服。</mark></div>
-      </div>
-      <div class="notice">
-        <div class="n-label">黄金会员</div>
-        <div class="n-body"><mark>解锁全部游戏库，享受最高等级权益、专属活动与折扣。</mark></div>
-      </div>
-      <div class="notice">
-        <div class="n-label">CDK 续费</div>
-        <div class="n-body"><mark>会员有效期内再次兑换 CDK 会在原到期时间基础上累加，等级取较高者。</mark></div>
-      </div>
-    </div>
 
-    <div class="footer"><span>会员中心</span></div>
+        <div class="lib-filter">
+          <div class="lib-range">显示 1-{{ displayGames.length }}，共 {{ total }} 款</div>
+        </div>
+
+        <div class="game-grid" v-if="displayGames.length">
+          <div class="game-card" v-for="g in displayGames" :key="g.id">
+            <div class="gc-cover">
+              <img :src="g.img_url || placeholderCover" :alt="g.name" loading="lazy" @error="onImgError">
+              <div class="gc-lock" v-if="isLocked(g)" @click="openGame(g)">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <span>需要 {{ levelLabel(g.member_level) }}</span>
+              </div>
+            </div>
+            <div class="gc-body">
+              <div class="gc-title" :title="g.name">{{ g.name }}</div>
+              <div class="gc-meta">
+                <span class="gc-platform">
+                  <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <circle cx="8.5" cy="14.5" r="2.5"></circle>
+                    <path d="m12.5 12.5 4-4"></path>
+                    <circle cx="15.5" cy="9.5" r="2.5"></circle>
+                  </svg>
+                  STEAM
+                </span>
+                <span class="gc-id">ID {{ g.id }}</span>
+              </div>
+              <div class="gc-foot">
+                <button class="btn-pick" @click="openGame(g)">会员取号</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="empty" v-else-if="!gamesLoading">
+          <div class="emoji">🎮</div>
+          <p>暂无符合条件的游戏</p>
+        </div>
+        <div class="empty" v-else>
+          <div class="emoji">⏳</div>
+          <p>加载中…</p>
+        </div>
+
+        <button class="load-more" v-if="games.length < total" @click="loadMoreGames" :disabled="gamesLoading">
+          {{ gamesLoading ? '加载中…' : '加载更多' }}
+        </button>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <span>高能电玩 · 会员中心　|　发现精彩游戏，连接全球玩家</span>
+    </footer>
 
     <!-- ============ Auth Modal ============ -->
     <div class="modal-overlay" v-if="authModalOpen" @click.self="closeAuthModal">
@@ -850,18 +766,15 @@
         <div class="modal-head">
           <div class="mh-icon">
             <svg v-if="authMode === 'register'" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <line x1="19" y1="8" x2="19" y2="14"></line>
-              <line x1="22" y1="11" x2="16" y2="11"></line>
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle>
+              <line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line>
             </svg>
             <svg v-else-if="authMode === 'forgot'" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
             </svg>
             <svg v-else viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-              <polyline points="10 17 15 12 10 7"></polyline>
-              <line x1="15" y1="12" x2="3" y2="12"></line>
+              <polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line>
             </svg>
           </div>
           <h3>{{ authModalTitle }}</h3>
@@ -873,7 +786,6 @@
           <button class="tab" :class="{ active: authMode === 'register' }" @click="switchAuthMode('register')">注册</button>
         </div>
 
-        <!-- Login form -->
         <form v-show="authMode === 'login'" @submit.prevent="doLogin">
           <div class="form-group">
             <label class="form-label">用户名</label>
@@ -881,16 +793,18 @@
           </div>
           <div class="form-group">
             <label class="form-label">密码</label>
-            <input class="form-input" type="password" v-model="loginForm.password" placeholder="请输入密码" autocomplete="current-password">
+            <div class="pwd-wrap">
+              <input class="form-input" :type="pwdVisible.login ? 'text' : 'password'" v-model="loginForm.password" placeholder="请输入密码" autocomplete="current-password">
+              <button type="button" class="pwd-toggle" @click="pwdVisible.login = !pwdVisible.login">{{ pwdVisible.login ? '隐藏' : '显示' }}</button>
+            </div>
           </div>
-          <button class="btn-primary" type="submit" :disabled="loading">{{ loading ? '登录中…' : '登 录' }}</button>
-          <div class="note" style="justify-content: space-between;">
-            <span>还没有账号？点击「注册」创建</span>
+          <button class="btn-submit" type="submit" :disabled="loading">{{ loading ? '登录中…' : '登 录' }}</button>
+          <div class="form-note">
+            <span>还没有账号？点击「注册」</span>
             <button type="button" class="link-btn" @click="openForgot">忘记密码？</button>
           </div>
         </form>
 
-        <!-- Register form -->
         <form v-show="authMode === 'register'" @submit.prevent="doRegister">
           <div class="form-group">
             <label class="form-label">用户名</label>
@@ -902,20 +816,25 @@
           </div>
           <div class="form-group">
             <label class="form-label">密码</label>
-            <input class="form-input" type="password" v-model="registerForm.password" placeholder="至少 6 位" autocomplete="new-password">
+            <div class="pwd-wrap">
+              <input class="form-input" :type="pwdVisible.register ? 'text' : 'password'" v-model="registerForm.password" placeholder="至少 6 位" autocomplete="new-password">
+              <button type="button" class="pwd-toggle" @click="pwdVisible.register = !pwdVisible.register">{{ pwdVisible.register ? '隐藏' : '显示' }}</button>
+            </div>
           </div>
           <div class="form-group">
             <label class="form-label">确认密码</label>
-            <input class="form-input" type="password" v-model="registerForm.confirm" placeholder="再次输入密码" autocomplete="new-password">
+            <div class="pwd-wrap">
+              <input class="form-input" :type="pwdVisible.confirm ? 'text' : 'password'" v-model="registerForm.confirm" placeholder="再次输入密码" autocomplete="new-password">
+              <button type="button" class="pwd-toggle" @click="pwdVisible.confirm = !pwdVisible.confirm">{{ pwdVisible.confirm ? '隐藏' : '显示' }}</button>
+            </div>
           </div>
-          <button class="btn-primary" type="submit" :disabled="loading">{{ loading ? '注册中…' : '注 册' }}</button>
-          <div class="note" style="justify-content: center;">
+          <button class="btn-submit" type="submit" :disabled="loading">{{ loading ? '注册中…' : '注 册' }}</button>
+          <div class="form-note center">
             <span>已有账号？</span>
             <button type="button" class="link-btn" @click="switchAuthMode('login')">去登录</button>
           </div>
         </form>
 
-        <!-- Forgot password -->
         <form v-show="authMode === 'forgot'" @submit.prevent="doResetPassword">
           <div class="form-group">
             <label class="form-label">用户名</label>
@@ -927,13 +846,74 @@
           </div>
           <div class="form-group">
             <label class="form-label">新密码</label>
-            <input class="form-input" type="password" v-model="forgotForm.newPassword" placeholder="至少 6 位">
+            <div class="pwd-wrap">
+              <input class="form-input" :type="pwdVisible.forgot ? 'text' : 'password'" v-model="forgotForm.newPassword" placeholder="至少 6 位">
+              <button type="button" class="pwd-toggle" @click="pwdVisible.forgot = !pwdVisible.forgot">{{ pwdVisible.forgot ? '隐藏' : '显示' }}</button>
+            </div>
           </div>
-          <button class="btn-primary" type="submit" :disabled="loading">{{ loading ? '提交中…' : '重置密码' }}</button>
-          <div class="note" style="justify-content: center;">
+          <button class="btn-submit" type="submit" :disabled="loading">{{ loading ? '提交中…' : '重置密码' }}</button>
+          <div class="form-note center">
             <button type="button" class="link-btn" @click="switchAuthMode('login')">返回登录</button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- ============ Game Account Modal ============ -->
+    <div class="modal-overlay" v-if="gameModalOpen" @click.self="closeGameModal">
+      <div class="modal-dialog ga-dialog">
+        <button class="modal-close" @click="closeGameModal" aria-label="关闭">×</button>
+        <div class="modal-head">
+          <div class="mh-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="6" width="20" height="12" rx="3"></rect>
+              <line x1="7" y1="12" x2="11" y2="12"></line><line x1="9" y1="10" x2="9" y2="14"></line>
+              <circle cx="16.5" cy="10.5" r="1"></circle><circle cx="18.5" cy="13.5" r="1"></circle>
+            </svg>
+          </div>
+          <h3>{{ gameModalGame ? gameModalGame.name : '游戏账号' }}</h3>
+          <p>以下是为你分配的账号信息</p>
+        </div>
+
+        <div class="ga-loading" v-if="gameModalLoading">加载中…</div>
+        <div class="ga-empty" v-else-if="gameAccounts.length === 0">暂无可用账号</div>
+        <div class="ga-list" v-else>
+          <div class="ga-item" v-for="(acc, idx) in gameAccounts" :key="acc.id">
+            <span class="ga-idx">账号 #{{ idx + 1 }}<template v-if="acc.platform"> · {{ acc.platform }}</template></span>
+            <div class="ga-row">
+              <span class="ga-k">账号</span>
+              <div class="value-copy">
+                <span class="v-text">{{ acc.account }}</span>
+                <button class="btn-copy-sm" type="button" :class="{ copied: copiedField === 'acc-' + acc.id }" @click="copyText(acc.account, 'acc-' + acc.id)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  <span>{{ copiedField === 'acc-' + acc.id ? '已复制' : '复制' }}</span>
+                </button>
+              </div>
+            </div>
+            <div class="ga-row">
+              <span class="ga-k">密码</span>
+              <div class="value-copy">
+                <span class="v-text">{{ acc.password || '—' }}</span>
+                <button class="btn-copy-sm" type="button" :class="{ copied: copiedField === 'pwd-' + acc.id }" @click="copyText(acc.password, 'pwd-' + acc.id)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  <span>{{ copiedField === 'pwd-' + acc.id ? '已复制' : '复制' }}</span>
+                </button>
+              </div>
+            </div>
+            <div class="ga-row">
+              <span class="ga-k">验证码</span>
+              <div class="value-copy totp-copy">
+                <span class="v-text ga-totp" :class="{ placeholder: !(totpMap[acc.id] && totpMap[acc.id].code) }">{{ (totpMap[acc.id] && totpMap[acc.id].code) || '点击刷新获取' }}</span>
+                <button class="btn-copy-sm" type="button" v-if="totpMap[acc.id] && totpMap[acc.id].code" :class="{ copied: copiedField === 'totp-' + acc.id }" @click="copyText(totpMap[acc.id].code, 'totp-' + acc.id)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  <span>{{ copiedField === 'totp-' + acc.id ? '已复制' : '复制' }}</span>
+                </button>
+                <button class="btn-mini" type="button" :disabled="totpLoading[acc.id] || totpCooldown[acc.id] > 0 || (totpMap[acc.id] && totpMap[acc.id].exhausted)" @click="refreshTotp(acc.id)">{{ totpCooldown[acc.id] > 0 ? (totpCooldown[acc.id] + 's 后可刷新') : (totpLoading[acc.id] ? '获取中…' : ((totpMap[acc.id] && totpMap[acc.id].exhausted) ? '今日已用完' : '刷新验证码')) }}</button>
+                <span class="ga-hint" v-if="totpMap[acc.id] && !totpMap[acc.id].exhausted && totpMap[acc.id].remaining !== null && totpMap[acc.id].remaining !== undefined">今日剩余 {{ totpMap[acc.id].remaining }} 次</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -941,356 +921,443 @@
   <script src="/static/js/vue.min.js"></script>
   <script src="/static/js/axios.min.js"></script>
   <script>
-    const TOKEN_KEY = 'member_access_token';
-    const USER_KEY = 'member_user_info';
-    const LEVEL_NAMES = { 0: '普通用户', 1: '青铜会员', 2: '黄金会员' };
-    const PLACEHOLDER_COVER = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 180"><rect width="300" height="180" fill="#eaf2ff"/><text x="150" y="95" font-size="16" fill="#90a4bd" text-anchor="middle" font-family="sans-serif">暂无封面</text></svg>'
-    );
+    var TOKEN_KEY = 'member_access_token';
+    var USER_KEY = 'member_user_info';
+    var LAST_USER_KEY = 'member_last_username';
+    // ===== 接口请求地址配置：切换后端域名 / 网关前缀只需改这里 =====
+    var API_BASE = window.API_BASE || '';  // 后端主机地址（本地联调默认值）；生产同源部署可改为 ''
+    var API_PREFIX = '/api/web';           // 会员相关接口统一前缀
 
     new Vue({
       el: '#app',
       data: {
-        loading: false,
-        alert: { show: false, text: '', type: 'error' },
-        alertTimer: null,
-
-        // Auth
+        token: '',
+        user: null,
+        userMenuOpen: false,
         authModalOpen: false,
         authMode: 'login',
+        loading: false,
+        gamesLoading: false,
+        alert: { type: 'success', text: '', show: false },
+        alertTimer: null,
+        searchTimer: null,
+        games: [],
+        total: 0,
+        page: 1,
+        limit: 25,
+        sortBy: 'hot',
+        search: '',
+        cdkCode: '',
         loginForm: { username: '', password: '' },
         registerForm: { username: '', email: '', password: '', confirm: '' },
         forgotForm: { username: '', email: '', newPassword: '' },
-
-        // User
-        user: null,
-        token: '',
-
-        // CDK
-        cdkCode: '',
-
-        // Games
-        games: [],
-        categories: [],
-        tags: [],
-        search: '',
-        categoryId: '',
-        levelFilter: '',
-        page: 1,
-        pageSize: 20,
-        total: 0,
-        gamesLoading: false,
-
-        placeholderCover: PLACEHOLDER_COVER
+        pwdVisible: { login: false, register: false, confirm: false, forgot: false },
+        gameModalOpen: false,
+        gameModalLoading: false,
+        gameModalGame: null,
+        gameAccounts: [],
+        copiedField: null,
+        totpMap: {},
+        totpLoading: {},
+        totpCooldown: {},
+        cooldownTimer: null,
+        placeholderCover: 'data:image/svg+xml,' + encodeURIComponent(
+          '<svg xmlns="http://www.w3.org/2000/svg" width="460" height="260"><rect width="460" height="260" fill="#eef3fb"/><text x="50%" y="50%" fill="#9aa7b8" font-size="48" text-anchor="middle" dy=".35em">🎮</text></svg>'
+        )
       },
       computed: {
-        authModalTitle() {
+        tierIcon: function () {
+          var l = this.user ? Number(this.user.member_level || 0) : 0;
+          return l >= 2 ? '🥇' : (l === 1 ? '🥉' : '👤');
+        },
+        tierClass: function () {
+          var l = this.user ? Number(this.user.member_level || 0) : 0;
+          return l >= 2 ? 'gold' : (l === 1 ? 'bronze' : '');
+        },
+        levelName: function () {
+          var l = this.user ? Number(this.user.member_level || 0) : 0;
+          return l >= 2 ? '高级会员' : (l === 1 ? '会员' : '游客');
+        },
+        expireText: function () {
+          if (!this.user) return '-';
+          if (!this.user.member_expire_at) return '永久有效';
+          var d = new Date(this.user.member_expire_at);
+          if (isNaN(d.getTime())) return String(this.user.member_expire_at);
+          return d.getFullYear() + '-' + this.pad(d.getMonth() + 1) + '-' + this.pad(d.getDate()) +
+            ' ' + this.pad(d.getHours()) + ':' + this.pad(d.getMinutes());
+        },
+        authModalTitle: function () {
           if (this.authMode === 'register') return '创建会员账号';
           if (this.authMode === 'forgot') return '找回密码';
           return '欢迎回来';
         },
-        authModalSubtitle() {
+        authModalSubtitle: function () {
           if (this.authMode === 'register') return '注册即可兑换会员权益';
           if (this.authMode === 'forgot') return '通过用户名和邮箱重置密码';
           return '登录您的会员账号';
         },
-        avatarChar() {
-          const n = this.user && (this.user.nickname || this.user.username);
-          return n ? n.charAt(0).toUpperCase() : '?';
-        },
-        levelName() {
-          const lv = this.user && this.user.member_level;
-          return LEVEL_NAMES[lv] || '普通用户';
-        },
-        levelClass() {
-          const lv = this.user && this.user.member_level;
-          return lv === 2 ? 'gold' : (lv === 1 ? 'bronze' : '');
-        },
-        levelBadgeClass() {
-          const lv = this.user && this.user.member_level;
-          return lv === 2 ? 'lv2' : (lv === 1 ? 'lv1' : '');
-        },
-        expireText() {
-          const e = this.user && this.user.member_expire_at;
-          if (!e) return '未开通';
-          const d = new Date(e);
-          if (isNaN(d.getTime())) return String(e);
-          if (d.getTime() < Date.now()) return '已过期';
-          return this.formatDate(d);
+        displayGames: function () {
+          var list = this.games;
+          if (this.sortBy === 'hot') {
+            list = list.slice().sort(function (a, b) { return (b.account_count || 0) - (a.account_count || 0); });
+          }
+          return list;
         }
       },
-      mounted() {
-        this.restoreSession();
-        this.fetchCategories();
-        this.fetchTags();
-        this.reloadGames();
-        if (this.user) this.fetchMyInfo();
-        this._escHandler = (e) => {
-          if (e.key === 'Escape' && this.authModalOpen) this.closeAuthModal();
-        };
-        document.addEventListener('keydown', this._escHandler);
-      },
-      beforeDestroy() {
-        if (this._escHandler) document.removeEventListener('keydown', this._escHandler);
-        document.body.style.overflow = '';
-      },
       methods: {
-        formatDate(d) {
-          const p = n => String(n).padStart(2, '0');
-          return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+        api: function (method, url, data, useToken) {
+          var headers = {};
+          if (useToken && this.token) headers['Authorization'] = 'Bearer ' + this.token;
+          return axios({ method: method, url: API_BASE + API_PREFIX + url, data: data, headers: headers })
+            .then(function (res) {
+              var body = res.data;
+              if (body && body.code !== 0) {
+                var err = new Error(body.message || body.msg || '请求失败');
+                err.status = body.code;
+                throw err;
+              }
+              return body ? body.data : null;
+            })
+            .catch(function (e) {
+              if (e && e.response) {
+                var rb = e.response.data || {};
+                var err = new Error(rb.message || rb.msg || e.message || '请求失败');
+                err.status = e.response.status || rb.code;
+                throw err;
+              }
+              throw e;
+            });
         },
-        levelLabel(lv) { return LEVEL_NAMES[lv] || '普通用户'; },
-        isLocked(g) {
-          const userLv = this.user ? (this.user.member_level || 0) : 0;
-          return (g.member_level || 0) > userLv;
+        showMessage: function (type, text) {
+          this.alert = { type: type, text: text, show: true };
+          var self = this;
+          clearTimeout(this.alertTimer);
+          this.alertTimer = setTimeout(function () { self.alert.show = false; }, 3500);
         },
-        showMessage(text, type) {
-          this.alert.show = true;
-          this.alert.text = text;
-          this.alert.type = type || 'error';
-          if (this.alertTimer) clearTimeout(this.alertTimer);
-          this.alertTimer = setTimeout(() => { this.alert.show = false; }, 3000);
-        },
-        authHeaders() {
-          return this.token ? { Authorization: 'Bearer ' + this.token } : {};
-        },
-        restoreSession() {
+        onImgError: function (e) { e.target.src = this.placeholderCover; },
+        pad: function (n) { return n < 10 ? '0' + n : '' + n; },
+
+        readSession: function () {
           try {
-            const t = localStorage.getItem(TOKEN_KEY);
-            const u = localStorage.getItem(USER_KEY);
-            if (t && u) {
-              this.token = t;
-              this.user = JSON.parse(u);
-            }
+            this.token = localStorage.getItem(TOKEN_KEY) || '';
+            var raw = localStorage.getItem(USER_KEY);
+            this.user = raw ? JSON.parse(raw) : null;
+          } catch (e) { this.token = ''; this.user = null; }
+        },
+        persistSession: function (token, user) {
+          this.token = token || this.token;
+          if (user) this.user = Object.assign({}, this.user || {}, user);
+          try {
+            if (this.token) localStorage.setItem(TOKEN_KEY, this.token);
+            if (this.user) localStorage.setItem(USER_KEY, JSON.stringify(this.user));
           } catch (e) { /* ignore */ }
         },
-        persistSession() {
-          if (this.token) localStorage.setItem(TOKEN_KEY, this.token);
-          if (this.user) localStorage.setItem(USER_KEY, JSON.stringify(this.user));
+        rememberUsername: function (name) {
+          try { if (name) localStorage.setItem(LAST_USER_KEY, name); } catch (e) { /* ignore */ }
         },
-        clearSession() {
-          localStorage.removeItem(TOKEN_KEY);
-          localStorage.removeItem(USER_KEY);
+        logout: function () {
           this.token = '';
           this.user = null;
+          this.cdkCode = '';
+          this.userMenuOpen = false;
+          try { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY); } catch (e) { /* ignore */ }
+          this.showMessage('success', '已退出登录');
+          this.reloadGames();
         },
-        switchAuthMode(mode) { this.authMode = mode; },
-        openAuthModal(mode) {
+        buyMember: function () {
+          if (!this.user) {
+            this.showMessage('error', '请先登录后再购买会员');
+            this.openAuthModal('login');
+            return;
+          }
+          this.showMessage('success', '请联系客服购买会员卡密，兑换后立即生效');
+        },
+
+        /* ---------- auth modal ---------- */
+        openAuthModal: function (mode) {
           this.authMode = mode || 'login';
           this.authModalOpen = true;
           document.body.style.overflow = 'hidden';
         },
-        closeAuthModal() {
+        closeAuthModal: function () {
           this.authModalOpen = false;
           document.body.style.overflow = '';
         },
-        openForgot() {
-          this.forgotForm.username = this.loginForm.username || '';
+        switchAuthMode: function (mode) { this.authMode = mode; },
+        openForgot: function () {
+          this.forgotForm.username = this.loginForm.username;
           this.authMode = 'forgot';
         },
-        scrollToMember() {
-          const el = document.getElementById('member-card');
-          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        },
 
-        doLogin() {
-          if (!this.loginForm.username) return this.showMessage('请输入用户名');
-          if (!this.loginForm.password) return this.showMessage('请输入密码');
-          this.loading = true;
-          axios.post('/api/web/auth/login', this.loginForm)
-            .then(res => {
-              if (res.data.code === 0) {
-                const d = res.data.data;
-                this.token = d.accessToken;
-                this.user = {
-                  id: d.id, username: d.username, nickname: d.nickname,
-                  avatar: d.avatar, email: d.email,
-                  member_level: d.member_level || 0,
-                  member_expire_at: null
-                };
-                this.persistSession();
-                this.showMessage('登录成功', 'success');
-                this.loginForm.password = '';
-                this.closeAuthModal();
-                this.fetchMyInfo();
-                this.reloadGames();
-              } else {
-                this.showMessage(res.data.message || '登录失败');
-              }
-            })
-            .catch(() => this.showMessage('网络错误，请稍后重试'))
-            .finally(() => { this.loading = false; });
-        },
-
-        doRegister() {
-          const f = this.registerForm;
-          if (!f.username) return this.showMessage('请输入用户名');
-          if (f.username.length < 3 || f.username.length > 30) return this.showMessage('用户名长度需在 3-30 之间');
-          if (!f.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) return this.showMessage('邮箱格式不正确');
-          if (!f.password || f.password.length < 6) return this.showMessage('密码不能少于 6 位');
-          if (f.password !== f.confirm) return this.showMessage('两次输入的密码不一致');
-          this.loading = true;
-          axios.post('/api/web/auth/register', { username: f.username, email: f.email, password: f.password })
-            .then(res => {
-              if (res.data.code === 0) {
-                this.showMessage('注册成功，请登录', 'success');
-                this.loginForm.username = f.username;
-                this.loginForm.password = '';
-                this.registerForm = { username: '', email: '', password: '', confirm: '' };
-                this.authMode = 'login';
-              } else {
-                this.showMessage(res.data.message || '注册失败');
-              }
-            })
-            .catch(() => this.showMessage('网络错误，请稍后重试'))
-            .finally(() => { this.loading = false; });
-        },
-
-        doResetPassword() {
-          const f = this.forgotForm;
-          if (!f.username) return this.showMessage('请输入用户名');
-          if (!f.email) return this.showMessage('请输入邮箱');
-          if (!f.newPassword || f.newPassword.length < 6) return this.showMessage('新密码不能少于 6 位');
-          this.loading = true;
-          axios.post('/api/web/auth/reset-password', f)
-            .then(res => {
-              if (res.data.code === 0) {
-                this.showMessage('密码重置成功，请登录', 'success');
-                this.loginForm.username = f.username;
-                this.loginForm.password = '';
-                this.authMode = 'login';
-              } else {
-                this.showMessage(res.data.message || '重置失败');
-              }
-            })
-            .catch(() => this.showMessage('网络错误，请稍后重试'))
-            .finally(() => { this.loading = false; });
-        },
-
-        logout() {
-          this.clearSession();
-          this.showMessage('已退出登录', 'success');
-          this.reloadGames();
-        },
-
-        fetchMyInfo() {
+        /* ---------- data ---------- */
+        fetchMe: function () {
           if (!this.token) return;
-          axios.post('/api/web/membership/my-info', {}, { headers: this.authHeaders() })
-            .then(res => {
-              if (res.data.code === 0) {
-                const d = res.data.data;
-                this.user = Object.assign({}, this.user, {
-                  nickname: d.nickname,
-                  member_level: d.member_level || 0,
-                  member_expire_at: d.member_expire_at
-                });
-                this.persistSession();
-              } else if (res.data.code === 401) {
-                this.clearSession();
-              }
-            })
-            .catch(() => { /* silent */ });
+          var self = this;
+          this.api('POST', '/membership/my-info', {}, true)
+            .then(function (data) { if (data) self.persistSession(self.token, data); })
+            .catch(function (e) { if (e.status === 401) self.logout(); });
         },
-
-        redeemMemberCdk() {
-          if (!this.token) return this.showMessage('请先登录');
-          if (!this.cdkCode) return this.showMessage('请输入 CDK 兑换码');
-          this.loading = true;
-          axios.post('/api/web/membership/redeem-cdk', { cdk_code: this.cdkCode }, { headers: this.authHeaders() })
-            .then(res => {
-              if (res.data.code === 0) {
-                const d = res.data.data;
-                this.showMessage(`兑换成功：${d.member_level_name}（${d.duration_months} 个月）`, 'success');
-                this.cdkCode = '';
-                this.fetchMyInfo();
-                this.reloadGames();
-              } else if (res.data.code === 401) {
-                this.clearSession();
-                this.showMessage('登录已过期，请重新登录');
-              } else {
-                this.showMessage(res.data.message || '兑换失败');
-              }
-            })
-            .catch(() => this.showMessage('网络错误，请稍后重试'))
-            .finally(() => { this.loading = false; });
-        },
-
-        fetchCategories() {
-          axios.get('/api/web/game-categories')
-            .then(res => {
-              if (res.data.code === 0 && Array.isArray(res.data.data)) this.categories = res.data.data;
-            })
-            .catch(() => {});
-        },
-        fetchTags() {
-          axios.get('/api/web/game-tags')
-            .then(res => {
-              if (res.data.code === 0 && Array.isArray(res.data.data)) {
-                this.tags = res.data.data;
-              }
-            })
-            .catch(() => {});
-        },
-        tagMap() {
-          const m = {};
-          this.tags.forEach(t => { m[t.id] = t.name; });
-          return m;
-        },
-        reloadGames() {
-          this.page = 1;
-          this.games = [];
-          this.fetchGames();
-        },
-        loadMoreGames() {
-          this.page += 1;
-          this.fetchGames(true);
-        },
-        fetchGames(append) {
+        fetchGames: function () {
+          var self = this;
           this.gamesLoading = true;
-          const body = { page: this.page, limit: this.pageSize };
+          var body = { page: this.page, limit: this.limit };
           if (this.search) body.name = this.search;
-          if (this.categoryId !== '' && this.categoryId !== null) body.category_id = this.categoryId;
-          if (this.levelFilter !== '' && this.levelFilter !== null) body.member_level = this.levelFilter;
-          axios.post('/api/web/games', body)
-            .then(res => {
-              if (res.data.code === 0) {
-                const d = res.data.data || {};
-                const tm = this.tagMap();
-                const list = (d.list || []).map(g => ({
-                  ...g,
-                  _tags: (g.tag_ids || []).map(id => tm[id]).filter(Boolean)
-                }));
-                this.games = append ? this.games.concat(list) : list;
-                this.total = d.total || 0;
-              } else {
-                this.showMessage(res.data.message || '获取游戏列表失败');
-              }
+          return this.api('POST', '/games', body)
+            .then(function (data) {
+              var list = (data && data.list) || [];
+              if (self.page === 1) self.games = list;
+              else self.games = self.games.concat(list);
+              self.total = (data && data.total) || 0;
             })
-            .catch(() => this.showMessage('网络错误，请稍后重试'))
-            .finally(() => { this.gamesLoading = false; });
+            .catch(function (e) {
+              self.showMessage('error', e.message || '获取游戏列表失败');
+            })
+            .then(function () { self.gamesLoading = false; });
         },
-        setLevel(lv) {
-          this.levelFilter = lv;
-          this.page = 1;
-          this.games = [];
-          this.fetchGames();
+        reloadGames: function () { this.page = 1; this.fetchGames(); },
+        loadMoreGames: function () { this.page += 1; this.fetchGames(); },
+        isLocked: function (g) {
+          var need = Number(g.member_level || 0);
+          var mine = this.user ? Number(this.user.member_level || 0) : 0;
+          return need > mine;
         },
-        openGame(g) {
+        levelLabel: function (lv) {
+          lv = Number(lv || 0);
+          return lv >= 2 ? '高级会员' : (lv === 1 ? '会员' : '游客');
+        },
+        openGame: function (g) {
           if (!this.user) {
-            this.showMessage('请先登录后再查看游戏');
+            this.showMessage('error', '请先登录后再取号');
             this.openAuthModal('login');
             return;
           }
           if (this.isLocked(g)) {
-            this.showMessage(`该游戏需要 ${this.levelLabel(g.member_level)} 权限，请先兑换对应等级的 CDK`);
+            this.showMessage('error', '该游戏需要 ' + this.levelLabel(g.member_level) + ' 权限');
             return;
           }
-          if (g.detail_url) {
-            window.open(g.detail_url, '_blank', 'noopener');
-          } else {
-            this.showMessage(`「${g.name}」暂无详情链接`);
+          this.openGameModal(g);
+        },
+
+        /* ---------- game account modal ---------- */
+        openGameModal: function (g) {
+          this.gameModalGame = g;
+          this.gameAccounts = [];
+          this.copiedField = null;
+          this.totpMap = {};
+          this.totpLoading = {};
+          this.totpCooldown = {};
+          this.stopCooldownTick();
+          this.gameModalOpen = true;
+          document.body.style.overflow = 'hidden';
+          this.fetchGameAccounts(g.id);
+        },
+        closeGameModal: function () {
+          this.gameModalOpen = false;
+          this.stopCooldownTick();
+          document.body.style.overflow = '';
+        },
+        fetchGameAccounts: function (gameId) {
+          var self = this;
+          this.gameModalLoading = true;
+          this.api('GET', '/games/' + gameId + '/accounts', null, true)
+            .then(function (data) { self.gameAccounts = data || []; })
+            .catch(function (e) {
+              if (e && e.status === 401) {
+                self.showMessage('error', '请先登录后再取号');
+                self.closeGameModal();
+                self.openAuthModal('login');
+              } else {
+                self.showMessage('error', (e && e.message) || '获取账号信息失败');
+              }
+            })
+            .then(function () { self.gameModalLoading = false; });
+        },
+        refreshTotp: function (accountId) {
+          var self = this;
+          if (this.totpLoading[accountId] || this.totpCooldown[accountId] > 0) return;
+          if (!this.user) { this.showMessage('error', '请先登录后再获取验证码'); this.openAuthModal('login'); return; }
+          this.$set(this.totpLoading, accountId, true);
+          this.api('POST', '/games/account-totp', { account_id: accountId }, true)
+            .then(function (data) {
+              data = data || {};
+              var rem = (data.remaining === undefined || data.remaining === null) ? null : data.remaining;
+              self.$set(self.totpMap, accountId, { code: data.totp_code || '', remaining: rem, exhausted: rem === 0 });
+              self.setCooldown(accountId, 10);
+            })
+            .catch(function (e) {
+              var st = e && e.status;
+              if (st === 401) {
+                self.showMessage('error', '请先登录后再获取验证码');
+                self.openAuthModal('login');
+              } else {
+                self.showMessage('error', (e && e.message) || '获取验证码失败');
+                if (st === 10009) {
+                  var prev = (self.totpMap[accountId] && self.totpMap[accountId].code) || '';
+                  self.$set(self.totpMap, accountId, { code: prev, remaining: 0, exhausted: true });
+                }
+                if (st === 10008 || st === 10009) self.setCooldown(accountId, 10);
+              }
+            })
+            .then(function () { self.$set(self.totpLoading, accountId, false); });
+        },
+        setCooldown: function (accountId, secs) {
+          this.$set(this.totpCooldown, accountId, secs);
+          this.startCooldownTick();
+        },
+        startCooldownTick: function () {
+          var self = this;
+          this.stopCooldownTick();
+          this.cooldownTimer = setInterval(function () {
+            var any = false;
+            Object.keys(self.totpCooldown).forEach(function (k) {
+              if (self.totpCooldown[k] > 0) {
+                self.$set(self.totpCooldown, k, self.totpCooldown[k] - 1);
+                any = true;
+              }
+            });
+            if (!any) self.stopCooldownTick();
+          }, 1000);
+        },
+        stopCooldownTick: function () {
+          if (this.cooldownTimer) { clearInterval(this.cooldownTimer); this.cooldownTimer = null; }
+        },
+        copyText: function (text, field) {
+          var self = this;
+          if (!text) { this.showMessage('error', '没有可复制的内容'); return; }
+          var done = function () {
+            self.copiedField = field;
+            setTimeout(function () { if (self.copiedField === field) self.copiedField = null; }, 1500);
+          };
+          var fallback = function () {
+            try {
+              var ta = document.createElement('textarea');
+              ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+              document.body.appendChild(ta); ta.select();
+              var ok = document.execCommand('copy');
+              document.body.removeChild(ta);
+              if (ok) done(); else self.showMessage('error', '复制失败，请手动复制');
+            } catch (e) { self.showMessage('error', '复制失败，请手动复制'); }
+          };
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(done).catch(fallback);
+          } else { fallback(); }
+        },
+
+        /* ---------- CDK ---------- */
+        redeemMemberCdk: function () {
+          if (!this.user) { this.showMessage('error', '请先登录'); this.openAuthModal('login'); return; }
+          if (!this.cdkCode) { this.showMessage('error', '请输入会员 CDK'); return; }
+          var self = this;
+          this.loading = true;
+          this.api('POST', '/membership/redeem-cdk', { cdk_code: this.cdkCode }, true)
+            .then(function (data) {
+              if (data) self.persistSession(self.token, data);
+              self.cdkCode = '';
+              self.showMessage('success', '兑换成功！当前等级：' + (data && data.member_level_name || ''));
+              self.reloadGames();
+            })
+            .catch(function (e) { self.showMessage('error', e.message || '兑换失败'); })
+            .then(function () { self.loading = false; });
+        },
+
+        /* ---------- auth actions ---------- */
+        doLogin: function () {
+          if (!this.loginForm.username || !this.loginForm.password) {
+            this.showMessage('error', '请输入用户名和密码'); return;
           }
+          var self = this;
+          this.loading = true;
+          this.api('POST', '/auth/login', { username: this.loginForm.username, password: this.loginForm.password })
+            .then(function (data) {
+              self.persistSession(data.accessToken, data);
+              self.rememberUsername(self.loginForm.username);
+              self.loginForm.password = '';
+              self.closeAuthModal();
+              self.showMessage('success', '登录成功，欢迎回来！');
+              self.fetchMe();
+              self.reloadGames();
+            })
+            .catch(function (e) { self.showMessage('error', e.message || '登录失败'); })
+            .then(function () { self.loading = false; });
+        },
+        doRegister: function () {
+          var f = this.registerForm;
+          var uname = (f.username || '').trim();
+          if (!uname || !f.email || !f.password) { this.showMessage('error', '请填写完整注册信息'); return; }
+          if (uname.length < 3 || uname.length > 30) { this.showMessage('error', '用户名长度需在 3-30 个字符之间'); return; }
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) { this.showMessage('error', '邮箱格式不正确'); return; }
+          if (f.password.length < 6) { this.showMessage('error', '密码至少 6 位'); return; }
+          if (f.password !== f.confirm) { this.showMessage('error', '两次输入的密码不一致'); return; }
+          var self = this;
+          this.loading = true;
+          this.api('POST', '/auth/register', { username: uname, email: f.email, password: f.password })
+            .then(function (data) {
+              self.registerForm = { username: '', email: '', password: '', confirm: '' };
+              if (data && data.accessToken) {
+                // 后端注册即签发 token：注册成功后自动登录
+                self.persistSession(data.accessToken, data);
+                self.rememberUsername(data.username || uname);
+                self.closeAuthModal();
+                self.showMessage('success', '注册成功，已自动登录');
+                self.fetchMe();
+                self.reloadGames();
+              } else {
+                self.showMessage('success', '注册成功，请登录');
+                self.loginForm.username = uname;
+                self.authMode = 'login';
+              }
+            })
+            .catch(function (e) { self.showMessage('error', e.message || '注册失败'); })
+            .then(function () { self.loading = false; });
+        },
+        doResetPassword: function () {
+          var f = this.forgotForm;
+          if (!f.username || !f.email || !f.newPassword) { this.showMessage('error', '请填写完整信息'); return; }
+          if (f.newPassword.length < 6) { this.showMessage('error', '新密码至少 6 位'); return; }
+          var self = this;
+          this.loading = true;
+          this.api('POST', '/auth/reset-password', { username: f.username, email: f.email, newPassword: f.newPassword })
+            .then(function () {
+              self.showMessage('success', '密码重置成功，请登录');
+              self.loginForm.username = f.username;
+              self.forgotForm = { username: '', email: '', newPassword: '' };
+              self.authMode = 'login';
+            })
+            .catch(function (e) { self.showMessage('error', e.message || '重置失败'); })
+            .then(function () { self.loading = false; });
         }
+      },
+      watch: {
+        search: function () {
+          var self = this;
+          clearTimeout(this.searchTimer);
+          this.searchTimer = setTimeout(function () { self.reloadGames(); }, 400);
+        }
+      },
+      mounted: function () {
+        this.readSession();
+        if (this.token) {
+          this.fetchMe();
+        } else {
+          // 未登录时预填上次登录的用户名
+          try {
+            var lastUser = localStorage.getItem(LAST_USER_KEY);
+            if (lastUser) this.loginForm.username = lastUser;
+          } catch (e) { /* ignore */ }
+        }
+        this.reloadGames();
+        var self = this;
+        this._escHandler = function (e) {
+          if (e.key === 'Escape') {
+            if (self.gameModalOpen) self.closeGameModal();
+            else if (self.authModalOpen) self.closeAuthModal();
+          }
+        };
+        document.addEventListener('keydown', this._escHandler);
+      },
+      beforeDestroy: function () {
+        if (this._escHandler) document.removeEventListener('keydown', this._escHandler);
+        document.body.style.overflow = '';
       }
     });
   </script>

@@ -27,7 +27,9 @@ const {
   handleSizeChange,
   handleCurrentChange,
   openDialog,
-  handleDelete
+  handleDelete,
+  importLoading,
+  handleImport
 } = useGameAccount();
 </script>
 
@@ -62,6 +64,9 @@ const {
       <template #buttons>
         <el-button type="primary" :icon="useRenderIcon(AddFill)" @click="openDialog()">
           新增
+        </el-button>
+        <el-button type="success" :icon="useRenderIcon(AddFill)" :loading="importLoading" @click="handleImport">
+          导入SDA
         </el-button>
       </template>
       <template v-slot="{ size, dynamicColumns }">

@@ -192,6 +192,87 @@
       cursor: pointer;
     }
     .btn-mini:hover { background: #eef5ff; }
+    /* Copyable value with an inline copy button */
+    .value-copy {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .value-copy .v-text {
+      min-width: 0;
+      word-break: break-all;
+    }
+    .btn-copy-sm {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--primary);
+      background: #eef5ff;
+      border: 0.8px solid #cfe0ff;
+      border-radius: 7px;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: background .16s, border-color .16s, color .16s;
+    }
+    .btn-copy-sm:hover { background: #dfeaff; border-color: #a9c8ff; }
+    .btn-copy-sm.copied { color: var(--success); background: #e8f7ef; border-color: #a7e3bf; }
+    .btn-copy-sm svg { width: 13px; height: 13px; }
+
+    /* ---------- Announcement marquee ---------- */
+    .announce-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(90deg, #fff6e5, #fffdf6);
+      border: 0.8px solid #ffe0a3;
+      border-radius: 12px;
+      padding: 9px 14px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .announce-tag {
+      flex-shrink: 0;
+      display: flex; align-items: center; gap: 5px;
+      background: #f59e0b;
+      color: #fff;
+      font-size: 12px; font-weight: 900;
+      padding: 4px 11px;
+      border-radius: 999px;
+    }
+    .announce-tag svg { width: 14px; height: 14px; stroke: #fff; }
+    .announce-viewport {
+      flex: 1;
+      min-width: 0;
+      height: 22px;
+      overflow: hidden;
+      position: relative;
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 20px, #000 calc(100% - 20px), transparent);
+      mask-image: linear-gradient(90deg, transparent, #000 20px, #000 calc(100% - 20px), transparent);
+    }
+    .announce-track {
+      display: inline-flex;
+      align-items: center;
+      height: 100%;
+      white-space: nowrap;
+      will-change: transform;
+    }
+    .announce-track.scrolling {
+      animation-name: announce-scroll;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+    }
+    .announce-viewport:hover .announce-track.scrolling { animation-play-state: paused; }
+    .announce-item {
+      font-size: 13px; font-weight: 800; color: #8a5a09;
+      padding: 0 26px;
+    }
+    @keyframes announce-scroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
 
     /* ---------- Carousel ---------- */
     .carousel-wrap {
@@ -280,6 +361,61 @@
       color: inherit;
     }
 
+    /* ---------- QA accordion ---------- */
+    .qa-list { display: flex; flex-direction: column; gap: 10px; }
+    .qa-item {
+      border: 0.8px solid var(--card-border);
+      border-radius: 10px;
+      background: #fbfdff;
+      overflow: hidden;
+      transition: border-color .18s, box-shadow .18s;
+    }
+    .qa-item.open {
+      border-color: #9cc4ff;
+      box-shadow: rgba(22, 119, 255, .08) 0 4px 14px;
+    }
+    .qa-question {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 16px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .qa-question .q-badge {
+      flex-shrink: 0;
+      width: 22px; height: 22px;
+      border-radius: 6px;
+      background: var(--chip-bg);
+      color: var(--primary-dark);
+      font-size: 12px; font-weight: 900;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .qa-question .q-text {
+      flex: 1;
+      font-size: 14px; font-weight: 800; color: var(--heading);
+      line-height: 1.5;
+    }
+    .qa-question .q-arrow {
+      flex-shrink: 0;
+      width: 18px; height: 18px;
+      stroke: var(--muted);
+      transition: transform .28s;
+    }
+    .qa-item.open .q-arrow { transform: rotate(180deg); }
+    .qa-answer {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows .28s ease;
+    }
+    .qa-item.open .qa-answer { grid-template-rows: 1fr; }
+    .qa-answer > div { overflow: hidden; min-height: 0; }
+    .qa-answer-inner {
+      padding: 0 16px 14px 48px;
+      font-size: 13px; font-weight: 600; color: var(--muted-2);
+      line-height: 1.85;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
     /* ---------- Footer ---------- */
     .footer {
       text-align: center;
@@ -309,6 +445,8 @@
       .notice { flex-direction: column; gap: 6px; }
       .notice .n-label { width: auto; }
       .carousel-slide img { height: 150px; }
+      .announce-bar { padding: 8px 12px; }
+      .qa-answer-inner { padding-left: 16px; }
     }
   </style>
 </head>
@@ -326,12 +464,29 @@
       </svg>
     </div>
     <div class="brand">离线游戏兑换中心<small>自助兑换 · 安全放心</small></div>
+    <a class="nav-link" href="./member.html">会员中心</a>
     <a class="nav-link active" href="./index.html">离线兑换</a>
     <a class="nav-link" href="./rent.html">租号兑换</a>
-    <a class="nav-link" href="./member.html">会员中心</a>
   </div>
 
   <div class="page" id="app">
+    <!-- Announcement marquee -->
+    <div class="announce-bar" v-if="announcements.length">
+      <div class="announce-tag">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 10v4a1 1 0 0 0 1 1h3l4 3V7L7 10H4a1 1 0 0 0-1 1z"></path>
+          <path d="M15.5 8.5a5 5 0 0 1 0 7"></path>
+          <path d="M18.5 6a9 9 0 0 1 0 12"></path>
+        </svg>
+        <span>公告</span>
+      </div>
+      <div class="announce-viewport">
+        <div class="announce-track" :class="{ scrolling: announcements.length > 1 }" :style="{ animationDuration: announceDuration }">
+          <span class="announce-item" v-for="(item, idx) in announceLoop" :key="'ann-' + idx">{{ item.content }}</span>
+        </div>
+      </div>
+    </div>
+
     <!-- Alert -->
     <div class="alert" :class="[alert.type, { show: alert.show }]">{{ alert.text }}</div>
 
@@ -381,12 +536,27 @@
         <div class="value">{{ result.version_name || '-' }}</div>
 
         <div class="label">账号</div>
-        <div class="value">{{ result.account }}</div>
+        <div class="value value-copy">
+                  <span class="v-text">{{ result.account }}</span>
+                  <button class="btn-copy-sm" type="button" :class="{ copied: copiedField === 'account' }" @click="copyText(result.account, 'account')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    <span>{{ copiedField === 'account' ? '已复制' : '复制' }}</span>
+                  </button>
+                </div>
 
         <div class="label">密码</div>
-        <div class="value">{{ result.password }}</div>
+        <div class="value value-copy">
+                  <span class="v-text">{{ result.password }}</span>
+                  <button class="btn-copy-sm" type="button" :class="{ copied: copiedField === 'password' }" @click="copyText(result.password, 'password')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    <span>{{ copiedField === 'password' ? '已复制' : '复制' }}</span>
+                  </button>
+                </div>
 
-        <div class="label">动态验证码</div>
+        <div class="label">到期时间</div>
+                <div class="value">{{ result.expire_time || '-' }}</div>
+        
+                <div class="label">动态验证码</div>
         <div class="value totp-row">
           <span class="totp-code">{{ result.totp_code || '------' }}</span>
           <button class="btn-mini" @click="refreshTotp" :disabled="loading">刷新验证码</button>
@@ -441,6 +611,37 @@
       </div>
     </div>
 
+    <!-- QA accordion -->
+    <div class="card" v-if="qas.length">
+      <div class="card-head">
+        <div class="icon-chip">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <path d="M12 17h.01"></path>
+          </svg>
+        </div>
+        <h2>常见问题</h2>
+      </div>
+
+      <div class="qa-list">
+        <div class="qa-item" v-for="item in qas" :key="item.id" :class="{ open: openQa === item.id }">
+          <div class="qa-question" @click="toggleQa(item.id)">
+            <span class="q-badge">Q</span>
+            <span class="q-text">{{ item.question }}</span>
+            <svg class="q-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+          <div class="qa-answer">
+            <div>
+              <div class="qa-answer-inner">{{ item.answer }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="footer">
       <span>离线游戏兑换中心</span>
     </div>
@@ -449,27 +650,67 @@
   <script src="/static/js/vue.min.js"></script>
   <script src="/static/js/axios.min.js"></script>
   <script>
+    // ===== 接口请求地址配置：所有请求统一前缀，切换后端域名 / 环境只需改这里 =====
+    var BASE_URL = window.BASE_URL || '/api/web';  // 本地联调默认值；生产同源部署可改为 '/api/web'
+
     new Vue({
       el: '#app',
       data: {
         cdk: '',
         loading: false,
         result: null,
+        copiedField: null,
         alert: { show: false, text: '', type: 'error' },
         alertTimer: null,
         carousels: [],
         carouselIndex: 0,
-        carouselTimer: null
+        carouselTimer: null,
+        announcements: [],
+        qas: [],
+        openQa: null
+      },
+      computed: {
+        announceLoop() {
+          return this.announcements.length > 1
+            ? this.announcements.concat(this.announcements)
+            : this.announcements;
+        },
+        announceDuration() {
+          return Math.max(12, this.announcements.length * 6) + 's';
+        }
       },
       mounted() {
+        this.fetchAnnouncements();
         this.fetchCarousels();
+        this.fetchQas();
       },
       beforeDestroy() {
         this.stopCarousel();
       },
       methods: {
+        fetchAnnouncements() {
+          axios.get(BASE_URL + '/config/announcements', { params: { type: 'offline' } })
+            .then(res => {
+              if (res.data.code === 0 && Array.isArray(res.data.data)) {
+                this.announcements = res.data.data.filter(it => it && it.content);
+              }
+            })
+            .catch(() => {});
+        },
+        fetchQas() {
+          axios.get(BASE_URL + '/config/qas', { params: { type: 'offline' } })
+            .then(res => {
+              if (res.data.code === 0 && Array.isArray(res.data.data)) {
+                this.qas = res.data.data.filter(it => it && it.question);
+              }
+            })
+            .catch(() => {});
+        },
+        toggleQa(id) {
+          this.openQa = (this.openQa === id) ? null : id;
+        },
         fetchCarousels() {
-          axios.get('/api/web/config/carousels')
+          axios.get(BASE_URL + '/config/carousels', { params: { type: 'offline' } })
             .then(res => {
               if (res.data.code === 0 && Array.isArray(res.data.data)) {
                 this.carousels = res.data.data.filter(it => it && it.image);
@@ -506,10 +747,32 @@
           if (this.alertTimer) clearTimeout(this.alertTimer);
           this.alertTimer = setTimeout(() => { this.alert.show = false; }, 3000);
         },
+        copyText(text, field) {
+          if (!text) return;
+          const done = () => {
+            this.copiedField = field;
+            setTimeout(() => { if (this.copiedField === field) this.copiedField = null; }, 1500);
+          };
+          const fallback = () => {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); done(); } catch (e) { this.showMessage('复制失败，请手动复制'); }
+            document.body.removeChild(ta);
+          };
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(done).catch(fallback);
+          } else {
+            fallback();
+          }
+        },
         redeem() {
           if (!this.cdk) { this.showMessage('请输入兑换码'); return; }
           this.loading = true;
-          axios.post('/api/web/offline/redeem', { cdk: this.cdk })
+          axios.post(BASE_URL + '/offline/redeem', { cdk: this.cdk })
             .then(res => {
               if (res.data.code === 0) {
                 this.result = res.data.data;
@@ -524,7 +787,7 @@
         refreshTotp() {
           if (!this.cdk) return;
           this.loading = true;
-          axios.post('/api/web/offline/refresh', { cdk: this.cdk })
+          axios.post(BASE_URL + '/offline/refresh', { cdk: this.cdk })
             .then(res => {
               if (res.data.code === 0 && this.result) {
                 this.result = Object.assign({}, this.result, { totp_code: res.data.data.totp_code });

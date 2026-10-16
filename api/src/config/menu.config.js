@@ -394,6 +394,26 @@ export const menuConfig = [
         path: '/config/carousel/index',
         component: 'config/carousel/index',
         icon: 'ri:image-2-line'
+      },
+      {
+        id: 8002,
+        parentId: 8000,
+        menuType: 0,
+        title: 'menus.pureConfigQa',
+        name: 'ConfigQa',
+        path: '/config/qa/index',
+        component: 'config/qa/index',
+        icon: 'ri:question-line'
+      },
+      {
+        id: 8003,
+        parentId: 8000,
+        menuType: 0,
+        title: 'menus.pureConfigAnnouncement',
+        name: 'ConfigAnnouncement',
+        path: '/config/announcement/index',
+        component: 'config/announcement/index',
+        icon: 'ri:notification-3-line'
       }
     ]
   }

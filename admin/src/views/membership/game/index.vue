@@ -27,6 +27,7 @@ const {
   handleSizeChange,
   handleCurrentChange,
   openDialog,
+  openAccountDialog,
   handleDelete
 } = useGame();
 </script>
@@ -75,6 +76,16 @@ const {
               @click="openDialog('修改', row)"
             >
               修改
+            </el-button>
+            <el-button
+              class="reset-margin"
+              link
+              type="primary"
+              :size="size"
+              :icon="useRenderIcon(AddFill)"
+              @click="openAccountDialog(row)"
+            >
+              新增账号
             </el-button>
             <el-popconfirm :title="`是否确认删除游戏 ${row.name}`" @confirm="handleDelete(row)">
               <template #reference>

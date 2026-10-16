@@ -44,8 +44,8 @@ const {
       </el-form-item>
       <el-form-item label="会员等级" prop="member_level">
         <el-select v-model="form.member_level" placeholder="全部等级" clearable class="w-30!">
-          <el-option label="青铜" :value="1" />
-          <el-option label="黄金" :value="2" />
+          <el-option label="会员" :value="1" />
+          <el-option label="高级会员" :value="2" />
         </el-select>
       </el-form-item>
       <el-form-item label="时长" prop="duration_months">

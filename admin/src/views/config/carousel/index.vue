@@ -46,6 +46,17 @@ const {
           class="w-45!"
         />
       </el-form-item>
+      <el-form-item label="类型" prop="type">
+        <el-select
+          v-model="form.type"
+          placeholder="全部"
+          clearable
+          class="w-30!"
+        >
+          <el-option label="离线" value="offline" />
+          <el-option label="租号" value="rent" />
+        </el-select>
+      </el-form-item>
       <el-form-item label="状态" prop="status">
         <el-select
           v-model="form.status"
@@ -101,6 +112,11 @@ const {
           @page-size-change="handleSizeChange"
           @page-current-change="handleCurrentChange"
         >
+          <template #type="{ row }">
+            <el-tag :type="row.type === 'rent' ? 'warning' : 'primary'" size="small">
+              {{ row.type === "rent" ? "租号" : "离线" }}
+            </el-tag>
+          </template>
           <template #image="{ row }">
             <el-image
               v-if="row.image"

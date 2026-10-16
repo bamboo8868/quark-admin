@@ -40,7 +40,7 @@ export const memberCdkWebController = {
       const result = await memberCdkService.redeemCdk(cdk_code.trim().toUpperCase(), user.memberId);
 
       // Map level number to name
-      const levelNames = { 0: '普通用户', 1: '青铜会员', 2: '黄金会员' };
+      const levelNames = { 0: '游客', 1: '会员', 2: '高级会员' };
 
       return {
         code: 0,
@@ -76,7 +76,7 @@ export const memberCdkWebController = {
       return { code: 10001, message: '会员不存在', data: null };
     }
 
-    const levelNames = { 0: '普通用户', 1: '青铜会员', 2: '黄金会员' };
+    const levelNames = { 0: '游客', 1: '会员', 2: '高级会员' };
 
     return {
       code: 0,

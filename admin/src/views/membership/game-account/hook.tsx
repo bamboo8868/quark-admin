@@ -4,10 +4,12 @@ import {
   getGameAccMgrList,
   createGameAccMgr,
   updateGameAccMgr,
-  deleteGameAccMgr
+  deleteGameAccMgr,
+  importGameAccMgrSda
 } from "@/api/gameAccMgr";
 import { getGameList } from "@/api/game";
-import { ref, reactive, onMounted, h, defineComponent } from "vue";
+import { GameAccFormComponent } from "../components/gameAccForm";
+import { ref, reactive, onMounted, h } from "vue";
 import type { PaginationProps } from "@pureadmin/table";
 
 export function useGameAccount() {
@@ -178,7 +180,7 @@ export function useGameAccount() {
       draggable: true,
       closeOnClickModal: false,
       contentRenderer: () =>
-        h(AccFormComponent, {
+        h(GameAccFormComponent, {
           ref: accFormRef,
           formInline: null,
           gameOptions: gameOptions.value
@@ -218,6 +220,61 @@ export function useGameAccount() {
     }
   }
 
+  /** Import SDA/maFile — 与租号导入一致：按 account_name 全局绑定
+   *  已存在游戏账号的密钥，未匹配的直接跳过不新增 */
+  const importLoading = ref(false);
+
+  function handleImport() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.multiple = true;
+    input.accept = ".json,.mafile";
+    input.onchange = async (e: Event) => {
+      const files = (e.target as HTMLInputElement).files;
+      if (!files || files.length === 0) return;
+
+      importLoading.value = true;
+      try {
+        const allItems: any[] = [];
+        const errors: string[] = [];
+
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          try {
+            const text = await file.text();
+            const json = JSON.parse(text);
+            const items = Array.isArray(json) ? json : json.accounts || [json];
+            allItems.push(...items);
+          } catch (err: any) {
+            errors.push(`${file.name}: ${err?.message || "解析失败"}`);
+          }
+        }
+
+        if (errors.length > 0) {
+          message(`部分文件解析失败: ${errors.join("; ")}`, { type: "warning" });
+        }
+
+        if (allItems.length === 0) {
+          message("所选文件中没有有效数据", { type: "warning" });
+          return;
+        }
+
+        const { code, message: msg } = await importGameAccMgrSda(allItems);
+        if (code === 0) {
+          message(msg || `成功绑定 ${allItems.length} 条数据`, { type: "success" });
+          onSearch();
+        } else {
+          message(msg || "导入失败", { type: "error" });
+        }
+      } catch (err: any) {
+        message(err?.message || "文件处理失败", { type: "error" });
+      } finally {
+        importLoading.value = false;
+      }
+    };
+    input.click();
+  }
+
   onMounted(() => {
     loadGameOptions();
     onSearch();
@@ -236,99 +293,8 @@ export function useGameAccount() {
     handleSizeChange,
     handleCurrentChange,
     openDialog,
-    handleDelete
+    handleDelete,
+    importLoading,
+    handleImport
   };
 }
-
-/** Account form component for dialog */
-const AccFormComponent = defineComponent({
-  name: "GameAccForm",
-  props: {
-    formInline: {
-      type: Object,
-      default: () => ({})
-    },
-    gameOptions: {
-      type: Array,
-      default: () => []
-    }
-  },
-  setup(props, { expose }) {
-    const formRef = ref();
-    const rules = {
-      game_id: [{ required: true, message: "请选择游戏", trigger: "change" }],
-      account: [{ required: true, message: "请输入账号", trigger: "blur" }]
-    };
-
-    const getRef = () => formRef.value;
-    expose({ getRef });
-
-    return () => (
-      <el-form
-        ref={formRef}
-        model={props.formInline}
-        rules={rules}
-        label-width="90px"
-      >
-        <el-form-item label="关联游戏" prop="game_id">
-          <el-select
-            v-model={props.formInline.game_id}
-            placeholder="请选择游戏"
-            clearable
-            filterable
-            style="width: 100%"
-          >
-            {props.gameOptions.map((opt: any) => (
-              <el-option key={opt.value} label={opt.label} value={opt.value} />
-            ))}
-          </el-select>
-        </el-form-item>
-        <el-form-item label="账号" prop="account">
-          <el-input
-            v-model={props.formInline.account}
-            placeholder="请输入账号"
-          />
-        </el-form-item>
-        <el-form-item label="密码" prop="password">
-          <el-input
-            v-model={props.formInline.password}
-            placeholder="请输入密码"
-          />
-        </el-form-item>
-        <el-form-item label="密钥" prop="secret">
-          <el-input
-            v-model={props.formInline.secret}
-            placeholder="请输入密钥/令牌"
-          />
-        </el-form-item>
-        <el-form-item label="等级" prop="level">
-          <el-input-number
-            v-model={props.formInline.level}
-            min={0}
-            max={999}
-          />
-        </el-form-item>
-        <el-form-item label="平台" prop="platform">
-          <el-input
-            v-model={props.formInline.platform}
-            placeholder="如 Steam/Epic"
-          />
-        </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-radio-group v-model={props.formInline.status}>
-            <el-radio value={1}>启用</el-radio>
-            <el-radio value={0}>禁用</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input
-            v-model={props.formInline.remark}
-            type="textarea"
-            rows={2}
-            placeholder="请输入备注"
-          />
-        </el-form-item>
-      </el-form>
-    );
-  }
-});

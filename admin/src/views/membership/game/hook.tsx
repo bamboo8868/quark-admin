@@ -12,6 +12,8 @@ import {
 import {
   getGameTagList
 } from "@/api/gameTag";
+import { createGameAccMgr } from "@/api/gameAccMgr";
+import { GameAccFormComponent } from "../components/gameAccForm";
 import { ref, reactive, onMounted, h, defineComponent } from "vue";
 import type { PaginationProps } from "@pureadmin/table";
 
@@ -19,6 +21,7 @@ export function useGame() {
   const loading = ref(false);
   const formRef = ref();
   const gameFormRef = ref();
+  const accFormRef = ref();
 
   /** Category and tag options for dropdowns */
   const categoryOptions = ref([]);
@@ -87,11 +90,20 @@ export function useGame() {
       label: "会员等级",
       prop: "member_level",
       minWidth: 90,
-      cellRenderer: ({ row }) => (
-        <el-tag type={row.member_level > 0 ? "warning" : "info"} effect="plain">
-          {row.member_level === 0 ? "免费" : `Lv.${row.member_level}`}
-        </el-tag>
-      )
+      cellRenderer: ({ row }) => {
+        const lv = Number(row.member_level || 0);
+        const info =
+          lv >= 2
+            ? { label: "高级会员", type: "success" }
+            : lv === 1
+              ? { label: "会员", type: "warning" }
+              : { label: "游客", type: "info" };
+        return (
+          <el-tag type={info.type as any} effect="plain">
+            {info.label}
+          </el-tag>
+        );
+      }
     },
     {
       label: "详情页",
@@ -109,7 +121,7 @@ export function useGame() {
     {
       label: "操作",
       fixed: "right",
-      width: 160,
+      width: 240,
       slot: "operation"
     }
   ];
@@ -237,6 +249,48 @@ export function useGame() {
     }
   }
 
+  /** Open dialog to create a game account bound to this game */
+  function openAccountDialog(row: any) {
+    addDialog({
+      title: `新增游戏账号 - ${row.name}`,
+      props: {
+        formInline: {
+          game_id: row.id,
+          account: "",
+          password: "",
+          secret: "",
+          level: 0,
+          platform: "",
+          status: 1,
+          remark: ""
+        }
+      },
+      width: "50%",
+      draggable: true,
+      closeOnClickModal: false,
+      contentRenderer: () =>
+        h(GameAccFormComponent, {
+          ref: accFormRef,
+          formInline: null,
+          lockGame: true,
+          gameName: row.name
+        }),
+      beforeSure: async (done, { options }) => {
+        const FormRef = accFormRef.value.getRef();
+        const curData = options.props.formInline;
+        FormRef.validate(async (valid: boolean) => {
+          if (valid) {
+            const { code } = await createGameAccMgr(curData);
+            if (code === 0) {
+              message("新增账号成功", { type: "success" });
+              done();
+            }
+          }
+        });
+      }
+    });
+  }
+
   onMounted(() => {
     loadOptions();
     onSearch();
@@ -255,6 +309,7 @@ export function useGame() {
     handleSizeChange,
     handleCurrentChange,
     openDialog,
+    openAccountDialog,
     handleDelete
   };
 }
@@ -338,12 +393,14 @@ const GameFormComponent = defineComponent({
           </el-select>
         </el-form-item>
         <el-form-item label="会员等级" prop="member_level">
-          <el-input-number
+          <el-select
             v-model={props.formInline.member_level}
-            min={0}
-            max={10}
-            placeholder="0=免费"
-          />
+            placeholder="请选择会员等级"
+          >
+            <el-option label="游客" value={0} />
+            <el-option label="会员" value={1} />
+            <el-option label="高级会员" value={2} />
+          </el-select>
         </el-form-item>
         <el-form-item label="详情页" prop="detail_url">
           <el-input

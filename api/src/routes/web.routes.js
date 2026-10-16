@@ -6,6 +6,8 @@ import { rentWebController } from '../web_controllers/rent.webController.js';
 import { memberCdkWebController } from '../web_controllers/memberCdk.webController.js';
 import { offlineWebController } from '../web_controllers/offline.webController.js';
 import { configCarouselWebController } from '../web_controllers/configCarousel.webController.js';
+import { configQaWebController } from '../web_controllers/configQa.webController.js';
+import { configAnnouncementWebController } from '../web_controllers/configAnnouncement.webController.js';
 
 /**
  * Web routes - public APIs for web project (no admin auth required)
@@ -27,6 +29,9 @@ export async function webRoutes(app) {
   // ==================== Games ====================
   app.post('/web/games', gameWebController.getGames);
   app.get('/web/games/:id', gameWebController.getGameById);
+  app.get('/web/games/:id/accounts', gameWebController.getGameAccounts);
+  // Refresh Steam TOTP for a member-library account (auth + per member/account rate limit)
+  app.post('/web/games/account-totp', gameWebController.refreshAccountTotp);
 
   // ==================== Rent ====================
   app.get('/web/rent/games', rentWebController.getRentGames);
@@ -51,8 +56,10 @@ export async function webRoutes(app) {
   app.post('/web/offline/redeem', offlineWebController.redeem);
   app.post('/web/offline/refresh', offlineWebController.refresh);
 
-  // ==================== Config Carousel (no auth required) ====================
+  // ==================== Config (no auth required) ====================
   app.get('/web/config/carousels', configCarouselWebController.getCarousels);
+  app.get('/web/config/qas', configQaWebController.getQas);
+  app.get('/web/config/announcements', configAnnouncementWebController.getAnnouncements);
 }
 
 export default webRoutes;

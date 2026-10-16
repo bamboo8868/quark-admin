@@ -34,6 +34,13 @@ export const createGameAccMgr = (data?: object) => {
   return http.request<Result>("post", "/api/game-account-mgr/create", { data });
 };
 
+/** 导入SDA/maFile（仅绑定已存在账号的密钥，与租号导入一致） */
+export const importGameAccMgrSda = (items: Array<any>) => {
+  return http.request<Result>("post", "/api/game-account-mgr/import", {
+    data: { items }
+  });
+};
+
 /** 更新游戏账号 */
 export const updateGameAccMgr = (id: number, data?: object) => {
   return http.request<Result>("put", `/api/game-account-mgr/${id}`, { data });

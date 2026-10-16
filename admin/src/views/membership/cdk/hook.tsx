@@ -18,8 +18,8 @@ import Plus from "~icons/ep/plus";
 
 /** Member level map */
 const levelMap: Record<number, { label: string; type: string }> = {
-  1: { label: "青铜", type: "warning" },
-  2: { label: "黄金", type: "success" }
+  1: { label: "会员", type: "warning" },
+  2: { label: "高级会员", type: "success" }
 };
 
 /** Duration options */
@@ -364,8 +364,8 @@ const CdkFormComponent = defineComponent({
         </el-form-item>
         <el-form-item label="会员等级" prop="member_level">
           <el-radio-group v-model={props.formInline.member_level}>
-            <el-radio value={1}>青铜</el-radio>
-            <el-radio value={2}>黄金</el-radio>
+            <el-radio value={1}>会员</el-radio>
+            <el-radio value={2}>高级会员</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="时长" prop="duration_months">
@@ -432,8 +432,8 @@ const BatchFormComponent = defineComponent({
       >
         <el-form-item label="会员等级" prop="member_level">
           <el-radio-group v-model={props.formInline.member_level}>
-            <el-radio value={1}>青铜</el-radio>
-            <el-radio value={2}>黄金</el-radio>
+            <el-radio value={1}>会员</el-radio>
+            <el-radio value={2}>高级会员</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="时长" prop="duration_months">
