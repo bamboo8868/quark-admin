@@ -567,7 +567,7 @@
                 <div class="label">动态验证码</div>
         <div class="value totp-row">
           <span class="totp-code">{{ result.totp_code || '------' }}</span>
-          <button class="btn-mini" @click="refreshTotp" :disabled="loading">刷新验证码</button>
+          <button class="btn-mini" @click="refreshTotp" :disabled="loading || totpCooldown > 0">{{ totpCooldown > 0 ? totpCooldown + ' 秒后可刷新' : '刷新验证码' }}</button>
         </div>
       </div>
 
@@ -668,6 +668,8 @@
         loading: false,
         result: null,
         copiedField: null,
+        totpCooldown: 0,
+        cooldownTimer: null,
         alert: { show: false, text: '', type: 'error' },
         alertTimer: null,
         carousels: [],
@@ -694,6 +696,7 @@
       },
       beforeDestroy() {
         this.stopCarousel();
+        if (this.cooldownTimer) clearInterval(this.cooldownTimer);
       },
       methods: {
         fetchAnnouncements() {
@@ -796,18 +799,39 @@
             .finally(() => { this.loading = false; });
         },
         refreshTotp() {
-          if (!this.cdk) return;
+          if (!this.cdk) { this.showMessage('请先兑换后再获取验证码'); return; }
+          if (this.totpCooldown > 0) return;
           this.loading = true;
           axios.post(BASE_URL + '/offline/refresh', { cdk: this.cdk })
             .then(res => {
-              if (res.data.code === 0 && this.result) {
-                this.result = Object.assign({}, this.result, { totp_code: res.data.data.totp_code });
+              const body = res.data || {};
+              if (body.code === 0) {
+                const code = body.data && body.data.totp_code;
+                if (this.result) {
+                  this.result = Object.assign({}, this.result, { totp_code: code || '' });
+                }
+                // Start the client-side countdown so the button reflects the cooldown.
+                this.startCooldown((body.data && body.data.cooldown) || 10);
               } else {
-                this.showMessage(res.data.message || '刷新失败');
+                this.showMessage(body.message || '刷新失败');
+                if (body.data && body.data.cooldown) this.startCooldown(body.data.cooldown);
               }
             })
             .catch(() => this.showMessage('网络错误，请稍后重试'))
             .finally(() => { this.loading = false; });
+        },
+        startCooldown(sec) {
+          const seconds = Math.max(1, parseInt(sec, 10) || 10);
+          this.totpCooldown = seconds;
+          if (this.cooldownTimer) clearInterval(this.cooldownTimer);
+          this.cooldownTimer = setInterval(() => {
+            this.totpCooldown -= 1;
+            if (this.totpCooldown <= 0) {
+              this.totpCooldown = 0;
+              clearInterval(this.cooldownTimer);
+              this.cooldownTimer = null;
+            }
+          }, 1000);
         }
       }
     });
