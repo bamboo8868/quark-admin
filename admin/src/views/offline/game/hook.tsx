@@ -47,6 +47,16 @@ export function useOfflineGame() {
       minWidth: 200
     },
     {
+      label: "刷新次数",
+      prop: "refresh_count",
+      minWidth: 100,
+      cellRenderer: ({ row }: any) => (
+        <el-tag effect="plain" type="primary">
+          {`${row.refresh_count ?? 3} 次/天`}
+        </el-tag>
+      )
+    },
+    {
       label: "操作",
       fixed: "right",
       width: 240,
@@ -95,10 +105,11 @@ export function useOfflineGame() {
       title: `${title}游戏`,
       props: {
         formInline: {
-          name: row?.name ?? ""
+          name: row?.name ?? "",
+          refresh_count: row?.refresh_count ?? 3
         }
       },
-      width: "30%",
+      width: "40%",
       draggable: true,
       closeOnClickModal: false,
       contentRenderer: () =>
@@ -270,7 +281,10 @@ const GameFormComponent = defineComponent({
   setup(props, { expose }) {
     const formRef = ref();
     const rules = {
-      name: [{ required: true, message: "请输入游戏名称", trigger: "blur" }]
+      name: [{ required: true, message: "请输入游戏名称", trigger: "blur" }],
+      refresh_count: [
+        { required: true, message: "请输入验证码刷新次数", trigger: "blur" }
+      ]
     };
 
     const getRef = () => formRef.value;
@@ -288,6 +302,18 @@ const GameFormComponent = defineComponent({
             v-model={props.formInline.name}
             placeholder="请输入游戏名称"
           />
+        </el-form-item>
+        <el-form-item label="刷新次数" prop="refresh_count">
+          <el-input-number
+            v-model={props.formInline.refresh_count}
+            min={1}
+            max={99}
+            step={1}
+            controls-position="right"
+          />
+          <span style={{ marginLeft: "8px", color: "#909399", fontSize: "12px" }}>
+            每日验证码可刷新次数，默认 3 次
+          </span>
         </el-form-item>
       </el-form>
     );

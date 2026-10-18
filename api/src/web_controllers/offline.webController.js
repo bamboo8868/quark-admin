@@ -40,7 +40,8 @@ function offlineExpireDate(usedAt) {
     return d;
 }
 
-// Max verification-code (TOTP) fetches allowed per CDK per day via /refresh
+// Default max verification-code (TOTP) fetches allowed per CDK per day via /refresh.
+// Overridden per game by offline_games.refresh_count when configured.
 const TOTP_DAILY_LIMIT = 3;
 
 /**
@@ -131,6 +132,12 @@ export const offlineWebController = {
 
         // Already redeemed (permanent): return the bound account with a fresh TOTP
         if (cdk.status === 1) {
+            // Offline accounts are only valid for OFFLINE_VALID_YEARS from the
+            // redemption time (used_at). Past that window the CDK is treated as
+            // expired and can no longer be re-redeemed.
+            if (cdk.used_at && offlineExpireDate(cdk.used_at) < now) {
+                return { code: 10010, message: 'CDK已到期，请联系客服', data: null };
+            }
             if (!cdk.account_id) {
                 return { code: 10005, message: '该兑换码未关联游戏账号', data: null };
             }
@@ -266,9 +273,19 @@ export const offlineWebController = {
         }
 
         // Daily limit (Redis): each CDK may fetch the verification code at most
-        // TOTP_DAILY_LIMIT times per day. The counter key is scoped by server-local
-        // date and expires at midnight, so it resets automatically each day.
+        // N times per day, where N is the game's configured refresh_count (default
+        // TOTP_DAILY_LIMIT). The counter key is scoped by server-local date and
+        // expires at midnight, so it resets automatically each day.
         // Only successful code deliveries are counted.
+        let dailyLimit = TOTP_DAILY_LIMIT;
+        try {
+            const game = await db('offline_games').where('id', cdk.game_id).first();
+            if (game && Number.isFinite(Number(game.refresh_count)) && Number(game.refresh_count) > 0) {
+                dailyLimit = Number(game.refresh_count);
+            }
+        } catch (err) {
+            log.warn(`[OfflineWeb] load refresh_count failed for CDK ${cdk.cdk_code}: ${err.message}`);
+        }
         try {
             const redis = getRedis();
             const key = `offline:totp:refresh:${cdk.id}:${localDateStr()}`;
@@ -276,10 +293,10 @@ export const offlineWebController = {
             if (count === 1) {
                 await redis.expire(key, secondsUntilMidnight());
             }
-            if (count > TOTP_DAILY_LIMIT) {
+            if (count > dailyLimit) {
                 return {
                     code: 10008,
-                    message: `今日验证码获取次数已用完（每天最多${TOTP_DAILY_LIMIT}次），请明天再试`,
+                    message: `今日验证码获取次数已用完（每天最多${dailyLimit}次），请明天再试`,
                     data: null
                 };
             }

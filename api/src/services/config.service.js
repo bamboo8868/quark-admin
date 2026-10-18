@@ -71,6 +71,7 @@ export const qaService = {
       type: normalizeType(data.type),
       question: data.question || '',
       answer: data.answer || '',
+      link: data.link || '',
       sort: data.sort !== undefined && data.sort !== null && data.sort !== '' ? Number(data.sort) : 0,
       status: data.status !== undefined ? data.status : 1
     });
@@ -81,6 +82,7 @@ export const qaService = {
     if (data.type !== undefined) updateData.type = normalizeType(data.type);
     if (data.question !== undefined) updateData.question = data.question;
     if (data.answer !== undefined) updateData.answer = data.answer;
+    if (data.link !== undefined) updateData.link = data.link;
     if (data.sort !== undefined && data.sort !== null && data.sort !== '') updateData.sort = Number(data.sort);
     if (data.status !== undefined) updateData.status = data.status;
     return await qaModel.update(id, updateData);
@@ -141,5 +143,37 @@ export const announcementService = {
       .where('type', normalizeType(type))
       .orderBy('sort', 'asc')
       .orderBy('id', 'asc');
+  }
+};
+
+// ==================== Config Setting (单值配置) ====================
+export const settingService = {
+  /** Read a single config value by key; returns '' when unset. */
+  async getSetting(key) {
+    const row = await db('config_setting').where('key', key).first();
+    return row && row.value !== null && row.value !== undefined ? row.value : '';
+  },
+
+  /** Upsert a single config value by key. */
+  async setSetting(key, value) {
+    const val = value === undefined || value === null ? '' : String(value);
+    const existing = await db('config_setting').where('key', key).first();
+    if (existing) {
+      await db('config_setting')
+        .where('key', key)
+        .update({ value: val, updated_at: new Date() });
+    } else {
+      await db('config_setting').insert({ key, value: val });
+    }
+    return val;
+  },
+
+  /** The global purchase link (购买链接). */
+  async getPurchaseLink() {
+    return await settingService.getSetting('purchase_link');
+  },
+
+  async setPurchaseLink(value) {
+    return await settingService.setSetting('purchase_link', value);
   }
 };

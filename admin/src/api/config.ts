@@ -97,3 +97,15 @@ export const updateAnnouncement = (id: number, data?: object) => {
 export const deleteAnnouncement = (id: number) => {
   return http.request<Result>("delete", `/api/config/announcements/${id}`);
 };
+
+// ==================== Config Setting (购买链接) ====================
+
+/** 获取购买链接 */
+export const getPurchaseLink = () => {
+  return http.request<Result>("get", "/api/config/purchase-link");
+};
+
+/** 更新购买链接 */
+export const updatePurchaseLink = (data: { purchase_link: string }) => {
+  return http.request<Result>("put", "/api/config/purchase-link", { data });
+};

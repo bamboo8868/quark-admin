@@ -53,6 +53,25 @@ export function useConfigQa() {
       showOverflowTooltip: true
     },
     {
+      label: "跳转链接",
+      prop: "link",
+      minWidth: 200,
+      showOverflowTooltip: true,
+      cellRenderer: ({ row }: any) =>
+        row.link ? (
+          <a
+            href={row.link}
+            target="_blank"
+            rel="noopener"
+            style={{ color: "var(--el-color-primary)" }}
+          >
+            {row.link}
+          </a>
+        ) : (
+          <span style={{ color: "var(--el-text-color-secondary)" }}>-</span>
+        )
+    },
+    {
       label: "排序",
       prop: "sort",
       width: 80
@@ -117,6 +136,7 @@ export function useConfigQa() {
           type: row?.type ?? "offline",
           question: row?.question ?? "",
           answer: row?.answer ?? "",
+          link: row?.link ?? "",
           sort: row?.sort ?? 0,
           status: row?.status ?? 1
         }
@@ -228,6 +248,13 @@ const QaFormComponent = defineComponent({
             type="textarea"
             rows={5}
             placeholder="请输入答案"
+          />
+        </el-form-item>
+        <el-form-item label="跳转链接" prop="link">
+          <el-input
+            v-model={props.formInline.link}
+            placeholder="选填，前台点击答案可跳转到此链接，如 https://example.com"
+            clearable
           />
         </el-form-item>
         <el-form-item label="排序" prop="sort">

@@ -948,6 +948,7 @@
         sortBy: 'hot',
         search: '',
         cdkCode: '',
+        purchaseLink: '',
         loginForm: { username: '', password: '' },
         registerForm: { username: '', email: '', password: '', confirm: '' },
         forgotForm: { username: '', email: '', newPassword: '' },
@@ -1065,12 +1066,24 @@
           this.reloadGames();
         },
         buyMember: function () {
+          if (this.purchaseLink) {
+            window.open(this.purchaseLink, '_blank', 'noopener');
+            return;
+          }
           if (!this.user) {
             this.showMessage('error', '请先登录后再购买会员');
             this.openAuthModal('login');
             return;
           }
           this.showMessage('success', '请联系客服购买会员卡密，兑换后立即生效');
+        },
+        fetchPurchaseLink: function () {
+          var self = this;
+          this.api('get', '/config/purchase-link')
+            .then(function (data) {
+              self.purchaseLink = (data && data.purchase_link) ? data.purchase_link : '';
+            })
+            .catch(function () { /* ignore: fall back to contact-service prompt */ });
         },
 
         /* ---------- auth modal ---------- */
@@ -1166,6 +1179,10 @@
                 self.showMessage('error', '请先登录后再取号');
                 self.closeGameModal();
                 self.openAuthModal('login');
+              } else if (e && e.status === 10010) {
+                // 当日取号游戏数已达上限：提示并关闭弹窗
+                self.showMessage('error', (e && e.message) || '今日可获取的游戏已达上限');
+                self.closeGameModal();
               } else {
                 self.showMessage('error', (e && e.message) || '获取账号信息失败');
               }
@@ -1346,6 +1363,7 @@
           } catch (e) { /* ignore */ }
         }
         this.reloadGames();
+        this.fetchPurchaseLink();
         var self = this;
         this._escHandler = function (e) {
           if (e.key === 'Escape') {

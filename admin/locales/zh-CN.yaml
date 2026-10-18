@@ -111,6 +111,9 @@ menus:
   pureOfflineLog: 使用记录
   pureConfigManagement: 配置管理
   pureConfigCarousel: 轮播图管理
+  pureConfigQa: QA管理
+  pureConfigAnnouncement: 公告管理
+  pureConfigPurchase: 购买链接
   pureCodeMirror: 代码编辑器
   pureMarkdown: Markdown
   pureEditor: 编辑器

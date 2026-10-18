@@ -1,4 +1,4 @@
-import { carouselController, qaController, announcementController } from '../controllers/config.controller.js';
+import { carouselController, qaController, announcementController, settingController } from '../controllers/config.controller.js';
 import { authenticate } from '../middlewares/auth.middleware.js';
 
 export async function configRoutes(app) {
@@ -24,6 +24,10 @@ export async function configRoutes(app) {
   app.post('/config/announcements/create', announcementController.createAnnouncement);
   app.put('/config/announcements/:id', announcementController.updateAnnouncement);
   app.delete('/config/announcements/:id', announcementController.deleteAnnouncement);
+
+  // ==================== Config Setting (单值配置：购买链接) ====================
+  app.get('/config/purchase-link', settingController.getPurchaseLink);
+  app.put('/config/purchase-link', settingController.updatePurchaseLink);
 }
 
 export default configRoutes;

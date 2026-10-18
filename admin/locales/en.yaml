@@ -111,6 +111,9 @@ menus:
   pureOfflineLog: Usage Log
   pureConfigManagement: Configuration
   pureConfigCarousel: Carousel
+  pureConfigQa: Q&A
+  pureConfigAnnouncement: Announcement
+  pureConfigPurchase: Purchase Link
   pureCodeMirror: CodeMirror
   pureMarkdown: Markdown
   pureEditor: Editor

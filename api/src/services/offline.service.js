@@ -33,11 +33,15 @@ export const offlineGameService = {
       platform: data.platform || 'Steam',
       description: data.description || '',
       price: data.price || 0,
+      refresh_count: data.refresh_count !== undefined && data.refresh_count !== null && data.refresh_count !== '' ? Number(data.refresh_count) : 3,
       status: data.status !== undefined ? data.status : 1
     });
   },
 
   async updateGame(id, data) {
+    if (data.refresh_count !== undefined && data.refresh_count !== null && data.refresh_count !== '') {
+      data.refresh_count = Number(data.refresh_count);
+    }
     return await offlineGameModel.update(id, data);
   },
 

@@ -1,4 +1,4 @@
-import { carouselService, qaService, announcementService } from '../services/config.service.js';
+import { carouselService, qaService, announcementService, settingService } from '../services/config.service.js';
 
 // ==================== Config Carousel Controller ====================
 export const carouselController = {
@@ -105,5 +105,21 @@ export const announcementController = {
   deleteAnnouncement: async (request, reply) => {
     await announcementService.deleteAnnouncement(request.params.id);
     return { code: 0, message: '操作成功', data: null };
+  }
+};
+
+// ==================== Config Setting Controller (单值配置) ====================
+export const settingController = {
+  // GET /config/purchase-link
+  getPurchaseLink: async (request, reply) => {
+    const link = await settingService.getPurchaseLink();
+    return { code: 0, message: '操作成功', data: { purchase_link: link } };
+  },
+
+  // PUT /config/purchase-link  Body: { purchase_link }
+  updatePurchaseLink: async (request, reply) => {
+    const data = request.body || {};
+    const link = await settingService.setPurchaseLink(data.purchase_link || '');
+    return { code: 0, message: '操作成功', data: { purchase_link: link } };
   }
 };

@@ -8,6 +8,7 @@ import { offlineWebController } from '../web_controllers/offline.webController.j
 import { configCarouselWebController } from '../web_controllers/configCarousel.webController.js';
 import { configQaWebController } from '../web_controllers/configQa.webController.js';
 import { configAnnouncementWebController } from '../web_controllers/configAnnouncement.webController.js';
+import { configPurchaseWebController } from '../web_controllers/configPurchase.webController.js';
 
 /**
  * Web routes - public APIs for web project (no admin auth required)
@@ -60,6 +61,7 @@ export async function webRoutes(app) {
   app.get('/web/config/carousels', configCarouselWebController.getCarousels);
   app.get('/web/config/qas', configQaWebController.getQas);
   app.get('/web/config/announcements', configAnnouncementWebController.getAnnouncements);
+  app.get('/web/config/purchase-link', configPurchaseWebController.getPurchaseLink);
 }
 
 export default webRoutes;

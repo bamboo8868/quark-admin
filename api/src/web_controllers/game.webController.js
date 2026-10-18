@@ -24,6 +24,9 @@ function getWebUser(request) {
 const TOTP_DAILY_LIMIT = 3;        // max successful refreshes per day
 const TOTP_COOLDOWN_SECONDS = 10;  // min seconds between two refreshes
 
+// Max DISTINCT member-library games a member may fetch (取号) per day
+const GAME_FETCH_DAILY_LIMIT = 30;
+
 /** Server-local date string (YYYYMMDD) used to scope daily Redis counter keys */
 function localDateStr() {
   const d = new Date();
@@ -75,6 +78,41 @@ function pickAccountForUser(memberId, gameId, accounts) {
     }
   }
   return best;
+}
+
+/**
+ * Enforce the per-member daily limit on how many DISTINCT games may be fetched.
+ * Re-fetching a game the member already obtained today does NOT consume quota
+ * (account assignment is stable per member+game). Uses a Redis set scoped by
+ * server-local date that expires at midnight; fails open on a Redis outage.
+ * Returns { allowed: true } or { allowed: false }.
+ */
+async function checkDailyGameFetchLimit(memberId, gameId) {
+  try {
+    const redis = getRedis();
+    const key = `member:game:fetch:${memberId}:${localDateStr()}`;
+    // Already obtained this game today -> always allowed, no extra quota used.
+    if (await redis.sismember(key, String(gameId))) {
+      return { allowed: true };
+    }
+    const added = await redis.sadd(key, String(gameId));
+    if (added === 1) {
+      const count = await redis.scard(key);
+      if (count === 1) {
+        await redis.expire(key, secondsUntilMidnight());
+      }
+      if (count > GAME_FETCH_DAILY_LIMIT) {
+        // Over the cap: roll back this addition so it is not counted.
+        await redis.srem(key, String(gameId));
+        return { allowed: false };
+      }
+    }
+    return { allowed: true };
+  } catch (err) {
+    // Fail open: a Redis outage should not block members from getting accounts.
+    log.warn(`[GameWeb] daily game-fetch limit check failed for member ${memberId}: ${err.message}`);
+    return { allowed: true };
+  }
 }
 
 /**
@@ -182,6 +220,16 @@ export const gameWebController = {
 
     if (!accounts.length) {
       return { code: 0, message: '操作成功', data: [] };
+    }
+
+    // A member may fetch at most GAME_FETCH_DAILY_LIMIT distinct games per day.
+    const limit = await checkDailyGameFetchLimit(user.memberId, gameId);
+    if (!limit.allowed) {
+      return {
+        code: 10010,
+        message: `今日可获取的游戏已达上限（每天最多${GAME_FETCH_DAILY_LIMIT}款），请明天再试`,
+        data: null
+      };
     }
 
     const picked = pickAccountForUser(user.memberId, gameId, accounts);

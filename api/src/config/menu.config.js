@@ -414,6 +414,16 @@ export const menuConfig = [
         path: '/config/announcement/index',
         component: 'config/announcement/index',
         icon: 'ri:notification-3-line'
+      },
+      {
+        id: 8004,
+        parentId: 8000,
+        menuType: 0,
+        title: 'menus.pureConfigPurchase',
+        name: 'ConfigPurchase',
+        path: '/config/purchase/index',
+        component: 'config/purchase/index',
+        icon: 'ri:shopping-bag-line'
       }
     ]
   }

@@ -490,6 +490,14 @@
       white-space: pre-wrap;
       word-break: break-word;
     }
+    .qa-answer-inner.qa-clickable { cursor: pointer; transition: color .18s; }
+    .qa-answer-inner.qa-clickable:hover { color: #1677ff; }
+    .qa-link-hint {
+      display: inline-block;
+      margin-left: 6px;
+      font-size: 12px; font-weight: 700; color: #1677ff;
+      white-space: nowrap;
+    }
 
     /* ---------- Footer ---------- */
     .footer {
@@ -749,7 +757,7 @@
           </div>
           <div class="qa-answer">
             <div>
-              <div class="qa-answer-inner">{{ item.answer }}</div>
+              <div class="qa-answer-inner" :class="{ 'qa-clickable': item.link }" @click="openQaLink(item)">{{ item.answer }}<span v-if="item.link" class="qa-link-hint">查看链接 ›</span></div>
             </div>
           </div>
         </div>
@@ -824,6 +832,9 @@
         },
         toggleQa(id) {
           this.openQa = (this.openQa === id) ? null : id;
+        },
+        openQaLink(item) {
+          if (item && item.link) window.open(item.link, '_blank', 'noopener');
         },
         fetchCarousels() {
           axios.get(BASE_URL + '/config/carousels', { params: { type: 'rent' } })
