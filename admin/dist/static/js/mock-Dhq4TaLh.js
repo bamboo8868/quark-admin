@@ -1,0 +1,1 @@
+import{w as e}from"./index-DKE7rAiS.js";var t=t=>e.request(`post`,`https://pureadmin.free.beeceptor.com/images`,{data:t},{headers:{"Content-Type":`multipart/form-data`}});export{t};

@@ -1,0 +1,173 @@
+syntax = "proto3";
+
+package steam.request;
+
+// ==================== CreateFamilyGroup ====================
+// POST https://api.steampowered.com/IFamilyGroupsService/CreateFamilyGroup/v1
+
+message CFamilyGroups_CreateFamilyGroup_Request {
+  string name = 1;
+}
+
+message CFamilyGroups_CreateFamilyGroup_Response {
+  uint64 family_groupid = 1;
+  bool cooldown_skip_granted = 2;
+}
+
+// ==================== GetFamilyGroup ====================
+// GET https://api.steampowered.com/IFamilyGroupsService/GetFamilyGroup/v1
+
+message CFamilyGroups_GetFamilyGroup_Request {
+  uint64 family_groupid = 1;
+  bool send_running_apps = 2;
+}
+
+message FamilyGroupMember {
+  fixed64 steamid = 1;
+  EFamilyGroupRole role = 2;
+  uint32 time_joined = 3;
+  uint32 cooldown_seconds_remaining = 4;
+}
+
+message FamilyGroupPendingInvite {
+  fixed64 steamid = 1;
+  EFamilyGroupRole role = 2;
+}
+
+message FamilyGroupFormerMember {
+  fixed64 steamid = 1;
+}
+
+message CFamilyGroups_GetFamilyGroup_Response {
+  string name = 1;
+  repeated FamilyGroupMember members = 2;
+  repeated FamilyGroupPendingInvite pending_invites = 3;
+  uint32 free_spots = 4;
+  string country = 5;
+  uint32 slot_cooldown_remaining_seconds = 6;
+  repeated FamilyGroupFormerMember former_members = 7;
+  uint32 slot_cooldown_overrides = 8;
+}
+
+// ==================== GetFamilyGroupForUser ====================
+// GET https://api.steampowered.com/IFamilyGroupsService/GetFamilyGroupForUser/v1
+
+message FamilyGroupPendingInviteForUser {
+  uint64 family_groupid = 1;
+  EFamilyGroupRole role = 2;
+  fixed64 inviter_steamid = 3;
+  bool awaiting_2fa = 4;
+  uint64 invite_id = 5;
+}
+
+message CFamilyGroups_GetFamilyGroupForUser_Request {
+  uint64 steamid = 1;
+  bool include_family_group_response = 2;
+}
+
+message FamilyGroupMembership {
+  uint64 family_groupid = 1;
+  uint32 rtime_joined = 2;
+  uint32 rtime_left = 3;
+  uint32 role = 4;
+  bool participated = 5;
+}
+
+message CFamilyGroups_GetFamilyGroupForUser_Response {
+  uint64 family_groupid = 1;
+  bool is_not_member_of_any_group = 2;
+  uint32 latest_time_joined = 3;
+  uint64 latest_joined_family_groupid = 4;
+  repeated FamilyGroupPendingInviteForUser pending_group_invites = 5;
+  uint32 role = 6;
+  uint32 cooldown_seconds_remaining = 7;
+  CFamilyGroups_GetFamilyGroup_Response family_group = 8;
+  bool can_undelete_last_joined_family = 9;
+  repeated FamilyGroupMembership membership_history = 10;
+}
+
+// ==================== ModifyFamilyGroupDetails ====================
+// POST https://api.steampowered.com/IFamilyGroupsService/ModifyFamilyGroupDetails/v1
+
+message CFamilyGroups_ModifyFamilyGroupDetails_Request {
+  uint64 family_groupid = 1;
+  string name = 2;
+}
+
+message CFamilyGroups_ModifyFamilyGroupDetails_Response {
+}
+
+// ==================== InviteToFamilyGroup ====================
+// POST https://api.steampowered.com/IFamilyGroupsService/InviteToFamilyGroup/v1
+
+message CFamilyGroups_InviteToFamilyGroup_Request {
+  uint64 family_groupid = 1;
+  fixed64 receiver_steamid = 2;
+  EFamilyGroupRole receiver_role = 3;
+}
+
+message CFamilyGroups_InviteToFamilyGroup_Response {
+  uint64 invite_id = 1;
+  ETwoFactorMethod two_factor_method = 2;
+}
+
+// ==================== JoinFamilyGroup ====================
+// POST https://api.steampowered.com/IFamilyGroupsService/JoinFamilyGroup/v1
+
+message CFamilyGroups_JoinFamilyGroup_Request {
+  uint64 family_groupid = 1;
+  uint64 nonce = 2;
+}
+
+message CFamilyGroups_JoinFamilyGroup_Response {
+  ETwoFactorMethod two_factor_method = 2;
+  bool cooldown_skip_granted = 3;
+  bool invite_already_accepted = 4;
+  uint32 cooldown_seconds_remaining = 5;
+}
+
+// ==================== RemoveFromFamilyGroup ====================
+// POST https://api.steampowered.com/IFamilyGroupsService/RemoveFromFamilyGroup/v1
+
+message CFamilyGroups_RemoveFromFamilyGroup_Request {
+  uint64 family_groupid = 1;
+  fixed64 steamid_to_remove = 2;
+}
+
+message CFamilyGroups_RemoveFromFamilyGroup_Response {
+}
+
+// ==================== CancelFamilyGroupInvite ====================
+// POST https://api.steampowered.com/IFamilyGroupsService/CancelFamilyGroupInvite/v1
+
+message CFamilyGroups_CancelFamilyGroupInvite_Request {
+  uint64 family_groupid = 1;
+  fixed64 steamid_to_cancel = 2;
+}
+
+message CFamilyGroups_CancelFamilyGroupInvite_Response {
+}
+
+// ==================== DeleteFamilyGroup ====================
+// POST https://api.steampowered.com/IFamilyGroupsService/DeleteFamilyGroup/v1
+
+message CFamilyGroups_DeleteFamilyGroup_Request {
+  uint64 family_groupid = 1;
+}
+
+message CFamilyGroups_DeleteFamilyGroup_Response {
+}
+
+// ==================== Enums ====================
+
+enum EFamilyGroupRole {
+  k_EFamilyGroupRole_None = 0;
+  k_EFamilyGroupRole_Adult = 1;
+  k_EFamilyGroupRole_Child = 2;
+}
+
+enum ETwoFactorMethod {
+  k_ETwoFactorMethod_None = 0;
+  k_ETwoFactorMethod_EmailCode = 1;
+  k_ETwoFactorMethod_SmsCode = 2;
+}

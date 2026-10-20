@@ -114,6 +114,8 @@ menus:
   pureConfigQa: Q&A
   pureConfigAnnouncement: Announcement
   pureConfigPurchase: Purchase Link
+  pureSteamManagement: Steam
+  pureSteamFamily: Family Group
   pureCodeMirror: CodeMirror
   pureMarkdown: Markdown
   pureEditor: Editor

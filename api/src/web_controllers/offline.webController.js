@@ -44,6 +44,9 @@ function offlineExpireDate(usedAt) {
 // Overridden per game by offline_games.refresh_count when configured.
 const TOTP_DAILY_LIMIT = 3;
 
+// Minimum seconds between two verification-code fetches for the same CDK.
+const TOTP_COOLDOWN_SECONDS = 10;
+
 /**
  * Server-local date string (YYYYMMDD) used to scope daily Redis counter keys
  */
@@ -288,6 +291,22 @@ export const offlineWebController = {
         }
         try {
             const redis = getRedis();
+
+            // Cooldown: at most one successful fetch per TOTP_COOLDOWN_SECONDS per CDK.
+            const cdKey = `offline:totp:cd:${cdk.id}`;
+            const cooling = await redis.get(cdKey);
+            if (cooling) {
+                const ttl = await redis.ttl(cdKey);
+                const wait = ttl > 0 ? ttl : TOTP_COOLDOWN_SECONDS;
+                return {
+                    code: 10008,
+                    message: `操作太频繁，请 ${wait} 秒后再试`,
+                    data: { cooldown: wait }
+                };
+            }
+            // Passed cooldown: arm it now so the next attempt must wait.
+            await redis.set(cdKey, '1', 'EX', TOTP_COOLDOWN_SECONDS);
+
             const key = `offline:totp:refresh:${cdk.id}:${localDateStr()}`;
             const count = await redis.incr(key);
             if (count === 1) {
@@ -305,7 +324,7 @@ export const offlineWebController = {
             log.warn(`[OfflineWeb] refresh limit check failed for CDK ${cdk.cdk_code}: ${err.message}`);
         }
 
-        return { code: 0, message: '操作成功', data: { totp_code } };
+        return { code: 0, message: '操作成功', data: { totp_code, cooldown: TOTP_COOLDOWN_SECONDS } };
     }
 };
 

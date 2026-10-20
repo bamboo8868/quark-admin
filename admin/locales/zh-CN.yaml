@@ -114,6 +114,8 @@ menus:
   pureConfigQa: QA管理
   pureConfigAnnouncement: 公告管理
   pureConfigPurchase: 购买链接
+  pureSteamManagement: Steam管理
+  pureSteamFamily: 组建家庭组
   pureCodeMirror: 代码编辑器
   pureMarkdown: Markdown
   pureEditor: 编辑器

@@ -12,6 +12,7 @@ const MEMBERSHIP_RANK = 14;
 const RENT_RANK = 15;
 const OFFLINE_RANK = 16;
 const CONFIG_RANK = 17;
+const STEAM_RANK = 18;
 
 export const menuConfig = [
   {
@@ -424,6 +425,28 @@ export const menuConfig = [
         path: '/config/purchase/index',
         component: 'config/purchase/index',
         icon: 'ri:shopping-bag-line'
+      }
+    ]
+  },
+  {
+    id: 9000,
+    parentId: 0,
+    menuType: 0,
+    title: 'menus.pureSteamManagement',
+    name: 'Steam',
+    path: '/steam',
+    icon: 'ri:steam-line',
+    rank: STEAM_RANK,
+    children: [
+      {
+        id: 9001,
+        parentId: 9000,
+        menuType: 0,
+        title: 'menus.pureSteamFamily',
+        name: 'SteamFamily',
+        path: '/steam/family/index',
+        component: 'steam/family/index',
+        icon: 'ri:group-2-line'
       }
     ]
   }
