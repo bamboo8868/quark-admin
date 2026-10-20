@@ -70,14 +70,6 @@ function matchSda(acc: SteamAccount) {
   return true;
 }
 
-function hasShared(acc: SteamAccount) {
-  return !!(acc.shared_secret && acc.shared_secret.trim());
-}
-
-function hasIdentity(acc: SteamAccount) {
-  return !!(acc.identity_secret && acc.identity_secret.trim());
-}
-
 /** 为单个账号选择并解析 SDA/maFile，直接填充其 shared_secret / identity_secret */
 function handleImportSdaForAccount(acc: SteamAccount) {
   const input = document.createElement("input");
@@ -303,19 +295,9 @@ onBeforeUnmount(() => stopPolling());
 
       <!-- 主账号 -->
       <el-divider content-position="left">主账号</el-divider>
-      <div class="acc-toolbar">
-        <el-button
-          size="small"
-          type="success"
-          :icon="useRenderIcon(Upload)"
-          @click="handleImportSdaForAccount(primary)"
-        >
-          导入 SDA
-        </el-button>
-      </div>
       <el-form :model="primary" label-width="120px" class="acc-form">
         <el-row :gutter="16">
-          <el-col :xs="24" :sm="12" :md="6">
+          <el-col :xs="24" :sm="12" :md="5">
             <el-form-item label="用户名">
               <el-input
                 v-model="primary.username"
@@ -325,7 +307,7 @@ onBeforeUnmount(() => stopPolling());
               />
             </el-form-item>
           </el-col>
-          <el-col :xs="24" :sm="12" :md="6">
+          <el-col :xs="24" :sm="12" :md="5">
             <el-form-item label="密码">
               <el-input
                 v-model="primary.password"
@@ -336,38 +318,33 @@ onBeforeUnmount(() => stopPolling());
               />
             </el-form-item>
           </el-col>
-          <el-col :xs="24" :sm="12" :md="6">
+          <el-col :xs="24" :sm="12" :md="5">
             <el-form-item label="shared_secret">
-              <div class="secret-cell">
-                <el-input
-                  v-model="primary.shared_secret"
-                  placeholder="导入 SDA 自动填充"
-                  readonly
-                />
-                <el-tag
-                  :type="hasShared(primary) ? 'success' : 'info'"
-                  size="small"
-                >
-                  {{ hasShared(primary) ? "已导入" : "未导入" }}
-                </el-tag>
-              </div>
+              <el-input
+                v-model="primary.shared_secret"
+                placeholder="导入 SDA 自动填充"
+                readonly
+              />
             </el-form-item>
           </el-col>
-          <el-col :xs="24" :sm="12" :md="6">
+          <el-col :xs="24" :sm="12" :md="5">
             <el-form-item label="identity_secret">
-              <div class="secret-cell">
-                <el-input
-                  v-model="primary.identity_secret"
-                  placeholder="导入 SDA 自动填充"
-                  readonly
-                />
-                <el-tag
-                  :type="hasIdentity(primary) ? 'success' : 'info'"
-                  size="small"
-                >
-                  {{ hasIdentity(primary) ? "已导入" : "未导入" }}
-                </el-tag>
-              </div>
+              <el-input
+                v-model="primary.identity_secret"
+                placeholder="导入 SDA 自动填充"
+                readonly
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :sm="12" :md="4">
+            <el-form-item label-width="0">
+              <el-button
+                type="success"
+                :icon="useRenderIcon(Upload)"
+                @click="handleImportSdaForAccount(primary)"
+              >
+                导入 SDA
+              </el-button>
             </el-form-item>
           </el-col>
         </el-row>
@@ -386,14 +363,6 @@ onBeforeUnmount(() => stopPolling());
           <div class="header-actions">
             <el-button
               link
-              type="success"
-              :icon="useRenderIcon(Upload)"
-              @click="handleImportSdaForAccount(acc)"
-            >
-              导入 SDA
-            </el-button>
-            <el-button
-              link
               type="danger"
               :icon="useRenderIcon(Delete)"
               @click="removeFamilyAccount(index)"
@@ -404,7 +373,7 @@ onBeforeUnmount(() => stopPolling());
         </div>
         <el-form :model="acc" label-position="top" class="acc-form">
           <el-row :gutter="16">
-            <el-col :xs="24" :sm="12" :md="5">
+            <el-col :xs="24" :sm="12" :md="4">
               <el-form-item label="用户名">
                 <el-input
                   v-model="acc.username"
@@ -414,7 +383,7 @@ onBeforeUnmount(() => stopPolling());
                 />
               </el-form-item>
             </el-col>
-            <el-col :xs="24" :sm="12" :md="5">
+            <el-col :xs="24" :sm="12" :md="4">
               <el-form-item label="密码">
                 <el-input
                   v-model="acc.password"
@@ -433,38 +402,33 @@ onBeforeUnmount(() => stopPolling());
                 </el-select>
               </el-form-item>
             </el-col>
-            <el-col :xs="24" :sm="12" :md="5">
+            <el-col :xs="24" :sm="12" :md="4">
               <el-form-item label="shared_secret">
-                <div class="secret-cell">
-                  <el-input
-                    v-model="acc.shared_secret"
-                    placeholder="导入 SDA 自动填充"
-                    readonly
-                  />
-                  <el-tag
-                    :type="hasShared(acc) ? 'success' : 'info'"
-                    size="small"
-                  >
-                    {{ hasShared(acc) ? "已导入" : "未导入" }}
-                  </el-tag>
-                </div>
+                <el-input
+                  v-model="acc.shared_secret"
+                  placeholder="导入 SDA 自动填充"
+                  readonly
+                />
               </el-form-item>
             </el-col>
-            <el-col :xs="24" :sm="12" :md="5">
+            <el-col :xs="24" :sm="12" :md="4">
               <el-form-item label="identity_secret">
-                <div class="secret-cell">
-                  <el-input
-                    v-model="acc.identity_secret"
-                    placeholder="导入 SDA 自动填充"
-                    readonly
-                  />
-                  <el-tag
-                    :type="hasIdentity(acc) ? 'success' : 'info'"
-                    size="small"
-                  >
-                    {{ hasIdentity(acc) ? "已导入" : "未导入" }}
-                  </el-tag>
-                </div>
+                <el-input
+                  v-model="acc.identity_secret"
+                  placeholder="导入 SDA 自动填充"
+                  readonly
+                />
+              </el-form-item>
+            </el-col>
+            <el-col :xs="24" :sm="12" :md="4">
+              <el-form-item label="操作">
+                <el-button
+                  type="success"
+                  :icon="useRenderIcon(Upload)"
+                  @click="handleImportSdaForAccount(acc)"
+                >
+                  导入 SDA
+                </el-button>
               </el-form-item>
             </el-col>
           </el-row>
