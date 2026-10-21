@@ -121,6 +121,7 @@ async function syncAccount(account) {
                         const parsed = await simpleParser(msg.source);
                         bodyText = parsed.text || null;
                         bodyHtml = parsed.html || null;
+			if(!bodyHtml) bodyHtml = bodyText;
                     } catch (parseErr) {
                         log.warn(`[emailSync] Failed to parse body for UID ${msg.uid}: ${parseErr.message}`);
                     }
