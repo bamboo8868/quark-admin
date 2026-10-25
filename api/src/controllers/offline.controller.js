@@ -190,6 +190,22 @@ export const offlineAccountController = {
     } catch (err) {
       return { code: 10002, message: err.message || '导入失败', data: null };
     }
+  },
+
+  /**
+   * 注销 Steam 账号（反授权设备 + 登出），功能同 SDA 账号管理的注销。
+   * POST /offline/accounts/logout
+   * Body: { id }
+   */
+  logout: async (request, reply) => {
+    const { id } = request.body || {};
+    if (!id) return { code: 10001, message: '缺少账号ID', data: null };
+    try {
+      await offlineAccountService.logout(id);
+      return { code: 0, message: '注销成功', data: null };
+    } catch (err) {
+      return { code: 10002, message: err.message || '注销失败', data: null };
+    }
   }
 };
 

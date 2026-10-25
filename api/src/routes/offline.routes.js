@@ -36,10 +36,12 @@ export async function offlineRoutes(app) {
   app.delete('/offline/accounts/:id', offlineAccountController.deleteAccount);
   app.post('/offline/accounts/batch-delete', offlineAccountController.batchDeleteAccounts);
   app.post('/offline/accounts/import', offlineAccountController.importAccounts);
+  app.post('/offline/accounts/logout', offlineAccountController.logout);
 
-  // ==================== Offline Account Parental Control (Steam Family View) ====================
-  // One-click toggle: auto-detect current state and enable/disable parental control
-  app.post('/offline/accounts/:id/parental-toggle', steamParentalController.toggle);
+  // ==================== Offline Account Parental Control (family-group children) ====================
+  // Log in as the adult account, then enable/disable parental control for the
+  // child members of its family group. Body: { action: 'enable' | 'disable' }
+  app.post('/offline/accounts/:id/parental-control', steamParentalController.parentalControl);
   app.get('/offline/parental-job/:jobId', steamParentalController.getStatus);
 
   // ==================== Offline CDK ====================

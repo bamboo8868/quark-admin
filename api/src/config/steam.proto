@@ -158,6 +158,81 @@ message CFamilyGroups_DeleteFamilyGroup_Request {
 message CFamilyGroups_DeleteFamilyGroup_Response {
 }
 
+// ==================== Parental (家长控制 / Family View) ====================
+// Client unified service "Parental", sent over a logged-in CM session via
+// EMsg.ServiceMethodCallFromClient with target_job_name "Parental.<Method>#1".
+// Field numbers/types below were extracted from Steam's own jspb bundle and
+// match steam-user's bundled steammessages_parental.steamclient.proto.
+
+message ParentalApp {
+  uint32 appid = 1;
+  bool is_allowed = 2;
+}
+
+message ParentalPlaytimeDay {
+  uint64 allowed_time_windows = 1;
+  uint32 allowed_daily_minutes = 2;
+}
+
+message ParentalPlaytimeRestrictions {
+  bool apply_playtime_restrictions = 2;
+  repeated ParentalPlaytimeDay playtime_days = 15;
+}
+
+message ParentalTemporaryPlaytimeRestrictions {
+  ParentalPlaytimeDay restrictions = 1;
+  uint32 rtime_expires = 2;
+}
+
+message ParentalSettings {
+  fixed64 steamid = 1;
+  uint32 applist_base_id = 2;
+  string applist_base_description = 3;
+  repeated ParentalApp applist_base = 4;
+  repeated ParentalApp applist_custom = 5;
+  uint32 passwordhashtype = 6;
+  bytes salt = 7;
+  bytes passwordhash = 8;
+  bool is_enabled = 9;
+  uint32 enabled_features = 10;
+  string recovery_email = 11;
+  bool is_site_license_lock = 12;
+  uint32 temporary_enabled_features = 13;
+  uint32 rtime_temporary_feature_expiration = 14;
+  ParentalPlaytimeRestrictions playtime_restrictions = 15;
+  ParentalTemporaryPlaytimeRestrictions temporary_playtime_restrictions = 16;
+  repeated uint32 excluded_store_content_descriptors = 17;
+  repeated uint32 excluded_community_content_descriptors = 18;
+  repeated uint32 utility_appids = 19;
+}
+
+message CParental_EnableParentalSettings_Request {
+  string password = 1;
+  ParentalSettings settings = 2;
+  string sessionid = 3;
+  uint32 enablecode = 4;
+  fixed64 steamid = 10;
+}
+
+message CParental_EnableParentalSettings_Response {
+}
+
+message CParental_DisableParentalSettings_Request {
+  string password = 1;
+  fixed64 steamid = 10;
+}
+
+message CParental_DisableParentalSettings_Response {
+}
+
+message CParental_GetParentalSettings_Request {
+  fixed64 steamid = 10;
+}
+
+message CParental_GetParentalSettings_Response {
+  ParentalSettings settings = 1;
+}
+
 // ==================== Enums ====================
 
 enum EFamilyGroupRole {
