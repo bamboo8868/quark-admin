@@ -38,6 +38,7 @@ export function useOfflineAccount() {
   /** Search form */
   const form = reactive({
     account: "",
+    nickname: "",
     game_id: null as number | null,
     version_id: null as number | null,
     status: null as number | null
@@ -113,6 +114,12 @@ export function useOfflineAccount() {
           {`${row.bound_cdk_count ?? 0} 个`}
         </el-tag>
       )
+    },
+    {
+      label: "昵称",
+      prop: "nickname",
+      minWidth: 120,
+      showOverflowTooltip: true
     },
     {
       label: "创建时间",
@@ -195,6 +202,7 @@ export function useOfflineAccount() {
     if (!formEl) return;
     formEl.resetFields();
     form.account = "";
+    form.nickname = "";
     form.game_id = null;
     form.version_id = null;
     form.status = null;
@@ -239,6 +247,7 @@ export function useOfflineAccount() {
           game_id: row?.game_id ?? null,
           version_id: row?.version_id ?? null,
           account: row?.account ?? "",
+          nickname: row?.nickname ?? "",
           password: row?.password ?? "",
           code: row?.code ?? "",
           status: row?.status ?? 1
@@ -571,6 +580,12 @@ const AccountFormComponent = defineComponent({
           <el-input
             v-model={(props.formInline as any).account}
             placeholder="请输入游戏账号"
+          />
+        </el-form-item>
+        <el-form-item label="昵称" prop="nickname">
+          <el-input
+            v-model={(props.formInline as any).nickname}
+            placeholder="请输入账号昵称"
           />
         </el-form-item>
         <el-form-item label="游戏密码" prop="password">

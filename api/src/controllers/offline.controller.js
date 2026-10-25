@@ -95,7 +95,7 @@ export const offlineAccountController = {
   getAccounts: async (request, reply) => {
     const body = request.body || {};
     const result = await offlineAccountService.getAccounts(
-      { game_id: body.game_id, version_id: body.version_id, status: body.status, account: body.account },
+      { game_id: body.game_id, version_id: body.version_id, status: body.status, account: body.account, nickname: body.nickname },
       body.page || 1,
       body.limit || 10
     );

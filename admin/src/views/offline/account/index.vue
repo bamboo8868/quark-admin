@@ -66,6 +66,9 @@ const {
       <el-form-item label="账号" prop="account">
         <el-input v-model="form.account" placeholder="搜索账号" clearable class="w-45!" />
       </el-form-item>
+      <el-form-item label="昵称" prop="nickname">
+        <el-input v-model="form.nickname" placeholder="搜索昵称" clearable class="w-45!" />
+      </el-form-item>
       <el-form-item label="状态" prop="status">
         <el-select v-model="form.status" placeholder="全部状态" clearable class="w-30!">
           <el-option label="可用" :value="1" />

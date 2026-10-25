@@ -269,6 +269,7 @@ export const offlineAccountService = {
       game_id: data.game_id,
       version_id: data.version_id,
       account: data.account || '',
+      nickname: data.nickname || '',
       password: data.password || '',
       code: data.code || '',
       status: data.status !== undefined ? data.status : 1
@@ -280,6 +281,7 @@ export const offlineAccountService = {
     if (data.game_id !== undefined) updateData.game_id = data.game_id;
     if (data.version_id !== undefined) updateData.version_id = data.version_id;
     if (data.account !== undefined) updateData.account = data.account;
+    if (data.nickname !== undefined) updateData.nickname = data.nickname;
     if (data.password !== undefined) updateData.password = data.password;
     if (data.code !== undefined) updateData.code = data.code;
     if (data.status !== undefined) updateData.status = data.status;

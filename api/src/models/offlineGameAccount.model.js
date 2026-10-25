@@ -31,6 +31,9 @@ export class OfflineGameAccountModel extends BaseModel {
     if (filters.account) {
       query = query.where('a.account', 'like', `%${filters.account}%`);
     }
+    if (filters.nickname) {
+      query = query.where('a.nickname', 'like', `%${filters.nickname}%`);
+    }
 
     const countQuery = db('offline_game_account as a');
     if (filters.game_id) countQuery.where('a.game_id', filters.game_id);
@@ -39,6 +42,7 @@ export class OfflineGameAccountModel extends BaseModel {
       countQuery.where('a.status', filters.status);
     }
     if (filters.account) countQuery.where('a.account', 'like', `%${filters.account}%`);
+    if (filters.nickname) countQuery.where('a.nickname', 'like', `%${filters.nickname}%`);
     const [{ count }] = await countQuery.count('* as count');
     const total = parseInt(count, 10);
 
