@@ -37,6 +37,7 @@ const {
   openDialog,
   handleDelete,
   handleLogout,
+  loggingOutId,
   importLoading,
   handleImport,
   parentalDialogVisible,
@@ -171,6 +172,7 @@ const {
                   link
                   type="danger"
                   :size="size"
+                  :loading="loggingOutId === row.id"
                   :icon="useRenderIcon(SwitchButton)"
                 >
                   注销

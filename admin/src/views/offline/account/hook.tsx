@@ -287,12 +287,22 @@ export function useOfflineAccount() {
     }
   }
 
-  /** 注销 Steam 账号（反授权设备 + 登出），功能同 SDA 账号管理注销 */
+  /** 注销 Steam 账号（Playwright 真实浏览器反授权所有设备 + 登出），流程较慢，用 loggingOutId 标记加载态并防重复点击 */
+  const loggingOutId = ref<number | null>(null);
   async function handleLogout(row: any) {
-    const { code } = await logoutOfflineAccount(row.id);
-    if (code === 0) {
-      message("注销成功", { type: "success" });
-      onSearch();
+    if (loggingOutId.value) {
+      message("已有注销任务进行中，请稍候", { type: "warning" });
+      return;
+    }
+    loggingOutId.value = row.id;
+    try {
+      const { code } = await logoutOfflineAccount(row.id);
+      if (code === 0) {
+        message("注销成功", { type: "success" });
+        onSearch();
+      }
+    } finally {
+      loggingOutId.value = null;
     }
   }
 
@@ -459,6 +469,7 @@ export function useOfflineAccount() {
     openDialog,
     handleDelete,
     handleLogout,
+    loggingOutId,
     importLoading,
     handleImport,
     parentalDialogVisible,

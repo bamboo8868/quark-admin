@@ -141,11 +141,11 @@ export const getOfflineParentalJobStatus = (jobId: string) => {
   return http.request<Result>("get", `/api/offline/parental-job/${jobId}`);
 };
 
-/** 注销 Steam 账号（反授权设备 + 登出），功能同 SDA 账号管理的注销 */
+/** 注销 Steam 账号（反授权设备 + 登出），Playwright 真实浏览器流程耗时较长，单独加大超时 */
 export const logoutOfflineAccount = (id: number) => {
   return http.request<Result>("post", "/api/offline/accounts/logout", {
     data: { id }
-  });
+  }, { timeout: 120000 });
 };
 
 // ==================== Offline CDK Management ====================
