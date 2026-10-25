@@ -95,39 +95,165 @@ export const offlineVersionService = {
 };
 
 // ==================== Offline Game Accounts ====================
-/**
- * SteamCommunity 反授权+登出（与 accountsSimple.service.js 的 SDA 注销方案一致）：
- * 登录 web 会话后，反授权所有设备(action=deauthorize) + 登出 web 会话。
- * 对应 Steam 官方 Manage Steam Guard -> Deauthorize all devices / Sign out everywhere。
- * 在此重复定义以保证本服务自包含，不依赖其它模块的导入顺序。
- */
-SteamCommunity.prototype.flushAll = async function (sessionID) {
-  const post = (options) => new Promise((resolve, reject) => {
-    this.httpRequestPost(options, (err, response, body) => {
+// 「注销所有设备」Playwright 方案（与根目录 flush_playwright.js 一致）：
+// steamcommunity 负责登录拿鉴权 cookie（含 steamLoginSecure / sessionid），
+// 注入真实 Chromium → 打开授权设备页（浏览器自动执行 Akamai sensor JS，拿到 ak_bmsc/_abck/bm_sv）
+// → 在页面内用 fetch 发注销请求（真实浏览器上下文 = Akamai 干净）→ 登出。
+// 替代原 CM webLogOn 派生 cookie + flushAll 直发 HTTP 的方案：CM 派生 cookie 不带 Akamai
+// cookie(ak_bmsc/bm_sv)，manage_action 可能被 Steam 静默拒绝。
+
+const STORE_ORIGIN = 'https://store.steampowered.com';
+
+// 把 steamcommunity 返回的 Set-Cookie 字符串解析成 Playwright 需要的 cookie 对象
+function parseSetCookie(str) {
+  const parts = String(str).split(';');
+  const nv = parts.shift();
+  const eq = nv.indexOf('=');
+  if (eq === -1) return null;
+  const cookie = { name: nv.slice(0, eq).trim(), value: nv.slice(eq + 1).trim() };
+  for (let attr of parts) {
+    attr = attr.trim();
+    const low = attr.toLowerCase();
+    if (low.startsWith('domain=')) cookie.domain = attr.slice(7).trim();
+    else if (low.startsWith('path=')) cookie.path = attr.slice(5).trim();
+    else if (low === 'secure') cookie.secure = true;
+    else if (low === 'httponly') cookie.httpOnly = true;
+    else if (low.startsWith('expires=')) {
+      const t = Date.parse(attr.slice(8));
+      if (!isNaN(t)) cookie.expires = Math.floor(t / 1000);
+    } else if (low.startsWith('samesite=')) {
+      const v = attr.slice(9).trim().toLowerCase();
+      if (v === 'lax' || v === 'strict' || v === 'none') {
+        cookie.sameSite = v.charAt(0).toUpperCase() + v.slice(1);
+      }
+    }
+  }
+  if (!cookie.path) cookie.path = '/';
+  if (cookie.sameSite === 'None') cookie.secure = true; // None 必须配合 Secure
+  return cookie;
+}
+
+// 没有 Domain 的 cookie，给 store / community 两个域各注入一份
+function expandCookies(rawCookies) {
+  const out = [];
+  const domains = ['.steampowered.com', '.steamcommunity.com'];
+  for (const c of rawCookies || []) {
+    const parsed = parseSetCookie(c);
+    if (!parsed) continue;
+    if (parsed.domain) out.push(parsed);
+    else for (const d of domains) out.push({ ...parsed, domain: d });
+  }
+  return out;
+}
+
+// 用 steamcommunity 登录拿 web 会话，返回 { sessionId, cookies }
+function loginSteamCommunity(accountName, password, sharedSecret) {
+  return new Promise((resolve, reject) => {
+    const steamObj = new SteamCommunity();
+    const twoFactorCode = SteamTotp.generateAuthCode(sharedSecret);
+    steamObj.login({ accountName, password, twoFactorCode }, (err, sessionId, cookies) => {
       if (err) return reject(err);
-      resolve({ response, body });
+      if (sessionId && typeof sessionId === 'string' && sessionId.includes(';')) {
+        sessionId = sessionId.split(';')[0];
+      }
+      resolve({ sessionId, cookies });
     });
   });
-  try {
-    await post({
-      uri: 'https://store.steampowered.com/twofactor/manage_action',
-      formData: { action: 'deauthorize', sessionid: sessionID }
-    });
+}
 
-    log.info(`[OfflineAccount] flush deauthorize success:`);
-  } catch (err) {
-    log.error(`[OfflineAccount] flush deauthorize error: ${err.message}`);
-  }
+// 注销需要启动真实浏览器，开销较大，用 Promise 链串行化，避免并发注销同时开多个浏览器
+let logoutQueue = Promise.resolve();
+
+/**
+ * Playwright 版「注销所有设备」：
+ * 1. steamcommunity 登录拿 cookie → 2. 启动真实浏览器(优先系统 Chrome/Edge，免下载 Chromium 且指纹更真)
+ * → 3. 注入 cookie → 4. 打开 /account/authorizeddevices 让浏览器自动跑 Akamai JS
+ * → 5. 页面内 fetch 执行 manage_action(action=deauthorize) → 6. 页面内 fetch 登出。
+ * 失败一律抛错，由调用方决定是否包装为 AppError。
+ */
+async function deauthorizeAllDevicesViaBrowser({ accountName, password, sharedSecret }) {
+  const { chromium } = await import('playwright');
+
+  // 1. steamcommunity 登录
+  const { sessionId, cookies } = await loginSteamCommunity(accountName, password, sharedSecret);
+  log.info(`[OfflineAccount] steamcommunity 登录成功: ${accountName} sessionId=${sessionId}`);
+
+  // 2. 启动浏览器；用真实浏览器时不覆盖 userAgent，保持 UA 与指纹一致（更不易被 Akamai 识破）
+  const HEADLESS = process.env.PW_HEADLESS !== 'false';
+  const CHANNEL = process.env.PW_CHANNEL || 'chrome'; // 'chrome' | 'msedge' | ''(内置Chromium)
+  const launchArgs = ['--disable-blink-features=AutomationControlled'];
+  let browser;
   try {
-    await post({
-      uri: 'https://store.steampowered.com/logout',
-      form: { sessionid: sessionID },
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-    });
-  } catch (err) {
-    log.error(`[OfflineAccount] logout error: ${err.message}`);
+    browser = await chromium.launch({ headless: HEADLESS, channel: CHANNEL, args: launchArgs });
+  } catch (e) {
+    log.warn(`[OfflineAccount] channel=${CHANNEL} 启动失败(${e.message})，回退到 msedge...`);
+    try {
+      browser = await chromium.launch({ headless: HEADLESS, channel: 'msedge', args: launchArgs });
+    } catch (e2) {
+      log.warn(`[OfflineAccount] msedge 也失败(${e2.message})，回退到内置 Chromium...`);
+      browser = await chromium.launch({ headless: HEADLESS, args: launchArgs });
+    }
   }
-};
+  const context = await browser.newContext({ locale: 'zh-CN', viewport: { width: 1366, height: 900 } });
+
+  try {
+    // 3. 注入登录 cookie
+    const pwCookies = expandCookies(cookies);
+    await context.addCookies(pwCookies);
+
+    const page = await context.newPage();
+
+    // 4. 打开授权设备页（浏览器自动跑 Akamai JS，拿到 ak_bmsc/_abck/bm_sv）
+    await page.goto(`${STORE_ORIGIN}/account/authorizeddevices`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.waitForLoadState('networkidle', { timeout: 20000 }).catch(() => {});
+    if (/\/login|\/account\/login/i.test(page.url())) {
+      throw new Error('未登录：被重定向到登录页，注入的 cookie 可能无效');
+    }
+
+    // 5. 页面内 fetch 执行「注销所有设备」（等同点击按钮）
+    const result = await page.evaluate(async (fallbackSessionId) => {
+      const m = document.cookie.match(/(?:^|;\s*)sessionid=([^;]+)/);
+      const sessionid = m ? decodeURIComponent(m[1]) : fallbackSessionId;
+      const fd = new FormData();
+      fd.append('action', 'deauthorize');
+      fd.append('sessionid', sessionid);
+      const res = await fetch('/twofactor/manage_action', {
+        method: 'POST',
+        body: fd,
+        headers: { 'Accept': 'application/json, text/plain, */*' },
+        credentials: 'include'
+      });
+      let text = '';
+      try { text = await res.text(); } catch (e) { /* ignore */ }
+      return { status: res.status, url: res.url, body: text.slice(0, 800) };
+    }, sessionId);
+
+    // 必须校验真实响应：fetch 不抛错只代表“请求完成”，不代表 Steam 真的受理了反授权
+    log.info(`[OfflineAccount] deauthorize 响应: status=${result.status} body=${result.body}`);
+    if (result.status !== 200) {
+      throw new Error(`反授权请求失败: HTTP ${result.status}`);
+    }
+    if (/"success"\s*:\s*false/i.test(result.body)) {
+      throw new Error(`Steam 拒绝反授权: ${result.body.slice(0, 200)}`);
+    }
+
+    // 6. 登出 web 会话（失败不影响反授权结果，仅记录）
+    const logout = await page.evaluate(async (fallbackSessionId) => {
+      const m = document.cookie.match(/(?:^|;\s*)sessionid=([^;]+)/);
+      const sessionid = m ? decodeURIComponent(m[1]) : fallbackSessionId;
+      const res = await fetch('/logout', {
+        method: 'POST',
+        body: new URLSearchParams({ sessionid }),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        credentials: 'include'
+      });
+      return { status: res.status };
+    }, sessionId).catch((err) => ({ status: 0, error: err.message }));
+    log.info(`[OfflineAccount] web logout 响应: status=${logout.status}${logout.error ? ` error=${logout.error}` : ''}`);
+  } finally {
+    await browser.close().catch(() => {});
+  }
+}
 
 export const offlineAccountService = {
   async getAccounts(filters, page, limit) {
@@ -190,8 +316,9 @@ export const offlineAccountService = {
   },
 
   /**
-   * 注销 Steam 账号：与"游戏管理 → SDA账号管理"的注销方案一致——
-   * SteamCommunity 登录 web 会话 → flushAll（反授权所有设备 deauthorize + 登出 web 会话）。
+   * 注销 Steam 账号（在所有设备退出登录）—— Playwright 方案（同根目录 flush_playwright.js）：
+   * steamcommunity 登录拿鉴权 cookie → 注入真实浏览器 → 打开授权设备页让 Akamai JS 跑完
+   * → 页面内 fetch manage_action(action=deauthorize) 反授权所有设备 → 登出 web 会话。
    * 仅账号来源为 offline_game_account。
    */
   async logout(id) {
@@ -200,33 +327,21 @@ export const offlineAccountService = {
     if (!accountInfo.password) throw new AppError('账号密码不存在');
     if (!accountInfo.code) throw new AppError('账号缺少动态码(shared_secret)，无法注销');
 
-    const code = SteamTotp.generateAuthCode(accountInfo.code);
-    const steamObj = new SteamCommunity();
-    let sessionId;
+    // 串行执行：每次注销都要启动一个真实浏览器，避免并发耗尽资源
+    const task = logoutQueue.then(() => deauthorizeAllDevicesViaBrowser({
+      accountName: accountInfo.account,
+      password: accountInfo.password,
+      sharedSecret: accountInfo.code
+    }));
+    logoutQueue = task.catch(() => {});
+
     try {
-      sessionId = await new Promise((resolve, reject) => {
-        steamObj.login({
-          accountName: accountInfo.account,
-          password: accountInfo.password,
-          twoFactorCode: code
-        }, (err, sid) => {
-          if (err) reject(err);
-          else resolve(sid);
-        });
-      });
+      await task;
     } catch (err) {
-      log.error(`[OfflineAccount] Steam 登录失败(id=${id}): ${err.message}`);
-      throw new AppError('STEAM登录失败,请重试');
+      log.error(`[OfflineAccount] 注销失败(id=${id}, account=${accountInfo.account}): ${err.message}`);
+      throw new AppError(`STEAM注销失败,请重试（原因：${err.message}）`);
     }
-
-    if (sessionId) {
-      if (typeof sessionId === 'string' && sessionId.includes(';')) {
-        sessionId = sessionId.split(';')[0];
-      }
-
-      await steamObj.flushAll(sessionId);
-      log.info(`[OfflineAccount] 已注销(反授权+登出): ${accountInfo.account} (id=${id})`);
-    }
+    log.info(`[OfflineAccount] 已注销(反授权所有设备+登出): ${accountInfo.account} (id=${id})`);
   }
 };
 
