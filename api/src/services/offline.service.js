@@ -9,6 +9,7 @@ import { log } from '../utils/logger.js';
 import { AppError } from '../middlewares/error.middleware.js';
 import SteamTotp from 'steam-totp';
 import SteamUser from 'steam-user';
+import SteamCommunity from 'steamcommunity';
 
 const offlineGameModel = new OfflineGameModel();
 const offlineVersionModel = new OfflineGameVersionModel();
@@ -95,6 +96,98 @@ export const offlineVersionService = {
 };
 
 // ==================== Offline Game Accounts ====================
+/**
+ * 通过 steam-user 建立一条新的 CM 连接再断开：Steam 会把该账号当前在线的
+ * 客户端以 "LoggedInElsewhere" 强制登出，实现真正的"退出登录"（而非仅置离线）。
+ */
+function kickSteamCmSessions(accountInfo, twoFactorCode) {
+  const client = new SteamUser({ autoRelogin: false, machineName: 'offline-logout' });
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const fail = (msg) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      try { client.logOff(); } catch (_) { /* ignore */ }
+      reject(new Error(msg));
+    };
+    // 兜底超时，避免 logOn 无响应时请求长时间挂起
+    const timer = setTimeout(() => fail('Steam 登录超时，请重试'), 30000);
+
+    client.on('error', (err) => {
+      const eresult = err.eresult;
+      const name = eresult !== undefined && SteamUser.EResult[eresult]
+        ? SteamUser.EResult[eresult]
+        : eresult;
+      fail(`Steam 登录/协议错误: ${err.message}${name ? ` (EResult: ${name})` : ''}`);
+    });
+
+    client.on('steamGuard', (domain, callback, lastCodeWrong) => {
+      fail(lastCodeWrong
+        ? 'Steam Guard 验证码错误 (twoFactorCode 无效或已过期)'
+        : `Steam Guard 请求验证码 (domain=${domain}) — 请检查 shared_secret`);
+    });
+
+    // 登录成功：新的 CM 连接已把对方客户端以 LoggedInElsewhere 踢下线
+    client.on('loggedOn', () => {
+      if (settled) return;
+      // 稍等会话稳定，再断开自身连接完成"退出登录"（不再 setPersona Offline）
+      setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        try { client.logOff(); } catch (_) { /* ignore */ }
+        resolve();
+      }, 1500);
+    });
+
+    try {
+      client.logOn({
+        accountName: accountInfo.account,
+        password: accountInfo.password,
+        twoFactorCode
+      });
+    } catch (e) {
+      fail(`logOn 调用失败: ${e.message}`);
+    }
+  });
+}
+
+/**
+ * 通过 SteamCommunity web 反授权所有设备 + 登出 web 会话（对应 Steam 官方
+ * Manage Steam Guard -> Deauthorize all devices / Sign out everywhere）：
+ * 清除"记住我"的设备授权，避免被踢下线的客户端自动重连。
+ * 注意：deauthorize 只移除设备授权，不会移除身份验证器，shared_secret 仍然有效。
+ */
+async function deauthorizeAllDevicesWeb(accountInfo, twoFactorCode) {
+  const steamObj = new SteamCommunity();
+  const sessionId = await new Promise((resolve, reject) => {
+    steamObj.login(
+      { accountName: accountInfo.account, password: accountInfo.password, twoFactorCode },
+      (err, sid) => (err ? reject(err) : resolve(sid))
+    );
+  });
+  let sid = sessionId;
+  if (typeof sid === 'string' && sid.includes(';')) sid = sid.split(';')[0];
+
+  const post = (options) => new Promise((resolve, reject) => {
+    steamObj.httpRequestPost(options, (err, response, body) => (err ? reject(err) : resolve({ response, body })));
+  });
+
+  // 反授权所有设备
+  let res = await post({
+    uri: 'https://store.steampowered.com/twofactor/manage_action',
+    formData: { action: 'deauthorize', sessionid: sid }
+  });
+
+  // 登出 web 会话
+  await post({
+    uri: 'https://store.steampowered.com/logout',
+    form: { sessionid: sid },
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+  });
+}
+
 export const offlineAccountService = {
   async getAccounts(filters, page, limit) {
     return await offlineAccountModel.getAccountsWithFilters(filters, page, limit);
@@ -156,15 +249,11 @@ export const offlineAccountService = {
   },
 
   /**
-   * 强制下线 Steam 账号。
-   *
-   * 原理：通过 steam-user 建立一条新的 CM 连接（logOn）。Steam 同一账号新的 CM
-   * 登录会把当前在线的客户端以 "LoggedInElsewhere" 踢下线；随后将状态置为离线
-   * (setPersona Offline) 并断开自身连接(logOff)，账号即变为离线。
-   *
-   * 注意：这里不使用 SteamCommunity 的 web 登出 / 设备反授权(deauthorize)——
-   * web 会话与 Steam 客户端(CM)会话相互独立，web 登出无法踢下线；而 deauthorize
-   * 会移除 Steam Guard 设备授权，导致离线账号下次租用时无法登录。
+   * 在所有地方退出登录 Steam 账号（全端注销）：
+   *   1) CM 踢下线：新建 CM 连接使当前在线客户端收到 LoggedInElsewhere 被强制登出，
+   *      随后断开自身连接——这才是真正的"退出登录"，而不是仅把状态置为离线。
+   *   2) Web 反授权所有设备 + 登出：清除"记住我"的设备授权，避免客户端自动重连。
+   * 账号来源为 offline_game_account；shared_secret 不受影响，之后仍可正常登录租用。
    */
   async logout(id) {
     const accountInfo = await db('offline_game_account').where('id', id).first();
@@ -172,83 +261,30 @@ export const offlineAccountService = {
     if (!accountInfo.password) throw new AppError('账号密码不存在');
     if (!accountInfo.code) throw new AppError('账号缺少动态码(shared_secret)，无法注销');
 
-    let twoFactorCode;
+    // 1) CM 踢下线（主手段：真正让当前在线客户端退出登录）
+    let cmCode;
     try {
-      twoFactorCode = SteamTotp.generateAuthCode(accountInfo.code);
+      cmCode = SteamTotp.generateAuthCode(accountInfo.code);
     } catch (err) {
       log.error(`[OfflineAccount] generateAuthCode 失败(id=${id}): ${err.message}`);
       throw new AppError('生成Steam验证码失败，请检查shared_secret');
     }
-
-    const client = new SteamUser({
-      autoRelogin: false,   // 一次性会话，不自动重连
-      machineName: 'offline-logout'
-    });
-
-    const kickOffline = () =>
-      new Promise((resolve, reject) => {
-        let settled = false;
-        const fail = (msg) => {
-          if (settled) return;
-          settled = true;
-          clearTimeout(timer);
-          reject(new Error(msg));
-        };
-        // 兜底超时，避免 logOn 无响应时请求长时间挂起
-        const timer = setTimeout(() => fail('Steam 登录超时，请重试'), 30000);
-
-        // 致命的登录 / 协议错误
-        client.on('error', (err) => {
-          const eresult = err.eresult;
-          const name = eresult !== undefined && SteamUser.EResult[eresult]
-            ? SteamUser.EResult[eresult]
-            : eresult;
-          fail(`Steam 登录/协议错误: ${err.message}${name ? ` (EResult: ${name})` : ''}`);
-        });
-
-        // Steam Guard 提示——已提供 twoFactorCode，触发说明验证码无效或需邮箱验证
-        client.on('steamGuard', (domain, callback, lastCodeWrong) => {
-          fail(lastCodeWrong
-            ? 'Steam Guard 验证码错误 (twoFactorCode 无效或已过期)'
-            : `Steam Guard 请求验证码 (domain=${domain}) — 请检查 shared_secret`);
-        });
-
-        // 登录成功：新的 CM 连接已把对方客户端踢下线
-        client.on('loggedOn', () => {
-          if (settled) return;
-          // 稍等会话稳定，再置为离线并断开自身连接
-          setTimeout(() => {
-            if (settled) return;
-            try { client.setPersona(SteamUser.EPersonaState.Offline); } catch (_) { /* ignore */ }
-            setTimeout(() => {
-              if (settled) return;
-              settled = true;
-              clearTimeout(timer);
-              try { client.logOff(); } catch (_) { /* ignore */ }
-              resolve();
-            }, 1500);
-          }, 800);
-        });
-
-        // 发起登录
-        try {
-          client.logOn({
-            accountName: accountInfo.account,
-            password: accountInfo.password,
-            twoFactorCode
-          });
-        } catch (e) {
-          fail(`logOn 调用失败: ${e.message}`);
-        }
-      });
-
     try {
-      await kickOffline();
-      log.info(`[OfflineAccount] 已强制下线: ${accountInfo.account} (id=${id})`);
+      await kickSteamCmSessions(accountInfo, cmCode);
+      log.info(`[OfflineAccount] CM 会话已踢下线: ${accountInfo.account} (id=${id})`);
     } catch (err) {
-      try { client.logOff(); } catch (_) { /* ignore */ }
-      log.error(`[OfflineAccount] 强制下线失败(id=${id}): ${err.message}`);
+      log.error(`[OfflineAccount] CM 踢下线失败(id=${id}): ${err.message}`);
       throw new AppError(`注销失败：${err.message}`);
+    }
+
+    // 2) Web 反授权所有设备 + 登出（best-effort：防止自动重连）
+    //    与 CM 登录靠得很近，验证码可能同窗口被 Steam 拒绝，故失败不影响主流程。
+    try {
+      const webCode = SteamTotp.generateAuthCode(accountInfo.code);
+      await deauthorizeAllDevicesWeb(accountInfo, webCode);
+      log.info(`[OfflineAccount] 已反授权所有设备并登出 web 会话: ${accountInfo.account} (id=${id})`);
+    } catch (err) {
+      log.error(`[OfflineAccount] web 反授权失败(不影响已踢下线): ${err.message}`);
     }
   }
 };
