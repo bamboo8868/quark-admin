@@ -109,32 +109,21 @@ SteamCommunity.prototype.flushAll = async function (sessionID) {
     });
   });
   try {
-    const { response, body } = await post({
+    await post({
       uri: 'https://store.steampowered.com/twofactor/manage_action',
-      // 必须用 form（application/x-www-form-urlencoded），不能用 formData（multipart），
-      // 否则 Steam 不解析 body，反授权会静默失败。与浏览器原始请求保持一致。
-      form: { action: 'deauthorize', sessionid: sessionID },
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Origin': 'https://store.steampowered.com',
-        'Referer': 'https://store.steampowered.com/twofactor/manage'
-      }
+      formData: { action: 'deauthorize', sessionid: sessionID }
     });
-    log.info(`[OfflineAccount] deauthorize 响应: status=${response && response.statusCode} body=${String(body).slice(0, 300)}`);
+
+    log.info(`[OfflineAccount] flush deauthorize success:`);
   } catch (err) {
     log.error(`[OfflineAccount] flush deauthorize error: ${err.message}`);
   }
   try {
-    const { response } = await post({
+    await post({
       uri: 'https://store.steampowered.com/logout',
       form: { sessionid: sessionID },
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Origin': 'https://store.steampowered.com',
-        'Referer': 'https://store.steampowered.com/twofactor/manage'
-      }
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     });
-    log.info(`[OfflineAccount] web logout 响应: status=${response && response.statusCode}`);
   } catch (err) {
     log.error(`[OfflineAccount] logout error: ${err.message}`);
   }
@@ -227,7 +216,7 @@ export const offlineAccountService = {
       });
     } catch (err) {
       log.error(`[OfflineAccount] Steam 登录失败(id=${id}): ${err.message}`);
-      throw new AppError(`STEAM登录失败,请重试（原因：${err.message}）`);
+      throw new AppError('STEAM登录失败,请重试');
     }
 
     if (sessionId) {
