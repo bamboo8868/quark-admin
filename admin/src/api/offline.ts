@@ -124,6 +124,16 @@ export const importOfflineAccounts = (items: Array<any>) => {
   });
 };
 
+/** 一键切换家长控制（自动检测当前状态并启用/关闭），返回 jobId */
+export const toggleOfflineAccountParental = (id: number) => {
+  return http.request<Result>("post", `/api/offline/accounts/${id}/parental-toggle`);
+};
+
+/** 轮询家长控制任务状态与日志 */
+export const getOfflineParentalJobStatus = (jobId: string) => {
+  return http.request<Result>("get", `/api/offline/parental-job/${jobId}`);
+};
+
 // ==================== Offline CDK Management ====================
 
 /** 获取CDK列表 */

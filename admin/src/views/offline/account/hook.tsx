@@ -8,9 +8,11 @@ import {
   batchDeleteOfflineAccounts,
   getAllOfflineGames,
   getAllOfflineVersions,
-  importOfflineAccounts
+  importOfflineAccounts,
+  toggleOfflineAccountParental,
+  getOfflineParentalJobStatus
 } from "@/api/offline";
-import { ref, reactive, onMounted, h, defineComponent } from "vue";
+import { ref, reactive, onMounted, onBeforeUnmount, h, defineComponent } from "vue";
 import type { PaginationProps } from "@pureadmin/table";
 
 const statusMap: Record<number, { label: string; type: string }> = {
@@ -121,7 +123,7 @@ export function useOfflineAccount() {
     {
       label: "操作",
       fixed: "right",
-      width: 180,
+      width: 300,
       slot: "operation"
     }
   ];
@@ -344,6 +346,86 @@ export function useOfflineAccount() {
     onSearch();
   });
 
+  /** ===== Steam 家长控制一键切换（后台任务 + 前端轮询） ===== */
+  const parentalDialogVisible = ref(false);
+  const parentalTitle = ref("家长控制");
+  const parentalLogs = ref<any[]>([]);
+  const parentalStatus = ref("");
+  const parentalRunningId = ref<number | null>(null);
+  let parentalTimer: any = null;
+
+  function stopParentalPolling() {
+    if (parentalTimer) {
+      clearInterval(parentalTimer);
+      parentalTimer = null;
+    }
+  }
+
+  function closeParentalDialog() {
+    stopParentalPolling();
+    parentalDialogVisible.value = false;
+  }
+
+  async function handleToggleParental(row: any) {
+    if (parentalRunningId.value) {
+      message("已有家长控制任务进行中，请稍候", { type: "warning" });
+      return;
+    }
+    parentalTitle.value = `家长控制 - ${row.account}`;
+    parentalLogs.value = [];
+    parentalStatus.value = "running";
+    parentalDialogVisible.value = true;
+    parentalRunningId.value = row.id;
+    try {
+      const { code, data, message: msg } = await toggleOfflineAccountParental(
+        row.id
+      );
+      if (code !== 0 || !data?.jobId) {
+        parentalStatus.value = "failed";
+        parentalRunningId.value = null;
+        message(msg || "启动任务失败", { type: "error" });
+        return;
+      }
+      const jobId = data.jobId;
+      stopParentalPolling();
+      parentalTimer = setInterval(async () => {
+        try {
+          const res = await getOfflineParentalJobStatus(jobId);
+          if (res.code === 0 && res.data) {
+            parentalLogs.value = res.data.logs || [];
+            parentalStatus.value = res.data.status || "running";
+            if (
+              res.data.status === "success" ||
+              res.data.status === "failed"
+            ) {
+              stopParentalPolling();
+              parentalRunningId.value = null;
+              if (res.data.status === "success") {
+                const done =
+                  res.data.result?.action === "disable"
+                    ? "已关闭家长控制"
+                    : "已启用家长控制";
+                message(done, { type: "success" });
+              } else {
+                message(res.data.result?.error || "操作失败", {
+                  type: "error"
+                });
+              }
+            }
+          }
+        } catch {
+          /* 忽略单次轮询抖动 */
+        }
+      }, 2000);
+    } catch (err: any) {
+      parentalStatus.value = "failed";
+      parentalRunningId.value = null;
+      message(err?.message || "启动任务失败", { type: "error" });
+    }
+  }
+
+  onBeforeUnmount(stopParentalPolling);
+
   return {
     loading,
     form,
@@ -365,7 +447,14 @@ export function useOfflineAccount() {
     openDialog,
     handleDelete,
     importLoading,
-    handleImport
+    handleImport,
+    parentalDialogVisible,
+    parentalTitle,
+    parentalLogs,
+    parentalStatus,
+    parentalRunningId,
+    handleToggleParental,
+    closeParentalDialog
   };
 }
 

@@ -259,6 +259,16 @@ export const menuConfig = [
         path: '/membership/cdk-log/index',
         component: 'membership/cdk-log/index',
         icon: 'ri:file-list-3-line'
+      },
+      {
+        id: 5009,
+        parentId: 5000,
+        menuType: 0,
+        title: 'menus.pureMemberSetting',
+        name: 'MembershipSetting',
+        path: '/membership/setting/index',
+        component: 'membership/setting/index',
+        icon: 'ri:settings-4-line'
       }
     ]
   },

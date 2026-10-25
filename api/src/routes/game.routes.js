@@ -13,6 +13,8 @@ export async function gameRoutes(app) {
   app.post('/games/create', gameController.createGame);
   // Update game
   app.put('/games/:id', gameController.updateGame);
+  // Pin/unpin game to top
+  app.put('/games/:id/top', gameController.setGameTop);
   // Delete game
   app.delete('/games/:id', gameController.deleteGame);
   // Batch delete games

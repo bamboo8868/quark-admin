@@ -4,7 +4,8 @@ import {
   getGameList,
   createGame,
   updateGame,
-  deleteGame
+  deleteGame,
+  setGameTop
 } from "@/api/game";
 import {
   getGameCategoryList
@@ -50,6 +51,17 @@ export function useGame() {
       label: "ID",
       prop: "id",
       minWidth: 70
+    },
+    {
+      label: "置顶",
+      prop: "is_top",
+      minWidth: 80,
+      cellRenderer: ({ row }) => (
+        <el-switch
+          modelValue={Number(row.is_top) === 1}
+          onChange={(val: boolean) => handleToggleTop(row, val)}
+        />
+      )
     },
     {
       label: "游戏名称",
@@ -249,6 +261,17 @@ export function useGame() {
     }
   }
 
+  /** Toggle pin-to-top */
+  async function handleToggleTop(row: any, val: boolean) {
+    const isTop = val ? 1 : 0;
+    const { code } = await setGameTop(row.id, isTop);
+    if (code === 0) {
+      row.is_top = isTop;
+      message(val ? "已置顶" : "已取消置顶", { type: "success" });
+      onSearch();
+    }
+  }
+
   /** Open dialog to create a game account bound to this game */
   function openAccountDialog(row: any) {
     addDialog({
@@ -310,7 +333,8 @@ export function useGame() {
     handleCurrentChange,
     openDialog,
     openAccountDialog,
-    handleDelete
+    handleDelete,
+    handleToggleTop
   };
 }
 

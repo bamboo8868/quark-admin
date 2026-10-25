@@ -36,6 +36,7 @@ export class GameModel extends BaseModel {
         'g.*',
         'gc.name as category_name'
       )
+      .orderBy('g.is_top', 'desc')
       .orderBy('g.id', 'desc')
       .limit(limit)
       .offset(offset);

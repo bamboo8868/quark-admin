@@ -39,6 +39,13 @@ export const updateGame = (id: number, data?: object) => {
   return http.request<Result>("put", `/api/games/${id}`, { data });
 };
 
+/** 置顶/取消置顶游戏 */
+export const setGameTop = (id: number, is_top: number) => {
+  return http.request<Result>("put", `/api/games/${id}/top`, {
+    data: { is_top }
+  });
+};
+
 /** 删除游戏 */
 export const deleteGame = (id: number) => {
   return http.request<Result>("delete", `/api/games/${id}`);

@@ -9,6 +9,7 @@ import Refresh from "~icons/ep/refresh";
 import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
 import Upload from "~icons/ri/upload-2-line";
+import ShieldLock from "~icons/ri/shield-keyhole-line";
 
 defineOptions({
   name: "OfflineAccount"
@@ -35,7 +36,14 @@ const {
   openDialog,
   handleDelete,
   importLoading,
-  handleImport
+  handleImport,
+  parentalDialogVisible,
+  parentalTitle,
+  parentalLogs,
+  parentalStatus,
+  parentalRunningId,
+  handleToggleParental,
+  closeParentalDialog
 } = useOfflineAccount();
 </script>
 
@@ -115,10 +123,52 @@ const {
                 </el-button>
               </template>
             </el-popconfirm>
+            <el-popconfirm
+              :title="`对账号 ${row.account} 一键切换家长控制（自动启用/关闭）？`"
+              width="260"
+              @confirm="handleToggleParental(row)"
+            >
+              <template #reference>
+                <el-button
+                  class="reset-margin"
+                  link
+                  type="warning"
+                  :size="size"
+                  :loading="parentalRunningId === row.id"
+                  :icon="useRenderIcon(ShieldLock)"
+                >
+                  家长控制
+                </el-button>
+              </template>
+            </el-popconfirm>
           </template>
         </pure-table>
       </template>
     </PureTableBar>
+
+    <el-dialog
+      v-model="parentalDialogVisible"
+      :title="parentalTitle"
+      width="560px"
+      :close-on-click-modal="false"
+      @close="closeParentalDialog"
+    >
+      <div class="mb-2">
+        <el-tag v-if="parentalStatus === 'running'" type="primary">执行中...</el-tag>
+        <el-tag v-else-if="parentalStatus === 'success'" type="success">已完成</el-tag>
+        <el-tag v-else-if="parentalStatus === 'failed'" type="danger">失败</el-tag>
+      </div>
+      <div class="parental-log">
+        <div v-for="(item, idx) in parentalLogs" :key="idx" :class="['log-line', `log-${item.type}`]">
+          <span class="log-time">{{ item.time ? new Date(item.time).toLocaleTimeString('zh-CN') : '' }}</span>
+          <span class="log-msg">{{ item.msg }}</span>
+        </div>
+        <div v-if="parentalLogs.length === 0" class="log-empty">暂无日志</div>
+      </div>
+      <template #footer>
+        <el-button @click="closeParentalDialog">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -130,6 +180,43 @@ const {
 .search-form {
   :deep(.el-form-item) {
     margin-bottom: 12px;
+  }
+}
+
+.parental-log {
+  max-height: 320px;
+  padding: 8px 12px;
+  overflow-y: auto;
+  font-family: var(--el-font-family-mono, monospace);
+  font-size: 12px;
+  line-height: 1.8;
+  background: var(--el-fill-color-light);
+  border-radius: 4px;
+
+  .log-line {
+    display: flex;
+    gap: 8px;
+  }
+
+  .log-time {
+    flex-shrink: 0;
+    color: var(--el-text-color-secondary);
+  }
+
+  .log-success .log-msg {
+    color: var(--el-color-success);
+  }
+
+  .log-error .log-msg {
+    color: var(--el-color-danger);
+  }
+
+  .log-warn .log-msg {
+    color: var(--el-color-warning);
+  }
+
+  .log-empty {
+    color: var(--el-text-color-secondary);
   }
 }
 </style>

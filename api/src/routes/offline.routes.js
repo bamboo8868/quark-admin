@@ -6,6 +6,7 @@ import {
   offlineCdkGroupController,
   offlineLogController
 } from '../controllers/offline.controller.js';
+import { steamParentalController } from '../controllers/steamParental.controller.js';
 import { authenticate } from '../middlewares/auth.middleware.js';
 
 export async function offlineRoutes(app) {
@@ -35,6 +36,11 @@ export async function offlineRoutes(app) {
   app.delete('/offline/accounts/:id', offlineAccountController.deleteAccount);
   app.post('/offline/accounts/batch-delete', offlineAccountController.batchDeleteAccounts);
   app.post('/offline/accounts/import', offlineAccountController.importAccounts);
+
+  // ==================== Offline Account Parental Control (Steam Family View) ====================
+  // One-click toggle: auto-detect current state and enable/disable parental control
+  app.post('/offline/accounts/:id/parental-toggle', steamParentalController.toggle);
+  app.get('/offline/parental-job/:jobId', steamParentalController.getStatus);
 
   // ==================== Offline CDK ====================
   app.post('/offline/cdks', offlineCdkController.getCdks);

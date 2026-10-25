@@ -50,6 +50,11 @@ export const gameService = {
     return await gameModel.delete(id);
   },
 
+  /** Pin/unpin a game to the top of the member-center list. */
+  async setGameTop(id, isTop) {
+    return await gameModel.update(id, { is_top: isTop ? 1 : 0 });
+  },
+
   async batchDeleteGames(ids) {
     return await db('games').whereIn('id', ids).delete();
   }

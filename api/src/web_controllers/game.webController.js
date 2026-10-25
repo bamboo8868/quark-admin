@@ -3,6 +3,7 @@ import SteamTotp from 'steam-totp';
 import { getRedis } from '../config/redis.js';
 import { verifyAccessToken } from '../utils/jwt.js';
 import { log } from '../utils/logger.js';
+import { settingService } from '../services/config.service.js';
 
 /**
  * Extract and verify web user token from Authorization header.
@@ -24,8 +25,9 @@ function getWebUser(request) {
 const TOTP_DAILY_LIMIT = 3;        // max successful refreshes per day
 const TOTP_COOLDOWN_SECONDS = 10;  // min seconds between two refreshes
 
-// Max DISTINCT member-library games a member may fetch (取号) per day
-const GAME_FETCH_DAILY_LIMIT = 30;
+// Max DISTINCT member-library games a member may fetch (取号) per day is now a
+// configurable site setting (see settingService.getMemberDailyGameLimit), read
+// per request so admin edits take effect without a restart.
 
 /** Server-local date string (YYYYMMDD) used to scope daily Redis counter keys */
 function localDateStr() {
@@ -87,7 +89,7 @@ function pickAccountForUser(memberId, gameId, accounts) {
  * server-local date that expires at midnight; fails open on a Redis outage.
  * Returns { allowed: true } or { allowed: false }.
  */
-async function checkDailyGameFetchLimit(memberId, gameId) {
+async function checkDailyGameFetchLimit(memberId, gameId, dailyLimit) {
   try {
     const redis = getRedis();
     const key = `member:game:fetch:${memberId}:${localDateStr()}`;
@@ -101,7 +103,7 @@ async function checkDailyGameFetchLimit(memberId, gameId) {
       if (count === 1) {
         await redis.expire(key, secondsUntilMidnight());
       }
-      if (count > GAME_FETCH_DAILY_LIMIT) {
+      if (count > dailyLimit) {
         // Over the cap: roll back this addition so it is not counted.
         await redis.srem(key, String(gameId));
         return { allowed: false };
@@ -149,9 +151,10 @@ export const gameWebController = {
     const list = await query
       .select(
         'g.id', 'g.name', 'g.desc', 'g.img_url',
-        'g.category_id', 'g.tag_ids', 'g.member_level', 'g.detail_url',
+        'g.category_id', 'g.tag_ids', 'g.member_level', 'g.detail_url', 'g.is_top',
         'gc.name as category_name'
       )
+      .orderBy('g.is_top', 'desc')
       .orderBy('g.id', 'desc')
       .limit(limit)
       .offset(offset);
@@ -222,12 +225,13 @@ export const gameWebController = {
       return { code: 0, message: '操作成功', data: [] };
     }
 
-    // A member may fetch at most GAME_FETCH_DAILY_LIMIT distinct games per day.
-    const limit = await checkDailyGameFetchLimit(user.memberId, gameId);
+    // A member may fetch at most <configured> distinct games per day.
+    const dailyLimit = await settingService.getMemberDailyGameLimit();
+    const limit = await checkDailyGameFetchLimit(user.memberId, gameId, dailyLimit);
     if (!limit.allowed) {
       return {
         code: 10010,
-        message: `今日可获取的游戏已达上限（每天最多${GAME_FETCH_DAILY_LIMIT}款），请明天再试`,
+        message: `今日可获取的游戏已达上限（每天最多${dailyLimit}款），请明天再试`,
         data: null
       };
     }

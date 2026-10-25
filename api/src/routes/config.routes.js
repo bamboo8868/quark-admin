@@ -28,6 +28,10 @@ export async function configRoutes(app) {
   // ==================== Config Setting (单值配置：购买链接) ====================
   app.get('/config/purchase-link', settingController.getPurchaseLink);
   app.put('/config/purchase-link', settingController.updatePurchaseLink);
+
+  // ==================== Config Setting (会员中心配置) ====================
+  app.get('/config/member-setting', settingController.getMemberSetting);
+  app.put('/config/member-setting', settingController.updateMemberSetting);
 }
 
 export default configRoutes;

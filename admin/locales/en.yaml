@@ -98,6 +98,7 @@ menus:
   pureMemberCdk: Member CDK
   pureMemberCdkGroup: CDK Group
   pureMemberCdkLog: CDK Usage Log
+  pureMemberSetting: Member Settings
   pureRentManagement: Rent Management
   pureRentGame: Game Management
   pureRentAccount: Account Management

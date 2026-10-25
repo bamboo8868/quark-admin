@@ -949,6 +949,7 @@
         search: '',
         cdkCode: '',
         purchaseLink: '',
+        customerServiceLink: '',
         loginForm: { username: '', password: '' },
         registerForm: { username: '', email: '', password: '', confirm: '' },
         forgotForm: { username: '', email: '', newPassword: '' },
@@ -998,10 +999,12 @@
           return '登录您的会员账号';
         },
         displayGames: function () {
-          var list = this.games;
+          var list = this.games.slice();
           if (this.sortBy === 'hot') {
-            list = list.slice().sort(function (a, b) { return (b.account_count || 0) - (a.account_count || 0); });
+            list.sort(function (a, b) { return (b.account_count || 0) - (a.account_count || 0); });
           }
+          // 置顶游戏始终排在最前；Array.sort 稳定，组内保持上面的顺序。
+          list.sort(function (a, b) { return (b.is_top ? 1 : 0) - (a.is_top ? 1 : 0); });
           return list;
         }
       },
@@ -1075,6 +1078,11 @@
             this.openAuthModal('login');
             return;
           }
+          if (this.customerServiceLink) {
+            this.showMessage('success', '正在为您打开客服页面购买会员卡密');
+            window.open(this.customerServiceLink, '_blank', 'noopener');
+            return;
+          }
           this.showMessage('success', '请联系客服购买会员卡密，兑换后立即生效');
         },
         fetchPurchaseLink: function () {
@@ -1082,6 +1090,14 @@
           this.api('get', '/config/purchase-link')
             .then(function (data) {
               self.purchaseLink = (data && data.purchase_link) ? data.purchase_link : '';
+            })
+            .catch(function () { /* ignore: fall back to contact-service prompt */ });
+        },
+        fetchCustomerServiceLink: function () {
+          var self = this;
+          this.api('get', '/config/customer-service-link')
+            .then(function (data) {
+              self.customerServiceLink = (data && data.customer_service_link) ? data.customer_service_link : '';
             })
             .catch(function () { /* ignore: fall back to contact-service prompt */ });
         },
@@ -1364,6 +1380,7 @@
         }
         this.reloadGames();
         this.fetchPurchaseLink();
+        this.fetchCustomerServiceLink();
         var self = this;
         this._escHandler = function (e) {
           if (e.key === 'Escape') {

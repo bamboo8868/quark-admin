@@ -100,6 +100,23 @@ export const gameController = {
   },
 
   /**
+   * Pin/unpin a game to the top of the member-center list
+   * PUT /games/:id/top  Body: { is_top: 0|1 }
+   */
+  setGameTop: async (request, reply) => {
+    const { id } = request.params;
+    const body = request.body || {};
+    const game = await gameService.setGameTop(id, Number(body.is_top) === 1);
+    log.info(`[Game] Set top=${body.is_top ? 1 : 0} for game ID: ${id}`);
+
+    return {
+      code: 0,
+      message: '操作成功',
+      data: game
+    };
+  },
+
+  /**
    * Batch delete games
    * POST /games/batch-delete
    */

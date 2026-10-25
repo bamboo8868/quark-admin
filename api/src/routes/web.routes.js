@@ -62,6 +62,7 @@ export async function webRoutes(app) {
   app.get('/web/config/qas', configQaWebController.getQas);
   app.get('/web/config/announcements', configAnnouncementWebController.getAnnouncements);
   app.get('/web/config/purchase-link', configPurchaseWebController.getPurchaseLink);
+  app.get('/web/config/customer-service-link', configPurchaseWebController.getCustomerServiceLink);
 }
 
 export default webRoutes;

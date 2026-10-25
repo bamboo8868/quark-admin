@@ -10,6 +10,9 @@ const announcementModel = new ConfigAnnouncementModel();
 /** Normalize the config type: only 'rent' or 'offline' (default). */
 const normalizeType = (t) => (t === 'rent' ? 'rent' : 'offline');
 
+/** Fallback for the per-member daily viewable-game count when unset/invalid. */
+export const DEFAULT_DAILY_GAME_LIMIT = 10;
+
 // ==================== Config Carousel ====================
 export const carouselService = {
   async getCarousels(filters, page, limit) {
@@ -175,5 +178,31 @@ export const settingService = {
 
   async setPurchaseLink(value) {
     return await settingService.setSetting('purchase_link', value);
+  },
+
+  /**
+   * Max DISTINCT member-library games a member may view/fetch per day.
+   * Falls back to DEFAULT_DAILY_GAME_LIMIT when unset or not a positive integer.
+   */
+  async getMemberDailyGameLimit() {
+    const raw = await settingService.getSetting('member_daily_game_limit');
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) && n > 0 ? n : DEFAULT_DAILY_GAME_LIMIT;
+  },
+
+  async setMemberDailyGameLimit(value) {
+    const n = parseInt(value, 10);
+    const safe = Number.isFinite(n) && n > 0 ? n : DEFAULT_DAILY_GAME_LIMIT;
+    await settingService.setSetting('member_daily_game_limit', String(safe));
+    return safe;
+  },
+
+  /** The global customer-service link (客服链接). */
+  async getCustomerServiceLink() {
+    return await settingService.getSetting('customer_service_link');
+  },
+
+  async setCustomerServiceLink(value) {
+    return await settingService.setSetting('customer_service_link', value);
   }
 };

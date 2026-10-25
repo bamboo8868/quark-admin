@@ -121,5 +121,24 @@ export const settingController = {
     const data = request.body || {};
     const link = await settingService.setPurchaseLink(data.purchase_link || '');
     return { code: 0, message: '操作成功', data: { purchase_link: link } };
+  },
+
+  // GET /config/member-setting — 会员中心配置（每日可看游戏款数 + 客服链接）
+  getMemberSetting: async (request, reply) => {
+    const [daily_game_limit, customer_service_link] = await Promise.all([
+      settingService.getMemberDailyGameLimit(),
+      settingService.getCustomerServiceLink()
+    ]);
+    return { code: 0, message: '操作成功', data: { daily_game_limit, customer_service_link } };
+  },
+
+  // PUT /config/member-setting  Body: { daily_game_limit, customer_service_link }
+  updateMemberSetting: async (request, reply) => {
+    const data = request.body || {};
+    const daily_game_limit = await settingService.setMemberDailyGameLimit(data.daily_game_limit);
+    const customer_service_link = await settingService.setCustomerServiceLink(
+      data.customer_service_link === undefined ? '' : String(data.customer_service_link).trim()
+    );
+    return { code: 0, message: '操作成功', data: { daily_game_limit, customer_service_link } };
   }
 };

@@ -109,3 +109,18 @@ export const getPurchaseLink = () => {
 export const updatePurchaseLink = (data: { purchase_link: string }) => {
   return http.request<Result>("put", "/api/config/purchase-link", { data });
 };
+
+// ==================== Config Setting (会员中心配置) ====================
+
+/** 获取会员中心配置（每日可看游戏款数 + 客服链接） */
+export const getMemberSetting = () => {
+  return http.request<Result>("get", "/api/config/member-setting");
+};
+
+/** 更新会员中心配置 */
+export const updateMemberSetting = (data: {
+  daily_game_limit: number;
+  customer_service_link: string;
+}) => {
+  return http.request<Result>("put", "/api/config/member-setting", { data });
+};
