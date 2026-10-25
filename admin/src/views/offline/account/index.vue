@@ -10,6 +10,7 @@ import Delete from "~icons/ep/delete";
 import EditPen from "~icons/ep/edit-pen";
 import Upload from "~icons/ri/upload-2-line";
 import ShieldLock from "~icons/ri/shield-keyhole-line";
+import SwitchButton from "~icons/ep/switch-button";
 
 defineOptions({
   name: "OfflineAccount"
@@ -35,6 +36,7 @@ const {
   handleGameChange,
   openDialog,
   handleDelete,
+  handleLogout,
   importLoading,
   handleImport,
   parentalDialogVisible,
@@ -42,7 +44,7 @@ const {
   parentalLogs,
   parentalStatus,
   parentalRunningId,
-  handleToggleParental,
+  handleParental,
   closeParentalDialog
 } = useOfflineAccount();
 </script>
@@ -124,9 +126,27 @@ const {
               </template>
             </el-popconfirm>
             <el-popconfirm
-              :title="`对账号 ${row.account} 一键切换家长控制（自动启用/关闭）？`"
-              width="260"
-              @confirm="handleToggleParental(row)"
+              :title="`登录成人账号 ${row.account}，为其家庭组下的儿童账号启用家长控制？`"
+              width="280"
+              @confirm="handleParental(row, 'enable')"
+            >
+              <template #reference>
+                <el-button
+                  class="reset-margin"
+                  link
+                  type="success"
+                  :size="size"
+                  :loading="parentalRunningId === row.id"
+                  :icon="useRenderIcon(ShieldLock)"
+                >
+                  启用家长控制
+                </el-button>
+              </template>
+            </el-popconfirm>
+            <el-popconfirm
+              :title="`登录成人账号 ${row.account}，为其家庭组下的儿童账号关闭家长控制？`"
+              width="280"
+              @confirm="handleParental(row, 'disable')"
             >
               <template #reference>
                 <el-button
@@ -137,7 +157,23 @@ const {
                   :loading="parentalRunningId === row.id"
                   :icon="useRenderIcon(ShieldLock)"
                 >
-                  家长控制
+                  关闭家长控制
+                </el-button>
+              </template>
+            </el-popconfirm>
+            <el-popconfirm
+              :title="`是否确认注销账号 ${row.account}`"
+              @confirm="handleLogout(row)"
+            >
+              <template #reference>
+                <el-button
+                  class="reset-margin"
+                  link
+                  type="danger"
+                  :size="size"
+                  :icon="useRenderIcon(SwitchButton)"
+                >
+                  注销
                 </el-button>
               </template>
             </el-popconfirm>

@@ -9,8 +9,9 @@ import {
   getAllOfflineGames,
   getAllOfflineVersions,
   importOfflineAccounts,
-  toggleOfflineAccountParental,
-  getOfflineParentalJobStatus
+  setOfflineAccountParental,
+  getOfflineParentalJobStatus,
+  logoutOfflineAccount
 } from "@/api/offline";
 import { ref, reactive, onMounted, onBeforeUnmount, h, defineComponent } from "vue";
 import type { PaginationProps } from "@pureadmin/table";
@@ -123,7 +124,7 @@ export function useOfflineAccount() {
     {
       label: "操作",
       fixed: "right",
-      width: 300,
+      width: 540,
       slot: "operation"
     }
   ];
@@ -286,6 +287,15 @@ export function useOfflineAccount() {
     }
   }
 
+  /** 注销 Steam 账号（反授权设备 + 登出），功能同 SDA 账号管理注销 */
+  async function handleLogout(row: any) {
+    const { code } = await logoutOfflineAccount(row.id);
+    if (code === 0) {
+      message("注销成功", { type: "success" });
+      onSearch();
+    }
+  }
+
   /** Import SDA/maFile — binds shared_secret to EXISTING offline accounts by
    *  account_name across all games/versions. Non-matching entries are skipped. */
   const importLoading = ref(false);
@@ -366,19 +376,21 @@ export function useOfflineAccount() {
     parentalDialogVisible.value = false;
   }
 
-  async function handleToggleParental(row: any) {
+  async function handleParental(row: any, action: "enable" | "disable") {
     if (parentalRunningId.value) {
       message("已有家长控制任务进行中，请稍候", { type: "warning" });
       return;
     }
-    parentalTitle.value = `家长控制 - ${row.account}`;
+    const verb = action === "disable" ? "关闭" : "启用";
+    parentalTitle.value = `${verb}家庭组儿童家长控制 - ${row.account}`;
     parentalLogs.value = [];
     parentalStatus.value = "running";
     parentalDialogVisible.value = true;
     parentalRunningId.value = row.id;
     try {
-      const { code, data, message: msg } = await toggleOfflineAccountParental(
-        row.id
+      const { code, data, message: msg } = await setOfflineAccountParental(
+        row.id,
+        action
       );
       if (code !== 0 || !data?.jobId) {
         parentalStatus.value = "failed";
@@ -401,11 +413,11 @@ export function useOfflineAccount() {
               stopParentalPolling();
               parentalRunningId.value = null;
               if (res.data.status === "success") {
-                const done =
-                  res.data.result?.action === "disable"
-                    ? "已关闭家长控制"
-                    : "已启用家长控制";
-                message(done, { type: "success" });
+                const r = res.data.result || {};
+                message(
+                  `${verb}完成：成功 ${r.okCount ?? 0} 个，失败 ${r.failCount ?? 0} 个`,
+                  { type: r.failCount ? "warning" : "success" }
+                );
               } else {
                 message(res.data.result?.error || "操作失败", {
                   type: "error"
@@ -446,6 +458,7 @@ export function useOfflineAccount() {
     handleGameChange,
     openDialog,
     handleDelete,
+    handleLogout,
     importLoading,
     handleImport,
     parentalDialogVisible,
@@ -453,7 +466,7 @@ export function useOfflineAccount() {
     parentalLogs,
     parentalStatus,
     parentalRunningId,
-    handleToggleParental,
+    handleParental,
     closeParentalDialog
   };
 }

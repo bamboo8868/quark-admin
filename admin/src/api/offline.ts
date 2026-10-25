@@ -124,14 +124,28 @@ export const importOfflineAccounts = (items: Array<any>) => {
   });
 };
 
-/** 一键切换家长控制（自动检测当前状态并启用/关闭），返回 jobId */
-export const toggleOfflineAccountParental = (id: number) => {
-  return http.request<Result>("post", `/api/offline/accounts/${id}/parental-toggle`);
+/** 对成人账号所在家庭组的儿童账号启用/关闭家长控制，返回 jobId */
+export const setOfflineAccountParental = (
+  id: number,
+  action: "enable" | "disable"
+) => {
+  return http.request<Result>(
+    "post",
+    `/api/offline/accounts/${id}/parental-control`,
+    { data: { action } }
+  );
 };
 
 /** 轮询家长控制任务状态与日志 */
 export const getOfflineParentalJobStatus = (jobId: string) => {
   return http.request<Result>("get", `/api/offline/parental-job/${jobId}`);
+};
+
+/** 注销 Steam 账号（反授权设备 + 登出），功能同 SDA 账号管理的注销 */
+export const logoutOfflineAccount = (id: number) => {
+  return http.request<Result>("post", "/api/offline/accounts/logout", {
+    data: { id }
+  });
 };
 
 // ==================== Offline CDK Management ====================
