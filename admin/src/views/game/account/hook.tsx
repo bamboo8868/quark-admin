@@ -7,7 +7,8 @@ import {
   deleteGameAccount,
   importGameAccounts,
   logoutGameAccount,
-  syncGameAccountNickname
+  syncGameAccountNickname,
+  setGameAccountVisible
 } from "@/api/gameAccount";
 import { ref, reactive, onMounted, h, defineComponent } from "vue";
 import type { PaginationProps } from "@pureadmin/table";
@@ -86,7 +87,7 @@ export function useGameAccount() {
     {
       label: "操作",
       fixed: "right",
-      width: 480,
+      width: 580,
       slot: "operation"
     }
   ];
@@ -186,6 +187,16 @@ export function useGameAccount() {
     }
   }
 
+  /** Toggle query status via dedicated single-field endpoint */
+  async function handleToggleVisible(row: any) {
+    const visible = row.visible === 1 ? 0 : 1;
+    const { code } = await setGameAccountVisible(row.id, visible);
+    if (code === 0) {
+      message(visible === 1 ? "已开启查询" : "已关闭查询", { type: "success" });
+      onSearch();
+    }
+  }
+
   /** Logout account */
   async function handleLogout(row: any) {
     const { code } = await logoutGameAccount(row.id);
@@ -276,7 +287,8 @@ export function useGameAccount() {
     handleDelete,
     handleImport,
     handleLogout,
-    handleSyncNickname
+    handleSyncNickname,
+    handleToggleVisible
   };
 }
 
@@ -317,12 +329,6 @@ const AccountFormComponent = defineComponent({
             v-model={props.formInline.password}
             placeholder="请输入密码"
           />
-        </el-form-item>
-        <el-form-item label="查询状态" prop="visible">
-          <el-radio-group v-model={props.formInline.visible}>
-            <el-radio value={1}>是</el-radio>
-            <el-radio value={0}>否</el-radio>
-          </el-radio-group>
         </el-form-item>
       </el-form>
     );

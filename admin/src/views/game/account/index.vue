@@ -32,7 +32,8 @@ const {
   handleDelete,
   handleImport,
   handleLogout,
-  handleSyncNickname
+  handleSyncNickname,
+  handleToggleVisible
 } = useGameAccount();
 
 function handleCopy(row: any) {
@@ -99,6 +100,10 @@ function handleCopy(row: any) {
             <el-button class="reset-margin" link type="primary" :size="size" :icon="useRenderIcon(EditPen)"
               @click="openDialog('修改', row)">
               修改
+            </el-button>
+            <el-button class="reset-margin" link type="warning" :size="size" :icon="useRenderIcon(SwitchButton)"
+              @click="handleToggleVisible(row)">
+              {{ row.visible === 1 ? "关闭查询" : "开启查询" }}
             </el-button>
             <el-popconfirm :title="`是否确认删除账号 ${row.account}`" @confirm="handleDelete(row)">
               <template #reference>

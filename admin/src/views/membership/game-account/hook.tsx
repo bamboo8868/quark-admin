@@ -62,8 +62,8 @@ export function useGameAccount() {
       showOverflowTooltip: true
     },
     {
-      label: "密钥",
-      prop: "secret",
+      label: "动态码",
+      prop: "totp_code",
       minWidth: 120,
       showOverflowTooltip: true
     },

@@ -39,6 +39,13 @@ export const updateGameAccount = (id: number, data?: object) => {
   return http.request<Result>("put", `/api/game-accounts/${id}`, { data });
 };
 
+/** 修改查询状态（单独接口，仅更新 visible 字段） */
+export const setGameAccountVisible = (id: number, visible: number) => {
+  return http.request<Result>("put", `/api/game-accounts/${id}/visible`, {
+    data: { visible }
+  });
+};
+
 /** 删除游戏账号 */
 export const deleteGameAccount = (id: number) => {
   return http.request<Result>("delete", `/api/game-accounts/${id}`);
