@@ -15,6 +15,8 @@ export async function gameAccountRoutes(app) {
   app.post('/game-accounts/create', accountsSimpleController.createAccount);
   // Update account
   app.put('/game-accounts/:id', accountsSimpleController.updateAccount);
+  // Update query status (visible) only
+  app.put('/game-accounts/:id/visible', accountsSimpleController.setVisible);
   // Delete account
   app.delete('/game-accounts/:id', accountsSimpleController.deleteAccount);
   // Batch delete accounts

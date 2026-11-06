@@ -81,6 +81,32 @@ export const accountsSimpleController = {
   },
 
   /**
+   * Update query status (visible) only
+   * PUT /game-accounts/:id/visible
+   * Body: { visible: 0 | 1 }
+   */
+  setVisible: async (request, reply) => {
+    const { id } = request.params;
+    const { visible } = request.body || {};
+
+    if (visible !== 0 && visible !== 1) {
+      return {
+        code: 10001,
+        message: '查询状态参数无效',
+        data: null
+      };
+    }
+
+    await accountsSimpleService.setVisible(id, visible);
+
+    return {
+      code: 0,
+      message: '操作成功',
+      data: null
+    };
+  },
+
+  /**
    * Delete account
    * DELETE /game-accounts/:id
    */

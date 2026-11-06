@@ -7,6 +7,7 @@ import { OfflineLogModel } from '../models/offlineLog.model.js';
 import { db } from '../utils/db.js';
 import { log } from '../utils/logger.js';
 import { AppError } from '../middlewares/error.middleware.js';
+import { sdaArchiveService } from './sdaArchive.service.js';
 import SteamTotp from 'steam-totp';
 import SteamCommunity from 'steamcommunity';
 
@@ -265,13 +266,18 @@ export const offlineAccountService = {
   },
 
   async createAccount(data) {
+    // 匹配到总SDA账号表时自动带出密钥
+    let code = data.code || '';
+    if (!code) {
+      code = await sdaArchiveService.getSecretByAccountName(data.account);
+    }
     return await offlineAccountModel.create({
       game_id: data.game_id,
       version_id: data.version_id,
       account: data.account || '',
       nickname: data.nickname || '',
       password: data.password || '',
-      code: data.code || '',
+      code,
       status: data.status !== undefined ? data.status : 1
     });
   },

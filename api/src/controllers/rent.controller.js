@@ -1,5 +1,6 @@
 import { rentGameService, rentCdkService, rentCdkGroupService, rentLogService } from '../services/rent.service.js';
 import { RentGameAccountModel } from '../models/rentGameAccount.model.js';
+import { sdaArchiveService } from '../services/sdaArchive.service.js';
 import db from '../utils/db.js';
 
 const rentGameAccountModel = new RentGameAccountModel();
@@ -191,11 +192,16 @@ export const rentGameAccountController = {
     const data = request.body || {};
     if (!data.game_id) return { code: 10001, message: '请选择所属游戏', data: null };
     if (!data.account) return { code: 10001, message: '请输入游戏账号', data: null };
+    // 匹配到总SDA账号表时自动带出密钥
+    let code = data.code || '';
+    if (!code) {
+      code = await sdaArchiveService.getSecretByAccountName(data.account);
+    }
     const account = await rentGameAccountModel.create({
       game_id: data.game_id,
       account: data.account || '',
       password: data.password || '',
-      code: data.code || '',
+      code,
       status: data.status !== undefined ? data.status : 1
     });
     return { code: 0, message: '操作成功', data: account };
@@ -245,6 +251,9 @@ export const rentGameAccountController = {
 
       const validItems = data.filter(item => item.account_name);
       if (validItems.length === 0) return { code: 10003, message: '未找到有效的 account_name 数据', data: null };
+
+      // 归档到总SDA账号管理表（含未匹配账号）
+      await sdaArchiveService.saveItems(validItems, 'rent');
 
       let bound = 0;            // 更新的总行数（同一账号跨游戏可能命中多行）
       let matchedAccounts = 0;  // 命中的账号个数

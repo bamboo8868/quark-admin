@@ -6,6 +6,7 @@ import {
   offlineCdkGroupService,
   offlineLogService
 } from '../services/offline.service.js';
+import { sdaArchiveService } from '../services/sdaArchive.service.js';
 import db from '../utils/db.js';
 
 // ==================== Offline Games Controller ====================
@@ -152,6 +153,9 @@ export const offlineAccountController = {
 
       const validItems = data.filter(item => item.account_name);
       if (validItems.length === 0) return { code: 10003, message: '未找到有效的 account_name 数据', data: null };
+
+      // 归档到总SDA账号管理表（含未匹配账号）
+      await sdaArchiveService.saveItems(validItems, 'offline');
 
       let bound = 0;            // 更新的总行数（同一账号跨游戏/版本可能命中多行）
       let matchedAccounts = 0;  // 命中的账号个数

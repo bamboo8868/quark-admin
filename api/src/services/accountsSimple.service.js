@@ -5,6 +5,7 @@ import SteamCommunity from 'steamcommunity';
 import SteamUser from 'steam-user';
 import { generateAuthCode } from 'steam-totp';
 import { AppError } from '../middlewares/error.middleware.js';
+import { sdaArchiveService } from './sdaArchive.service.js';
 
 const accountsSimpleModel = new AccountsSimpleModel();
 
@@ -64,6 +65,11 @@ export const accountsSimpleService = {
    * Create account
    */
   async createAccount(data) {
+    // 匹配到总SDA账号表时自动带出密钥
+    if (!data.code) {
+      const secret = await sdaArchiveService.getSecretByAccountName(data.account);
+      if (secret) data.code = secret;
+    }
     return await accountsSimpleModel.create(data);
   },
 
@@ -72,6 +78,13 @@ export const accountsSimpleService = {
    */
   async updateAccount(id, data) {
     return await accountsSimpleModel.update(id, data);
+  },
+
+  /**
+   * Update query status (visible) only — single-column write
+   */
+  async setVisible(id, visible) {
+    return await accountsSimpleModel.update(id, { visible });
   },
 
   /**
@@ -106,6 +119,9 @@ export const accountsSimpleService = {
     if (validItems.length === 0) {
       throw new Error('未找到有效的 account_name 数据');
     }
+
+    // 归档到总SDA账号管理表
+    await sdaArchiveService.saveItems(validItems, 'game');
 
     let inserted = 0;
     let updated = 0;

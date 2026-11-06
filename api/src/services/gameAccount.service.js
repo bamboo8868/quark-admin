@@ -1,4 +1,5 @@
 import { GameAccountModel } from '../models/gameAccount.model.js';
+import { sdaArchiveService } from './sdaArchive.service.js';
 import db from '../utils/db.js';
 
 const gameAccountModel = new GameAccountModel();
@@ -16,6 +17,11 @@ export const gameAccountService = {
   },
 
   async createAccount(data) {
+    // 匹配到总SDA账号表时自动带出密钥（game_account 密钥列为 secret）
+    if (!data.secret) {
+      const secret = await sdaArchiveService.getSecretByAccountName(data.account);
+      if (secret) data.secret = secret;
+    }
     return await gameAccountModel.create(data);
   },
 

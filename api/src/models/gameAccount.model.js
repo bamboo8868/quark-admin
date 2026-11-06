@@ -1,5 +1,6 @@
 import { BaseModel } from './base.model.js';
 import db from '../utils/db.js';
+import SteamTotp from 'steam-totp';
 
 /**
  * GameAccount Model - game account management (game_account table)
@@ -42,6 +43,15 @@ export class GameAccountModel extends BaseModel {
       .orderBy('ga.id', 'desc')
       .limit(limit)
       .offset(offset);
+
+    // 列表展示动态码（由 secret 生成），secret 保留供编辑回填
+    for (const item of list) {
+      try {
+        item.totp_code = item.secret ? SteamTotp.generateAuthCode(item.secret) : '';
+      } catch (err) {
+        item.totp_code = '';
+      }
+    }
 
     return {
       list,
