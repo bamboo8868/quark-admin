@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="sanli 游戏兑换取号中心">
+  <meta name="renderer" content="webkit">
+  <title>sanli 兑换取号</title>
+  <style>
+    :root {
+      --bg: #0A0A0C;
+      --text: #F2F2F4;
+      --muted: #9D9DA8;
+      --muted-2: #C4C4CE;
+      --muted-3: #B0B8C1;
+      --glass: rgba(255, 255, 255, 0.13);
+      --glass-2: rgba(255, 255, 255, 0.14);
+      --field-bg: rgba(255, 255, 255, 0.05);
+      --success: #34d399;
+      --danger: #f87171;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100%;
+    }
+
+    [v-cloak], .hidden { display: none !important; }
+
+    /* ---------- Blurred game-art backdrop ---------- */
+    .bg {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      background: #000;
+      z-index: 0;
+    }
+    .bg .glow {
+      position: absolute;
+      left: 50%; top: 40%;
+      width: 984px; height: 984px;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(90, 120, 210, 0.16), transparent 62%);
+      pointer-events: none;
+    }
+    .bg .rows {
+      position: absolute;
+      top: -40px; left: -60px; right: -60px;
+    }
+    .bg .row {
+      display: flex;
+      gap: 26px;
+      margin-bottom: 26px;
+      width: max-content;
+      animation: drift 46s linear infinite alternate;
+    }
+    .bg .row:nth-child(2) { animation-duration: 58s; animation-direction: alternate-reverse; }
+    .bg .row:nth-child(3) { animation-duration: 52s; }
+    .bg .tile {
+      width: 190px; height: 285px;
+      border-radius: 10px;
+      filter: blur(6px) brightness(0.55) saturate(0.7);
+      opacity: 0.62;
+      flex-shrink: 0;
+    }
+    .bg .vignette {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(0, 0, 0, 0.72), transparent 62%),
+        linear-gradient(90deg, #000, transparent 12%, transparent 88%, #000),
+        linear-gradient(180deg, #000, transparent 14%, transparent 86%, #000);
+      pointer-events: none;
+    }
+    @keyframes drift {
+      from { transform: translateX(0); }
+      to { transform: translateX(-90px); }
+    }
+
+    /* ---------- Navbar (frosted glass) ---------- */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      gap: 17px;
+      padding: 0 40px;
+      background: rgba(16, 16, 20, 0.7);
+      backdrop-filter: blur(50px);
+      -webkit-backdrop-filter: blur(50px);
+    }
+    .navbar .logo-chip {
+      background: #FFFFFF;
+      color: #000;
+      border-radius: 4px;
+      padding: 5px 13px;
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.34px;
+      flex-shrink: 0;
+    }
+    .navbar .nav-link {
+      color: var(--muted-2);
+      font-size: 16px;
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      position: relative;
+      transition: color .15s;
+    }
+    .navbar .nav-link:hover { color: var(--text); }
+    .navbar .nav-link.active { color: var(--text); }
+    .navbar .nav-link.active::after {
+      content: "";
+      position: absolute;
+      left: 12px; right: 12px; bottom: 0;
+      height: 2px;
+      border-radius: 2px;
+      background: #fff;
+    }
+
+    /* ---------- Layout ---------- */
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 460px;
+      margin: 0 auto;
+      padding: 100px 16px 40px;
+    }
+
+    .card {
+      border-radius: 16px;
+      padding: 20px 18px;
+      background: linear-gradient(135deg, #1C2740 0%, #141C2E 52%, #0D1119 100%);
+      box-shadow: inset 0 0 0 1px var(--glass), 0 26px 60px -28px rgba(0, 0, 0, 0.95);
+      margin-bottom: 14px;
+    }
+
+    .field-label {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+    .code-input {
+      width: 100%;
+      height: 43px;
+      background: var(--field-bg);
+      border: 1px solid var(--glass-2);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .code-input::placeholder { color: #6f6f7a; }
+    .code-input:focus {
+      border-color: rgba(255, 255, 255, 0.32);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06);
+    }
+
+    .btn-primary {
+      width: 100%;
+      height: 53px;
+      margin-top: 14px;
+      border: none;
+      border-radius: 10px;
+      background: #FFFFFF;
+      color: #0A0A0C;
+      font-size: 19px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px -6px rgba(0, 0, 0, 0.6);
+      transition: filter .15s, transform .05s;
+    }
+    .btn-primary:hover { filter: brightness(0.94); }
+    .btn-primary:active { transform: translateY(1px); }
+    .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+
+    .hint {
+      margin-top: 12px;
+      text-align: center;
+      color: var(--muted-3);
+      font-size: 13px;
+    }
+
+    /* ---------- Alert ---------- */
+    .alert {
+      border-radius: 10px;
+      padding: 11px 14px;
+      margin-bottom: 14px;
+      font-size: 13px;
+      font-weight: 600;
+      display: none;
+      box-shadow: inset 0 0 0 1px var(--glass);
+    }
+    .alert.show { display: block; }
+    .alert.error { background: rgba(248, 113, 113, 0.12); color: var(--danger); }
+    .alert.success { background: rgba(52, 211, 153, 0.12); color: var(--success); }
+
+    /* ---------- Result ---------- */
+    .result-grid {
+      display: grid;
+      grid-template-columns: 84px 1fr;
+      row-gap: 13px;
+      align-items: center;
+    }
+    .result-grid .label { color: var(--muted); font-weight: 500; }
+    .result-grid .value { font-weight: 600; color: var(--text); word-break: break-all; }
+    .value-copy { display: flex; align-items: center; gap: 8px; }
+    .value-copy .v-text { min-width: 0; word-break: break-all; }
+    .btn-copy-sm {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted-2);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--glass-2);
+      border-radius: 7px;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: background .16s, border-color .16s, color .16s;
+    }
+    .btn-copy-sm:hover { background: rgba(255, 255, 255, 0.12); }
+    .btn-copy-sm.copied { color: var(--success); border-color: rgba(52, 211, 153, 0.5); }
+    .btn-copy-sm svg { width: 13px; height: 13px; }
+
+    .totp-row { display: flex; align-items: center; gap: 10px; }
+    .totp-code {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      color: #fff;
+      font-variant-numeric: tabular-nums;
+    }
+    .btn-mini {
+      border: 1px solid var(--glass-2);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--muted-2);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .16s;
+    }
+    .btn-mini:hover { background: rgba(255, 255, 255, 0.12); }
+    .btn-mini:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ---------- Footer ---------- */
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 22.5px;
+      padding: 28px 16px 40px;
+    }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 560px) {
+      .navbar { padding: 0 16px; }
+      .page { padding-top: 40px; }
+      .result-grid { grid-template-columns: 76px 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Blurred game-art backdrop -->
+  <div class="bg" aria-hidden="true">
+    <div class="rows">
+      <div class="row" v-for="(row, r) in wallRows" :key="'row-' + r">
+        <div class="tile" v-for="(g, i) in row" :key="'tile-' + r + '-' + i" :style="{ background: g }"></div>
+      </div>
+    </div>
+    <div class="glow"></div>
+    <div class="vignette"></div>
+  </div>
+
+  <!-- Navbar -->
+  <div class="navbar">
+    <div class="logo-chip">sanli</div>
+    <a class="nav-link active" href="./index.html">兑换取号</a>
+  </div>
+
+  <div class="page" id="app">
+    <!-- Alert -->
+    <div class="alert" :class="[alert.type, { show: alert.show }]">{{ alert.text }}</div>
+
+    <!-- Redeem card (取号) -->
+    <div class="card">
+      <label class="field-label" for="cdk">兑换码</label>
+      <input id="cdk" class="code-input" type="text" v-model.trim="cdk" placeholder="输入兑换码，例如：ZBK2VK49MG"
+        autocomplete="off" @keyup.enter="redeem" :disabled="loading">
+      <button class="btn-primary" @click="redeem" :disabled="loading">{{ loading ? '兑换中…' : '立即兑换' }}</button>
+      <div class="hint">输入兑换码后点击兑换</div>
+    </div>
+
+    <!-- Result card -->
+    <div class="card" v-show="result">
+      <div class="result-grid" v-if="result">
+        <div class="label">游戏</div>
+        <div class="value">{{ result.game_name }}</div>
+
+        <div class="label">版本</div>
+        <div class="value">{{ result.version_name || '-' }}</div>
+
+        <div class="label">账号</div>
+        <div class="value value-copy">
+          <span class="v-text">{{ result.account }}</span>
+          <button class="btn-copy-sm" type="button" :class="{ copied: copiedField === 'account' }"
+            @click="copyText(result.account, 'account')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+              stroke-linejoin="round" aria-hidden="true">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <span>{{ copiedField === 'account' ? '已复制' : '复制' }}</span>
+          </button>
+        </div>
+
+        <div class="label">密码</div>
+        <div class="value value-copy">
+          <span class="v-text">{{ result.password }}</span>
+          <button class="btn-copy-sm" type="button" :class="{ copied: copiedField === 'password' }"
+            @click="copyText(result.password, 'password')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+              stroke-linejoin="round" aria-hidden="true">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <span>{{ copiedField === 'password' ? '已复制' : '复制' }}</span>
+          </button>
+        </div>
+
+        <div class="label">到期时间</div>
+        <div class="value">{{ result.expire_time || '-' }}</div>
+
+        <div class="label">动态验证码</div>
+        <div class="value totp-row">
+          <span class="totp-code">{{ result.totp_code || '------' }}</span>
+          <button class="btn-mini" @click="refreshTotp"
+            :disabled="loading || totpCooldown > 0">{{ totpCooldown > 0 ? totpCooldown + ' 秒后可刷新' : '刷新验证码' }}</button>
+        </div>
+      </div>
+
+      <div class="hint">请妥善保存以上信息，动态验证码每 30 秒刷新一次</div>
+    </div>
+
+    <div class="footer">
+      <span>sanli 兑换取号中心</span>
+    </div>
+  </div>
+
+  <script src="./static/js/vue.min.js"></script>
+  <script src="./static/js/axios.min.js"></script>
+  <script>
+    // ===== 接口请求地址配置：所有请求统一前缀，切换后端域名 / 环境只需改这里 =====
+    var BASE_URL = window.BASE_URL || '/api/web';  // 本地联调默认值；生产同源部署可改为 '/api/web'
+
+    new Vue({
+      el: '#app',
+      data: {
+        cdk: '',
+        loading: false,
+        result: null,
+        copiedField: null,
+        totpCooldown: 0,
+        cooldownTimer: null,
+        alert: { show: false, text: '', type: 'error' },
+        alertTimer: null,
+        // Decorative blurred poster wall (pure CSS gradients, no external images)
+        wallRows: [
+          [
+            'linear-gradient(160deg,#3b2f63,#7a3b52)', 'linear-gradient(200deg,#1f4d5c,#2b7a6b)',
+            'linear-gradient(140deg,#5c2330,#8a4b2b)', 'linear-gradient(180deg,#243b6b,#3b6ea5)',
+            'linear-gradient(150deg,#4a2b63,#6b3b8a)', 'linear-gradient(210deg,#2b5c4a,#4a8a5c)',
+            'linear-gradient(170deg,#63302b,#8a5c3b)'
+          ],
+          [
+            'linear-gradient(150deg,#2b3a63,#4a5c8a)', 'linear-gradient(190deg,#632b4a,#8a4a6b)',
+            'linear-gradient(160deg,#2b6350,#4a8a6b)', 'linear-gradient(200deg,#503063,#6b4a8a)',
+            'linear-gradient(140deg,#63502b,#8a6b4a)', 'linear-gradient(180deg,#2b4a63,#4a6b8a)',
+            'linear-gradient(210deg,#632b2b,#8a4a4a)'
+          ],
+          [
+            'linear-gradient(170deg,#30406b,#4a5c94)', 'linear-gradient(150deg,#6b3050,#944a6b)',
+            'linear-gradient(200deg,#306b55,#4a9470)', 'linear-gradient(160deg,#55306b,#704a94)',
+            'linear-gradient(190deg,#6b5530,#94704a)', 'linear-gradient(140deg,#30506b,#4a6b94)',
+            'linear-gradient(180deg,#6b3030,#944a4a)'
+          ]
+        ]
+      },
+      beforeDestroy() {
+        if (this.cooldownTimer) clearInterval(this.cooldownTimer);
+      },
+      methods: {
+        showMessage(text, type) {
+          this.alert.show = true;
+          this.alert.text = text;
+          this.alert.type = type || 'error';
+          if (this.alertTimer) clearTimeout(this.alertTimer);
+          this.alertTimer = setTimeout(() => { this.alert.show = false; }, 3000);
+        },
+        copyText(text, field) {
+          if (!text) return;
+          const done = () => {
+            this.copiedField = field;
+            setTimeout(() => { if (this.copiedField === field) this.copiedField = null; }, 1500);
+          };
+          const fallback = () => {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); done(); } catch (e) { this.showMessage('复制失败，请手动复制'); }
+            document.body.removeChild(ta);
+          };
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(done).catch(fallback);
+          } else {
+            fallback();
+          }
+        },
+        redeem() {
+          if (!this.cdk) { this.showMessage('请输入兑换码'); return; }
+          this.loading = true;
+          axios.post(BASE_URL + '/offline/redeem', { cdk: this.cdk })
+            .then(res => {
+              if (res.data.code === 0) {
+                this.result = res.data.data;
+                this.showMessage('兑换成功', 'success');
+              } else {
+                this.showMessage(res.data.message || '兑换失败');
+              }
+            })
+            .catch(() => this.showMessage('网络错误，请稍后重试'))
+            .finally(() => { this.loading = false; });
+        },
+        refreshTotp() {
+          if (!this.cdk) { this.showMessage('请先兑换后再获取验证码'); return; }
+          if (this.totpCooldown > 0) return;
+          this.loading = true;
+          axios.post(BASE_URL + '/offline/refresh', { cdk: this.cdk })
+            .then(res => {
+              const body = res.data || {};
+              if (body.code === 0) {
+                const code = body.data && body.data.totp_code;
+                if (this.result) {
+                  this.result = Object.assign({}, this.result, { totp_code: code || '' });
+                }
+                this.startCooldown((body.data && body.data.cooldown) || 10);
+              } else {
+                this.showMessage(body.message || '刷新失败');
+                if (body.data && body.data.cooldown) this.startCooldown(body.data.cooldown);
+              }
+            })
+            .catch(() => this.showMessage('网络错误，请稍后重试'))
+            .finally(() => { this.loading = false; });
+        },
+        startCooldown(sec) {
+          const seconds = Math.max(1, parseInt(sec, 10) || 10);
+          this.totpCooldown = seconds;
+          if (this.cooldownTimer) clearInterval(this.cooldownTimer);
+          this.cooldownTimer = setInterval(() => {
+            this.totpCooldown -= 1;
+            if (this.totpCooldown <= 0) {
+              this.totpCooldown = 0;
+              clearInterval(this.cooldownTimer);
+              this.cooldownTimer = null;
+            }
+          }, 1000);
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>
