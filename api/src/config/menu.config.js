@@ -180,150 +180,150 @@ export const menuConfig = [
       }
     ]
   },
-  {
-    id: 5000,
-    parentId: 0,
-    menuType: 0,
-    title: 'menus.pureMembershipCenter',
-    name: 'Membership',
-    path: '/membership',
-    icon: 'ri:vip-crown-2-line',
-    rank: MEMBERSHIP_RANK,
-    children: [
-      {
-        id: 5001,
-        parentId: 5000,
-        menuType: 0,
-        title: 'menus.pureGameCategory',
-        name: 'GameCategory',
-        path: '/membership/category/index',
-        component: 'membership/category/index',
-        icon: 'ri:folder-3-line'
-      },
-      {
-        id: 5002,
-        parentId: 5000,
-        menuType: 0,
-        title: 'menus.pureGameTag',
-        name: 'GameTag',
-        path: '/membership/tag/index',
-        component: 'membership/tag/index',
-        icon: 'ri:price-tag-3-line'
-      },
-      {
-        id: 5003,
-        parentId: 5000,
-        menuType: 0,
-        title: 'menus.pureMemberGame',
-        name: 'MembershipGame',
-        path: '/membership/game/index',
-        component: 'membership/game/index',
-        icon: 'ri:gamepad-line'
-      },
-      {
-        id: 5004,
-        parentId: 5000,
-        menuType: 0,
-        title: 'menus.pureMemberGameAcc',
-        name: 'MembershipGameAccount',
-        path: '/membership/game-account/index',
-        component: 'membership/game-account/index',
-        icon: 'ri:key-2-line'
-      },
-      {
-        id: 5005,
-        parentId: 5000,
-        menuType: 0,
-        title: 'menus.pureMemberList',
-        name: 'MemberList',
-        path: '/membership/member/index',
-        component: 'membership/member/index',
-        icon: 'ri:group-line'
-      },
-      {
-        id: 5007,
-        parentId: 5000,
-        menuType: 0,
-        title: 'menus.pureMemberCdkGroup',
-        name: 'MemberCdkGroup',
-        path: '/membership/cdk-group/index',
-        component: 'membership/cdk-group/index',
-        icon: 'ri:folder-add-line'
-      },
-      {
-        id: 5008,
-        parentId: 5000,
-        menuType: 0,
-        title: 'menus.pureMemberCdkLog',
-        name: 'MemberCdkLog',
-        path: '/membership/cdk-log/index',
-        component: 'membership/cdk-log/index',
-        icon: 'ri:file-list-3-line'
-      },
-      {
-        id: 5009,
-        parentId: 5000,
-        menuType: 0,
-        title: 'menus.pureMemberSetting',
-        name: 'MembershipSetting',
-        path: '/membership/setting/index',
-        component: 'membership/setting/index',
-        icon: 'ri:settings-4-line'
-      }
-    ]
-  },
-  {
-    id: 6000,
-    parentId: 0,
-    menuType: 0,
-    title: 'menus.pureRentManagement',
-    name: 'Rent',
-    path: '/rent',
-    icon: 'ri:swap-box-line',
-    rank: RENT_RANK,
-    children: [
-      {
-        id: 6001,
-        parentId: 6000,
-        menuType: 0,
-        title: 'menus.pureRentGame',
-        name: 'RentGame',
-        path: '/rent/game/index',
-        component: 'rent/game/index',
-        icon: 'ri:gamepad-line'
-      },
-      {
-        id: 6002,
-        parentId: 6000,
-        menuType: 0,
-        title: 'menus.pureRentAccount',
-        name: 'RentAccount',
-        path: '/rent/account/index',
-        component: 'rent/account/index',
-        icon: 'ri:key-2-line'
-      },
-      {
-        id: 6003,
-        parentId: 6000,
-        menuType: 0,
-        title: 'menus.pureRentCdk',
-        name: 'RentCdk',
-        path: '/rent/cdk/index',
-        component: 'rent/cdk/index',
-        icon: 'ri:gift-2-line'
-      },
-      {
-        id: 6004,
-        parentId: 6000,
-        menuType: 0,
-        title: 'menus.pureRentLog',
-        name: 'RentLog',
-        path: '/rent/log/index',
-        component: 'rent/log/index',
-        icon: 'ri:file-list-3-line'
-      }
-    ]
-  },
+  // {
+  //   id: 5000,
+  //   parentId: 0,
+  //   menuType: 0,
+  //   title: 'menus.pureMembershipCenter',
+  //   name: 'Membership',
+  //   path: '/membership',
+  //   icon: 'ri:vip-crown-2-line',
+  //   rank: MEMBERSHIP_RANK,
+  //   children: [
+  //     {
+  //       id: 5001,
+  //       parentId: 5000,
+  //       menuType: 0,
+  //       title: 'menus.pureGameCategory',
+  //       name: 'GameCategory',
+  //       path: '/membership/category/index',
+  //       component: 'membership/category/index',
+  //       icon: 'ri:folder-3-line'
+  //     },
+  //     {
+  //       id: 5002,
+  //       parentId: 5000,
+  //       menuType: 0,
+  //       title: 'menus.pureGameTag',
+  //       name: 'GameTag',
+  //       path: '/membership/tag/index',
+  //       component: 'membership/tag/index',
+  //       icon: 'ri:price-tag-3-line'
+  //     },
+  //     {
+  //       id: 5003,
+  //       parentId: 5000,
+  //       menuType: 0,
+  //       title: 'menus.pureMemberGame',
+  //       name: 'MembershipGame',
+  //       path: '/membership/game/index',
+  //       component: 'membership/game/index',
+  //       icon: 'ri:gamepad-line'
+  //     },
+  //     {
+  //       id: 5004,
+  //       parentId: 5000,
+  //       menuType: 0,
+  //       title: 'menus.pureMemberGameAcc',
+  //       name: 'MembershipGameAccount',
+  //       path: '/membership/game-account/index',
+  //       component: 'membership/game-account/index',
+  //       icon: 'ri:key-2-line'
+  //     },
+  //     {
+  //       id: 5005,
+  //       parentId: 5000,
+  //       menuType: 0,
+  //       title: 'menus.pureMemberList',
+  //       name: 'MemberList',
+  //       path: '/membership/member/index',
+  //       component: 'membership/member/index',
+  //       icon: 'ri:group-line'
+  //     },
+  //     {
+  //       id: 5007,
+  //       parentId: 5000,
+  //       menuType: 0,
+  //       title: 'menus.pureMemberCdkGroup',
+  //       name: 'MemberCdkGroup',
+  //       path: '/membership/cdk-group/index',
+  //       component: 'membership/cdk-group/index',
+  //       icon: 'ri:folder-add-line'
+  //     },
+  //     {
+  //       id: 5008,
+  //       parentId: 5000,
+  //       menuType: 0,
+  //       title: 'menus.pureMemberCdkLog',
+  //       name: 'MemberCdkLog',
+  //       path: '/membership/cdk-log/index',
+  //       component: 'membership/cdk-log/index',
+  //       icon: 'ri:file-list-3-line'
+  //     },
+  //     {
+  //       id: 5009,
+  //       parentId: 5000,
+  //       menuType: 0,
+  //       title: 'menus.pureMemberSetting',
+  //       name: 'MembershipSetting',
+  //       path: '/membership/setting/index',
+  //       component: 'membership/setting/index',
+  //       icon: 'ri:settings-4-line'
+  //     }
+  //   ]
+  // },
+  // {
+  //   id: 6000,
+  //   parentId: 0,
+  //   menuType: 0,
+  //   title: 'menus.pureRentManagement',
+  //   name: 'Rent',
+  //   path: '/rent',
+  //   icon: 'ri:swap-box-line',
+  //   rank: RENT_RANK,
+  //   children: [
+  //     {
+  //       id: 6001,
+  //       parentId: 6000,
+  //       menuType: 0,
+  //       title: 'menus.pureRentGame',
+  //       name: 'RentGame',
+  //       path: '/rent/game/index',
+  //       component: 'rent/game/index',
+  //       icon: 'ri:gamepad-line'
+  //     },
+  //     {
+  //       id: 6002,
+  //       parentId: 6000,
+  //       menuType: 0,
+  //       title: 'menus.pureRentAccount',
+  //       name: 'RentAccount',
+  //       path: '/rent/account/index',
+  //       component: 'rent/account/index',
+  //       icon: 'ri:key-2-line'
+  //     },
+  //     {
+  //       id: 6003,
+  //       parentId: 6000,
+  //       menuType: 0,
+  //       title: 'menus.pureRentCdk',
+  //       name: 'RentCdk',
+  //       path: '/rent/cdk/index',
+  //       component: 'rent/cdk/index',
+  //       icon: 'ri:gift-2-line'
+  //     },
+  //     {
+  //       id: 6004,
+  //       parentId: 6000,
+  //       menuType: 0,
+  //       title: 'menus.pureRentLog',
+  //       name: 'RentLog',
+  //       path: '/rent/log/index',
+  //       component: 'rent/log/index',
+  //       icon: 'ri:file-list-3-line'
+  //     }
+  //   ]
+  // },
   {
     id: 7000,
     parentId: 0,
@@ -438,28 +438,28 @@ export const menuConfig = [
       }
     ]
   },
-  {
-    id: 9000,
-    parentId: 0,
-    menuType: 0,
-    title: 'menus.pureSteamManagement',
-    name: 'Steam',
-    path: '/steam',
-    icon: 'ri:steam-line',
-    rank: STEAM_RANK,
-    children: [
-      {
-        id: 9001,
-        parentId: 9000,
-        menuType: 0,
-        title: 'menus.pureSteamFamily',
-        name: 'SteamFamily',
-        path: '/steam/family/index',
-        component: 'steam/family/index',
-        icon: 'ri:group-2-line'
-      }
-    ]
-  }
+  // {
+  //   id: 9000,
+  //   parentId: 0,
+  //   menuType: 0,
+  //   title: 'menus.pureSteamManagement',
+  //   name: 'Steam',
+  //   path: '/steam',
+  //   icon: 'ri:steam-line',
+  //   rank: STEAM_RANK,
+  //   children: [
+  //     {
+  //       id: 9001,
+  //       parentId: 9000,
+  //       menuType: 0,
+  //       title: 'menus.pureSteamFamily',
+  //       name: 'SteamFamily',
+  //       path: '/steam/family/index',
+  //       component: 'steam/family/index',
+  //       icon: 'ri:group-2-line'
+  //     }
+  //   ]
+  // }
 ];
 
 /**
