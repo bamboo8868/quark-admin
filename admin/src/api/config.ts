@@ -124,3 +124,19 @@ export const updateMemberSetting = (data: {
 }) => {
   return http.request<Result>("put", "/api/config/member-setting", { data });
 };
+
+// ==================== Config Setting (注销页配置) ====================
+
+/** 获取注销页配置（功能开关 + 每日注销次数 + 注销间隔时间） */
+export const getLogoutSetting = () => {
+  return http.request<Result>("get", "/api/config/logout-setting");
+};
+
+/** 更新注销页配置 */
+export const updateLogoutSetting = (data: {
+  enabled: boolean;
+  daily_limit: number;
+  cooldown_seconds: number;
+}) => {
+  return http.request<Result>("put", "/api/config/logout-setting", { data });
+};

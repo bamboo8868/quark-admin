@@ -185,13 +185,14 @@
     .btn-mini {
       border: 0.8px solid #b8cce2;
       background: #f7faff;
-      color: #28506f;
+      color: #e53935;
       border-radius: 8px;
       padding: 6px 12px;
-      font-size: 12px; font-weight: 800;
+      font-size: 14px; font-weight: 800;
       cursor: pointer;
     }
     .btn-mini:hover { background: #eef5ff; }
+        .totp-remain { font-size: 12px; font-weight: 700; color: var(--muted-2); white-space: nowrap; }
     /* Copyable value with an inline copy button */
     .value-copy {
       display: flex;
@@ -360,6 +361,10 @@
       border-radius: 3px;
       color: inherit;
     }
+    /* QA rows rendered in the same notice style */
+    .notice.qa-notice .n-body { flex: 1; white-space: pre-wrap; word-break: break-word; }
+    .notice.qa-notice.qa-clickable { cursor: pointer; transition: background .18s; }
+    .notice.qa-notice.qa-clickable:hover { background: #fbf1d8; }
 
     /* ---------- QA accordion ---------- */
     .qa-list { display: flex; flex-direction: column; gap: 10px; }
@@ -567,7 +572,8 @@
                 <div class="label">动态验证码</div>
         <div class="value totp-row">
           <span class="totp-code">{{ result.totp_code || '------' }}</span>
-          <button class="btn-mini" @click="refreshTotp" :disabled="loading || totpCooldown > 0">{{ totpCooldown > 0 ? totpCooldown + ' 秒后可刷新' : '刷新验证码' }}</button>
+          <button class="btn-mini" @click="refreshTotp" :disabled="loading || totpCooldown > 0 || totpRemaining === 0">{{ totpCooldown > 0 ? totpCooldown + ' 秒后可刷新' : '获取验证码' }}</button>
+                    <span class="totp-remain" v-if="totpRemaining !== null">今日剩余 {{ totpRemaining }} 次</span>
         </div>
       </div>
 
@@ -597,7 +603,7 @@
       </template>
     </div>
 
-    <!-- Notice card -->
+    <!-- Notice & QA card -->
     <div class="card">
       <div class="card-head">
         <div class="icon-chip">
@@ -606,7 +612,7 @@
             <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path>
           </svg>
         </div>
-        <h2>注意事项</h2>
+        <h2>注意事项&amp;常见问题</h2>
       </div>
 
       <div class="notice">
@@ -617,37 +623,13 @@
         <div class="n-label">防止顶号</div>
         <div class="n-body"><mark>登录Steam后务必 ➡️ 设置防顶号 ➡️ 再开始玩游戏，不然可能会被顶号，影响游戏体验。</mark></div>
       </div>
-    </div>
 
-    <!-- QA accordion -->
-    <div class="card" v-if="qas.length">
-      <div class="card-head">
-        <div class="icon-chip">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-            <path d="M12 17h.01"></path>
-          </svg>
+      <template v-if="qas.length">
+        <div class="notice qa-notice" v-for="item in qas" :key="item.id" :class="{ 'qa-clickable': item.link }" @click="openQaLink(item)">
+          <div class="n-label">{{ item.question }}</div>
+          <div class="n-body"><mark>{{ item.answer }}</mark><span v-if="item.link" class="qa-link-hint">查看链接 ›</span></div>
         </div>
-        <h2>常见问题</h2>
-      </div>
-
-      <div class="qa-list">
-        <div class="qa-item" v-for="item in qas" :key="item.id" :class="{ open: openQa === item.id }">
-          <div class="qa-question" @click="toggleQa(item.id)">
-            <span class="q-badge">Q</span>
-            <span class="q-text">{{ item.question }}</span>
-            <svg class="q-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </div>
-          <div class="qa-answer">
-            <div>
-              <div class="qa-answer-inner" :class="{ 'qa-clickable': item.link }" @click="openQaLink(item)">{{ item.answer }}<span v-if="item.link" class="qa-link-hint">查看链接 ›</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
+      </template>
     </div>
 
     <div class="footer">
@@ -670,6 +652,7 @@
         copiedField: null,
         totpCooldown: 0,
         cooldownTimer: null,
+        totpRemaining: null,
         alert: { show: false, text: '', type: 'error' },
         alertTimer: null,
         carousels: [],
@@ -790,6 +773,7 @@
             .then(res => {
               if (res.data.code === 0) {
                 this.result = res.data.data;
+                this.totpRemaining = (res.data.data && typeof res.data.data.remaining === 'number') ? res.data.data.remaining : null;
                 this.showMessage('兑换成功', 'success');
               } else {
                 this.showMessage(res.data.message || '兑换失败');
@@ -812,9 +796,11 @@
                 }
                 // Start the client-side countdown so the button reflects the cooldown.
                 this.startCooldown((body.data && body.data.cooldown) || 10);
+                if (body.data && typeof body.data.remaining === 'number') this.totpRemaining = body.data.remaining;
               } else {
                 this.showMessage(body.message || '刷新失败');
                 if (body.data && body.data.cooldown) this.startCooldown(body.data.cooldown);
+                if (body.data && typeof body.data.remaining === 'number') this.totpRemaining = body.data.remaining;
               }
             })
             .catch(() => this.showMessage('网络错误，请稍后重试'))

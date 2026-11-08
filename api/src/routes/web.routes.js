@@ -9,6 +9,7 @@ import { configCarouselWebController } from '../web_controllers/configCarousel.w
 import { configQaWebController } from '../web_controllers/configQa.webController.js';
 import { configAnnouncementWebController } from '../web_controllers/configAnnouncement.webController.js';
 import { configPurchaseWebController } from '../web_controllers/configPurchase.webController.js';
+import { configLogoutWebController } from '../web_controllers/configLogout.webController.js';
 
 /**
  * Web routes - public APIs for web project (no admin auth required)
@@ -56,6 +57,7 @@ export async function webRoutes(app) {
   // ==================== Offline CDK (no auth required) ====================
   app.post('/web/offline/redeem', offlineWebController.redeem);
   app.post('/web/offline/refresh', offlineWebController.refresh);
+  app.post('/web/offline/logout', offlineWebController.logout);
 
   // ==================== Config (no auth required) ====================
   app.get('/web/config/carousels', configCarouselWebController.getCarousels);
@@ -63,6 +65,7 @@ export async function webRoutes(app) {
   app.get('/web/config/announcements', configAnnouncementWebController.getAnnouncements);
   app.get('/web/config/purchase-link', configPurchaseWebController.getPurchaseLink);
   app.get('/web/config/customer-service-link', configPurchaseWebController.getCustomerServiceLink);
+  app.get('/web/config/logout-setting', configLogoutWebController.getLogoutSetting);
 }
 
 export default webRoutes;

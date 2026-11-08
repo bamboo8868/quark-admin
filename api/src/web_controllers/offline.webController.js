@@ -2,6 +2,8 @@ import db from '../utils/db.js';
 import SteamTotp from 'steam-totp';
 import { log } from '../utils/logger.js';
 import { getRedis } from '../config/redis.js';
+import { offlineAccountService } from '../services/offline.service.js';
+import { settingService } from '../services/config.service.js';
 
 /**
  * Generate a TOTP code from an account's shared secret, safe against errors
@@ -99,6 +101,32 @@ async function resolveTotpCode(account) {
 }
 
 /**
+ * Resolve the per-CDK daily fetch limit from the game's refresh_count config
+ */
+function resolveDailyLimit(game) {
+    if (game && Number.isFinite(Number(game.refresh_count)) && Number(game.refresh_count) > 0) {
+        return Number(game.refresh_count);
+    }
+    return TOTP_DAILY_LIMIT;
+}
+
+/**
+ * Read today's remaining code fetches for a CDK WITHOUT consuming quota.
+ * Returns null when Redis is unavailable (fail open).
+ */
+async function remainingToday(cdkId, dailyLimit) {
+    try {
+        const redis = getRedis();
+        const key = `offline:totp:refresh:${cdkId}:${localDateStr()}`;
+        const used = parseInt(await redis.get(key), 10) || 0;
+        return Math.max(0, dailyLimit - used);
+    } catch (err) {
+        log.warn(`[OfflineWeb] remaining quota lookup failed for CDK ${cdkId}: ${err.message}`);
+        return null;
+    }
+}
+
+/**
  * Offline Web Controller - public APIs for the offline CDK redemption page (no auth required)
  *
  * Offline CDKs are PERMANENT: once redeemed, the bound account stays assigned forever
@@ -159,7 +187,8 @@ export const offlineWebController = {
                     totp_code: '',
                     game_name: game?.name || '',
                     version_name: version?.name || '',
-                    expire_time: formatDate(offlineExpireDate(cdk.used_at))
+                    expire_time: formatDate(offlineExpireDate(cdk.used_at)),
+                    remaining: await remainingToday(cdk.id, resolveDailyLimit(game))
                 }
             };
         }
@@ -235,7 +264,8 @@ export const offlineWebController = {
                 totp_code: '',
                 game_name: game?.name || '',
                 version_name: version?.name || '',
-                expire_time: formatDate(offlineExpireDate(now))
+                expire_time: formatDate(offlineExpireDate(now)),
+                remaining: await remainingToday(cdk.id, resolveDailyLimit(game))
             }
         };
     },
@@ -280,15 +310,9 @@ export const offlineWebController = {
         // TOTP_DAILY_LIMIT). The counter key is scoped by server-local date and
         // expires at midnight, so it resets automatically each day.
         // Only successful code deliveries are counted.
-        let dailyLimit = TOTP_DAILY_LIMIT;
-        try {
-            const game = await db('offline_games').where('id', cdk.game_id).first();
-            if (game && Number.isFinite(Number(game.refresh_count)) && Number(game.refresh_count) > 0) {
-                dailyLimit = Number(game.refresh_count);
-            }
-        } catch (err) {
-            log.warn(`[OfflineWeb] load refresh_count failed for CDK ${cdk.cdk_code}: ${err.message}`);
-        }
+        const game = await db('offline_games').where('id', cdk.game_id).first();
+        const dailyLimit = resolveDailyLimit(game);
+        let remaining = null;
         try {
             const redis = getRedis();
 
@@ -316,15 +340,142 @@ export const offlineWebController = {
                 return {
                     code: 10008,
                     message: `今日验证码获取次数已用完（每天最多${dailyLimit}次），请明天再试`,
-                    data: null
+                    data: { remaining: 0 }
                 };
             }
+            remaining = Math.max(0, dailyLimit - count);
         } catch (err) {
             // Fail open: a Redis outage should not block users from getting their code
             log.warn(`[OfflineWeb] refresh limit check failed for CDK ${cdk.cdk_code}: ${err.message}`);
         }
 
-        return { code: 0, message: '操作成功', data: { totp_code, cooldown: TOTP_COOLDOWN_SECONDS } };
+        return { code: 0, message: '操作成功', data: { totp_code, cooldown: TOTP_COOLDOWN_SECONDS, remaining } };
+    },
+
+    /**
+     * Logout (deauthorize all devices) the offline account found by nickname.
+     * A valid redeemed CDK acts as the credential; the nickname selects which
+     * account to logout (no ownership binding between CDK and nickname).
+     * POST /web/offline/logout
+     * Body: { cdk, nickname }
+     */
+    logout: async (request, reply) => {
+        // Feature switch (admin-configurable, effective without restart)
+        const enabled = await settingService.getLogoutEnabled();
+        if (!enabled) {
+            return { code: 10013, message: '注销功能暂未开启，请稍后再试或联系客服', data: null };
+        }
+
+        const { cdk: cdkCode, nickname } = request.body || {};
+        if (!cdkCode || !cdkCode.trim()) {
+            return { code: 10001, message: '请输入兑换码', data: null };
+        }
+        if (!nickname || !nickname.trim()) {
+            return { code: 10001, message: '请输入账号昵称', data: null };
+        }
+
+        const cdk = await db('offline_cdk').where('cdk_code', cdkCode.trim()).first();
+        if (!cdk) {
+            return { code: 10002, message: '兑换码不存在', data: null };
+        }
+        if (cdk.status !== 1) {
+            return { code: 10003, message: '该兑换码尚未兑换，无法注销', data: null };
+        }
+
+        // Resolve the target account by nickname (exact match)
+        const account = await db('offline_game_account').where('nickname', nickname.trim()).first();
+        if (!account) {
+            return { code: 10005, message: '未找到该昵称对应的离线账号，请检查昵称是否正确', data: null };
+        }
+
+        // Config-driven limits (Redis, fail-open): each logout spins up a real
+        // browser, so throttle per CDK and cap successful logouts per day.
+        const cooldownSeconds = await settingService.getLogoutCooldownSeconds();
+        const dailyLimit = await settingService.getLogoutDailyLimit();
+        const dayKey = `offline:logout:day:${cdk.id}:${localDateStr()}`;
+        let remaining = null;
+        try {
+            const redis = getRedis();
+            if (cooldownSeconds > 0) {
+                const cdKey = `offline:logout:cd:${cdk.id}`;
+                const cooling = await redis.get(cdKey);
+                if (cooling) {
+                    const ttl = await redis.ttl(cdKey);
+                    const wait = ttl > 0 ? ttl : cooldownSeconds;
+                    return {
+                        code: 10008,
+                        message: `操作太频繁，请 ${wait} 秒后再试`,
+                        data: { cooldown: wait }
+                    };
+                }
+                await redis.set(cdKey, '1', 'EX', cooldownSeconds);
+            }
+            const used = parseInt(await redis.get(dayKey), 10) || 0;
+            if (used >= dailyLimit) {
+                return {
+                    code: 10008,
+                    message: `今日注销次数已用完（每天最多${dailyLimit}次），请明天再试`,
+                    data: { remaining: 0 }
+                };
+            }
+        } catch (err) {
+            log.warn(`[OfflineWeb] logout limit check failed for CDK ${cdk.cdk_code}: ${err.message}`);
+        }
+
+        try {
+            await offlineAccountService.logout(account.id);
+        } catch (err) {
+            return { code: 10012, message: err.message || '注销失败，请稍后重试', data: null };
+        }
+
+        // Only successful logouts consume the daily quota; counter resets at midnight
+        try {
+            const redis = getRedis();
+            const count = await redis.incr(dayKey);
+            if (count === 1) {
+                await redis.expire(dayKey, secondsUntilMidnight());
+            }
+            remaining = Math.max(0, dailyLimit - count);
+        } catch (err) {
+            log.warn(`[OfflineWeb] logout quota count failed for CDK ${cdk.cdk_code}: ${err.message}`);
+        }
+
+        // Log the logout (best effort — never fail the response over logging)
+        // Game/version info comes from the searched account, not the CDK.
+        try {
+            const game = await db('offline_games').where('id', account.game_id).first();
+            const version = await db('offline_game_version').where('id', account.version_id).first();
+            await db('offline_log').insert({
+                cdk_id: cdk.id,
+                game_id: account.game_id,
+                version_id: account.version_id,
+                account_id: account.id,
+                game_name: game?.name || '',
+                version_name: version?.name || '',
+                cdk_code: cdk.cdk_code,
+                account: account.account,
+                action: 'logout',
+                username: 'web',
+                ip: request.ip || ''
+            });
+        } catch (err) {
+            log.warn(`[OfflineWeb] logout log insert failed for CDK ${cdk.cdk_code}: ${err.message}`);
+        }
+
+        log.info(`[OfflineWeb] Logout via web: ${cdk.cdk_code}, account: ${account.account}`);
+
+        const game = await db('offline_games').where('id', account.game_id).first();
+        return {
+            code: 0,
+            message: '注销成功',
+            data: {
+                account: account.account,
+                nickname: account.nickname || '',
+                game_name: game?.name || '',
+                cooldown: cooldownSeconds,
+                remaining
+            }
+        };
     }
 };
 

@@ -7,11 +7,15 @@ const carouselModel = new ConfigCarouselModel();
 const qaModel = new ConfigQaModel();
 const announcementModel = new ConfigAnnouncementModel();
 
-/** Normalize the config type: only 'rent' or 'offline' (default). */
-const normalizeType = (t) => (t === 'rent' ? 'rent' : 'offline');
+/** Normalize the config type: 'rent', 'logout' or 'offline' (default). */
+const normalizeType = (t) => (t === 'rent' || t === 'logout' ? t : 'offline');
 
 /** Fallback for the per-member daily viewable-game count when unset/invalid. */
 export const DEFAULT_DAILY_GAME_LIMIT = 10;
+
+/** Fallbacks for the offline logout-page settings when unset/invalid. */
+export const DEFAULT_LOGOUT_DAILY_LIMIT = 3;
+export const DEFAULT_LOGOUT_COOLDOWN_SECONDS = 60;
 
 // ==================== Config Carousel ====================
 export const carouselService = {
@@ -204,5 +208,45 @@ export const settingService = {
 
   async setCustomerServiceLink(value) {
     return await settingService.setSetting('customer_service_link', value);
+  },
+
+  /** Whether the public offline logout feature is enabled (default on; only '0' disables). */
+  async getLogoutEnabled() {
+    const raw = await settingService.getSetting('logout_enabled');
+    return raw !== '0';
+  },
+
+  async setLogoutEnabled(value) {
+    const enabled = value === true || value === 1 || value === '1';
+    await settingService.setSetting('logout_enabled', enabled ? '1' : '0');
+    return enabled;
+  },
+
+  /** Max successful logouts per CDK per day (default DEFAULT_LOGOUT_DAILY_LIMIT). */
+  async getLogoutDailyLimit() {
+    const raw = await settingService.getSetting('logout_daily_limit');
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) && n > 0 ? n : DEFAULT_LOGOUT_DAILY_LIMIT;
+  },
+
+  async setLogoutDailyLimit(value) {
+    const n = parseInt(value, 10);
+    const safe = Number.isFinite(n) && n > 0 ? n : DEFAULT_LOGOUT_DAILY_LIMIT;
+    await settingService.setSetting('logout_daily_limit', String(safe));
+    return safe;
+  },
+
+  /** Minimum seconds between two logout attempts per CDK (0 = no cooldown). */
+  async getLogoutCooldownSeconds() {
+    const raw = await settingService.getSetting('logout_cooldown_seconds');
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) && n >= 0 ? n : DEFAULT_LOGOUT_COOLDOWN_SECONDS;
+  },
+
+  async setLogoutCooldownSeconds(value) {
+    const n = parseInt(value, 10);
+    const safe = Number.isFinite(n) && n >= 0 ? n : DEFAULT_LOGOUT_COOLDOWN_SECONDS;
+    await settingService.setSetting('logout_cooldown_seconds', String(safe));
+    return safe;
   }
 };

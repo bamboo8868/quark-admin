@@ -217,6 +217,7 @@ const AnnouncementFormComponent = defineComponent({
           <el-select v-model={props.formInline.type} placeholder="请选择类型">
             <el-option label="离线" value="offline" />
             <el-option label="租号" value="rent" />
+            <el-option label="注销页" value="logout" />
           </el-select>
         </el-form-item>
         <el-form-item label="标题" prop="title">

@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="离线账号自助注销中心">
+  <meta name="renderer" content="webkit">
+  <title>离线账号注销中心</title>
+  <style>
+    :root {
+      --bg: #f0f5ff;
+      --card-bg: rgba(255, 255, 255, 0.97);
+      --card-border: #d9e4f0;
+      --primary: #1677ff;
+      --primary-dark: #0f6ff0;
+      --chip-bg: #eef5ff;
+      --text: #152238;
+      --heading: #17263a;
+      --muted: #657487;
+      --muted-2: #4f5f72;
+      --success: #13a663;
+      --danger: #e5484d;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Microsoft YaHei UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    [v-cloak], .hidden { display: none !important; }
+
+    /* ---------- Navbar ---------- */
+    .navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 64px;
+      background: #fff;
+      box-shadow: rgba(22, 36, 56, 0.08) 0 2px 12px;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      z-index: 100;
+    }
+    .navbar .logo-chip {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      background: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    .navbar .logo-chip svg { width: 22px; height: 22px; stroke: #fff; }
+    .navbar .brand {
+      font-size: 18px; font-weight: 900; color: #333;
+      line-height: 1.2;
+    }
+    .navbar .brand small {
+      display: block; font-size: 11px; font-weight: 600; color: var(--muted);
+    }
+    .navbar .nav-link {
+      margin-left: 28px;
+      font-size: 13px; font-weight: 800; color: var(--muted);
+      text-decoration: none;
+      padding: 6px 2px;
+      border-bottom: 2.4px solid transparent;
+      transition: color .15s, border-color .15s;
+    }
+    .navbar .nav-link:hover { color: var(--primary-dark); }
+    .navbar .nav-link.active {
+      color: #1677b8;
+      border-bottom-color: var(--primary);
+    }
+
+    /* ---------- Layout ---------- */
+    .page {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 88px 16px 40px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 0.8px solid var(--card-border);
+      border-radius: 14px;
+      box-shadow: rgba(36, 65, 96, 0.043) 0 10px 28px;
+      padding: 20px 24px;
+      margin-bottom: 20px;
+    }
+
+    .card-head {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 18px;
+    }
+    .card-head .icon-chip {
+      width: 36px; height: 36px;
+      border-radius: 9px;
+      background: var(--chip-bg);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .card-head .icon-chip svg { width: 20px; height: 20px; stroke: var(--primary-dark); }
+    .card-head h2 {
+      font-size: 20px; font-weight: 900; color: var(--heading);
+    }
+
+    /* ---------- Logout form ---------- */
+    .logout-form {
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .logout-form input {
+      height: 62px;
+      border: 0.8px solid #2680f7;
+      border-radius: 9px;
+      padding: 0 19px;
+      font-size: 16px; font-weight: 600; color: var(--heading);
+      outline: none;
+      background: #fff;
+      transition: box-shadow .15s, border-color .15s;
+    }
+    .logout-form input::placeholder { color: #9aa7b8; font-weight: 500; }
+    .logout-form input:focus {
+      border-color: #2680f7;
+      box-shadow: rgba(22, 119, 255, 0.10) 0 0 0 3px;
+    }
+    .btn-primary {
+      height: 62px;
+      border: none;
+      border-radius: 9px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer;
+      box-shadow: rgba(22, 119, 255, 0.17) 0 9px 20px;
+      transition: filter .15s, transform .05s;
+    }
+    .btn-primary:hover { filter: brightness(1.06); }
+    .btn-primary:active { transform: translateY(1px); }
+    .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+    .logout-remain { font-size: 12px; font-weight: 700; color: var(--muted-2); text-align: center; }
+
+    .note {
+      display: flex; align-items: center; gap: 8px;
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 12px; font-weight: 850;
+    }
+    .note svg { width: 15px; height: 15px; stroke: var(--muted); flex-shrink: 0; }
+
+    /* ---------- Alert ---------- */
+    .alert {
+      border-radius: 9px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 13px; font-weight: 700;
+      display: none;
+    }
+    .alert.show { display: block; }
+    .alert.error { background: #fdecec; color: var(--danger); border: 0.8px solid #f5c2c2; }
+    .alert.success { background: #e8f7ef; color: var(--success); border: 0.8px solid #bfe6d0; }
+
+    /* ---------- Result ---------- */
+    .result-grid {
+      display: grid;
+      grid-template-columns: 96px 1fr;
+      row-gap: 12px;
+      align-items: center;
+    }
+    .result-grid .label { color: var(--muted-2); font-weight: 700; }
+    .result-grid .value { font-weight: 800; color: var(--heading); word-break: break-all; }
+    .result-grid .value.accent { color: var(--primary-dark); }
+    /* Copyable value with an inline copy button */
+    .value-copy {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .value-copy .v-text {
+      min-width: 0;
+      word-break: break-all;
+    }
+    .btn-copy-sm {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--primary);
+      background: #eef5ff;
+      border: 0.8px solid #cfe0ff;
+      border-radius: 7px;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: background .16s, border-color .16s, color .16s;
+    }
+    .btn-copy-sm:hover { background: #dfeaff; border-color: #a9c8ff; }
+    .btn-copy-sm.copied { color: var(--success); background: #e8f7ef; border-color: #a7e3bf; }
+    .btn-copy-sm svg { width: 13px; height: 13px; }
+
+    /* ---------- Announcement marquee ---------- */
+    .announce-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(90deg, #fff6e5, #fffdf6);
+      border: 0.8px solid #ffe0a3;
+      border-radius: 12px;
+      padding: 9px 14px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .announce-tag {
+      flex-shrink: 0;
+      display: flex; align-items: center; gap: 5px;
+      background: #f59e0b;
+      color: #fff;
+      font-size: 12px; font-weight: 900;
+      padding: 4px 11px;
+      border-radius: 999px;
+    }
+    .announce-tag svg { width: 14px; height: 14px; stroke: #fff; }
+    .announce-viewport {
+      flex: 1;
+      min-width: 0;
+      height: 22px;
+      overflow: hidden;
+      position: relative;
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 20px, #000 calc(100% - 20px), transparent);
+      mask-image: linear-gradient(90deg, transparent, #000 20px, #000 calc(100% - 20px), transparent);
+    }
+    .announce-track {
+      display: inline-flex;
+      align-items: center;
+      height: 100%;
+      white-space: nowrap;
+      will-change: transform;
+    }
+    .announce-track.scrolling {
+      animation-name: announce-scroll;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+    }
+    .announce-viewport:hover .announce-track.scrolling { animation-play-state: paused; }
+    .announce-item {
+      font-size: 13px; font-weight: 800; color: #8a5a09;
+      padding: 0 26px;
+    }
+    @keyframes announce-scroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    /* ---------- Carousel ---------- */
+    .carousel-wrap {
+      position: relative;
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      border: 0.8px solid var(--card-border);
+      background: var(--card-bg);
+      box-shadow: rgba(36, 65, 96, 0.043) 0 10px 28px;
+    }
+    .carousel-track {
+      display: flex;
+      transition: transform .5s ease;
+    }
+    .carousel-slide {
+      min-width: 100%;
+      display: block;
+      line-height: 0;
+    }
+    .carousel-slide img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      display: block;
+    }
+    .carousel-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 34px; height: 34px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, .28);
+      color: #fff;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s;
+      z-index: 2;
+    }
+    .carousel-arrow:hover { background: rgba(0, 0, 0, .5); }
+    .carousel-arrow.prev { left: 12px; }
+    .carousel-arrow.next { right: 12px; }
+    .carousel-dots {
+      position: absolute;
+      bottom: 12px; left: 0; right: 0;
+      display: flex; justify-content: center; gap: 8px;
+      z-index: 2;
+    }
+    .carousel-dots .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .55);
+      cursor: pointer;
+      transition: background .2s, width .2s;
+    }
+    .carousel-dots .dot.active {
+      background: #fff;
+      width: 20px;
+      border-radius: 4px;
+    }
+
+    /* ---------- Notice rows ---------- */
+    .notice {
+      display: flex;
+      background: #fdf8ec;
+      border-left: 4px solid #f59e0b;
+      border-radius: 6px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      gap: 16px;
+    }
+    .notice:last-child { margin-bottom: 0; }
+    .notice .n-label {
+      flex-shrink: 0;
+      width: 76px;
+      font-weight: 900; color: var(--heading);
+    }
+    .notice .n-body { font-weight: 800; color: var(--heading); line-height: 1.7; }
+    .notice mark {
+      background: #ffe58f;
+      padding: 0 3px;
+      border-radius: 3px;
+      color: inherit;
+    }
+    /* QA rows rendered in the same notice style */
+    .notice.qa-notice .n-body { flex: 1; white-space: pre-wrap; word-break: break-word; }
+    .notice.qa-notice.qa-clickable { cursor: pointer; transition: background .18s; }
+    .notice.qa-notice.qa-clickable:hover { background: #fbf1d8; }
+    .qa-link-hint {
+      display: inline-block;
+      margin-left: 6px;
+      font-size: 12px; font-weight: 700; color: #1677ff;
+      white-space: nowrap;
+    }
+
+    /* ---------- Footer ---------- */
+    .footer {
+      text-align: center;
+      color: #bbbbbb;
+      font-size: 11px; font-weight: 800;
+      padding: 12px 0 28px;
+    }
+    .footer a { color: #bbbbbb; text-decoration: none; }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 560px) {
+      .logout-form input {
+        height: 54px;
+        font-size: 16px;
+        padding: 0 16px;
+      }
+      .btn-primary {
+        width: 100%;
+        height: 54px;
+        font-size: 15px;
+      }
+      .result-grid { grid-template-columns: 80px 1fr; }
+      .notice { flex-direction: column; gap: 6px; }
+      .notice .n-label { width: auto; }
+      .carousel-slide img { height: 150px; }
+      .announce-bar { padding: 8px 12px; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navbar -->
+  <div class="navbar">
+    <div class="logo-chip">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="6" y1="12" x2="10" y2="12"></line>
+        <line x1="8" y1="10" x2="8" y2="14"></line>
+        <line x1="15" y1="13" x2="15.01" y2="13"></line>
+        <line x1="18" y1="11" x2="18.01" y2="11"></line>
+        <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+      </svg>
+    </div>
+    <div class="brand">离线账号注销中心<small>自助注销 · 安全放心</small></div>
+    <a class="nav-link" href="./member.html">会员中心</a>
+    <a class="nav-link" href="./index.html">离线兑换</a>
+    <a class="nav-link" href="./rent.html">租号兑换</a>
+  </div>
+
+  <div class="page" id="app">
+    <!-- Announcement marquee -->
+    <div class="announce-bar" v-if="announcements.length">
+      <div class="announce-tag">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 10v4a1 1 0 0 0 1 1h3l4 3V7L7 10H4a1 1 0 0 0-1 1z"></path>
+          <path d="M15.5 8.5a5 5 0 0 1 0 7"></path>
+          <path d="M18.5 6a9 9 0 0 1 0 12"></path>
+        </svg>
+        <span>公告</span>
+      </div>
+      <div class="announce-viewport">
+        <div class="announce-track" :class="{ scrolling: announcements.length > 1 }" :style="{ animationDuration: announceDuration }">
+          <span class="announce-item" v-for="(item, idx) in announceLoop" :key="'ann-' + idx">{{ item.content }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert -->
+    <div class="alert" :class="[alert.type, { show: alert.show }]">{{ alert.text }}</div>
+
+    <!-- Logout card -->
+    <div class="card">
+      <div class="card-head">
+        <div class="icon-chip">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </div>
+        <h2>账号注销</h2>
+      </div>
+
+      <div class="logout-form">
+        <input type="text" v-model.trim="cdk" placeholder="请输入兑换码，例如 M64KTDB2" autocomplete="off"
+          @keyup.enter="logout" :disabled="loading || !logoutEnabled">
+        <input type="text" v-model.trim="nickname" placeholder="请输入要注销的账号昵称" autocomplete="off"
+          @keyup.enter="logout" :disabled="loading || !logoutEnabled">
+        <button class="btn-primary" @click="logout" :disabled="loading || logoutCooldown > 0 || !logoutEnabled || logoutRemaining === 0">
+          {{ !logoutEnabled ? '注销功能已关闭' : (loading ? '注销中，请耐心等待…' : (logoutCooldown > 0 ? logoutCooldown + ' 秒后可再次注销' : '立即注销')) }}
+        </button>
+        <div class="logout-remain" v-if="logoutRemaining !== null">今日剩余注销次数：{{ logoutRemaining }} 次</div>
+      </div>
+
+      <div class="note" v-if="!logoutEnabled">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path>
+        </svg>
+        <span>注销功能暂未开启，请稍后再试或联系客服</span>
+      </div>
+
+      <div class="note">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path>
+        </svg>
+        <span>注销将使该账号在所有设备上退出登录，处理约需 1 分钟，期间请勿关闭页面</span>
+      </div>
+    </div>
+
+    <!-- Result card -->
+    <div class="card" v-show="result">
+      <div class="card-head">
+        <div class="icon-chip">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="m9 12 2 2 4-4"></path>
+          </svg>
+        </div>
+        <h2>注销成功</h2>
+      </div>
+
+      <div class="result-grid" v-if="result">
+        <div class="label">游戏</div>
+        <div class="value accent">{{ result.game_name || '-' }}</div>
+
+        <div class="label">账号昵称</div>
+        <div class="value">{{ result.nickname || '-' }}</div>
+
+        <div class="label">Steam账号</div>
+        <div class="value value-copy">
+          <span class="v-text">{{ result.account }}</span>
+          <button class="btn-copy-sm" type="button" :class="{ copied: copiedField === 'account' }" @click="copyText(result.account, 'account')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>{{ copiedField === 'account' ? '已复制' : '复制' }}</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="note">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path>
+        </svg>
+        <span>该账号已在所有设备上退出登录，如需重新登录请前往离线兑换页输入CDK获取验证码</span>
+      </div>
+    </div>
+
+    <!-- Notice & QA card -->
+    <div class="card">
+      <div class="card-head">
+        <div class="icon-chip">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 7v14"></path>
+            <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path>
+          </svg>
+        </div>
+        <h2>注意事项&amp;常见问题</h2>
+      </div>
+      <template v-if="qas.length">
+        <div class="notice qa-notice" v-for="item in qas" :key="item.id" :class="{ 'qa-clickable': item.link }" @click="openQaLink(item)">
+          <div class="n-label">{{ item.question }}</div>
+          <div class="n-body"><mark>{{ item.answer }}</mark><span v-if="item.link" class="qa-link-hint">查看链接 ›</span></div>
+        </div>
+      </template>
+    </div>
+
+    <div class="footer">
+      <span>离线账号注销中心</span>
+    </div>
+  </div>
+
+  <script src="/static/js/vue.min.js"></script>
+  <script src="/static/js/axios.min.js"></script>
+  <script>
+    // ===== 接口请求地址配置：所有请求统一前缀，切换后端域名 / 环境只需改这里 =====
+    var BASE_URL = window.BASE_URL || '/api/web';  // 本地联调默认值；生产同源部署可改为 '/api/web'
+
+    new Vue({
+      el: '#app',
+      data: {
+        cdk: '',
+        nickname: '',
+        loading: false,
+        result: null,
+        copiedField: null,
+        logoutCooldown: 0,
+        cooldownTimer: null,
+        logoutEnabled: true,
+        logoutRemaining: null,
+        logoutCooldownSeconds: 60,
+        alert: { show: false, text: '', type: 'error' },
+        alertTimer: null,
+        carousels: [],
+        carouselIndex: 0,
+        carouselTimer: null,
+        announcements: [],
+        qas: []
+      },
+      computed: {
+        announceLoop() {
+          return this.announcements.length > 1
+            ? this.announcements.concat(this.announcements)
+            : this.announcements;
+        },
+        announceDuration() {
+          return Math.max(12, this.announcements.length * 6) + 's';
+        }
+      },
+      mounted() {
+        this.fetchLogoutSetting();
+        this.fetchAnnouncements();
+        this.fetchQas();
+      },
+      beforeDestroy() {
+        this.stopCarousel();
+        if (this.cooldownTimer) clearInterval(this.cooldownTimer);
+      },
+      methods: {
+        fetchLogoutSetting() {
+          axios.get(BASE_URL + '/config/logout-setting')
+            .then(res => {
+              if (res.data.code === 0 && res.data.data) {
+                this.logoutEnabled = res.data.data.enabled !== false;
+                if (typeof res.data.data.cooldown_seconds === 'number') {
+                  this.logoutCooldownSeconds = res.data.data.cooldown_seconds;
+                }
+              }
+            })
+            .catch(() => {});
+        },
+        fetchAnnouncements() {
+          axios.get(BASE_URL + '/config/announcements', { params: { type: 'logout' } })
+            .then(res => {
+              if (res.data.code === 0 && Array.isArray(res.data.data)) {
+                this.announcements = res.data.data.filter(it => it && it.content);
+              }
+            })
+            .catch(() => {});
+        },
+        fetchQas() {
+          axios.get(BASE_URL + '/config/qas', { params: { type: 'logout' } })
+            .then(res => {
+              if (res.data.code === 0 && Array.isArray(res.data.data)) {
+                this.qas = res.data.data.filter(it => it && it.question);
+              }
+            })
+            .catch(() => {});
+        },
+        openQaLink(item) {
+          if (item && item.link) window.open(item.link, '_blank', 'noopener');
+        },
+        fetchCarousels() {
+          axios.get(BASE_URL + '/config/carousels', { params: { type: 'offline' } })
+            .then(res => {
+              if (res.data.code === 0 && Array.isArray(res.data.data)) {
+                this.carousels = res.data.data.filter(it => it && it.image);
+                if (this.carousels.length > 1) this.startCarousel();
+              }
+            })
+            .catch(() => {});
+        },
+        startCarousel() {
+          this.stopCarousel();
+          this.carouselTimer = setInterval(this.nextSlide, 4000);
+        },
+        stopCarousel() {
+          if (this.carouselTimer) { clearInterval(this.carouselTimer); this.carouselTimer = null; }
+        },
+        nextSlide() {
+          if (!this.carousels.length) return;
+          this.carouselIndex = (this.carouselIndex + 1) % this.carousels.length;
+        },
+        prevSlide() {
+          if (!this.carousels.length) return;
+          this.carouselIndex = (this.carouselIndex - 1 + this.carousels.length) % this.carousels.length;
+        },
+        goSlide(idx) {
+          this.carouselIndex = idx;
+          if (this.carousels.length > 1) this.startCarousel();
+        },
+        pauseCarousel() { this.stopCarousel(); },
+        resumeCarousel() { if (this.carousels.length > 1) this.startCarousel(); },
+        showMessage(text, type) {
+          this.alert.show = true;
+          this.alert.text = text;
+          this.alert.type = type || 'error';
+          if (this.alertTimer) clearTimeout(this.alertTimer);
+          this.alertTimer = setTimeout(() => { this.alert.show = false; }, 5000);
+        },
+        copyText(text, field) {
+          if (!text) return;
+          const done = () => {
+            this.copiedField = field;
+            setTimeout(() => { if (this.copiedField === field) this.copiedField = null; }, 1500);
+          };
+          const fallback = () => {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); done(); } catch (e) { this.showMessage('复制失败，请手动复制'); }
+            document.body.removeChild(ta);
+          };
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(done).catch(fallback);
+          } else {
+            fallback();
+          }
+        },
+        logout() {
+          if (!this.logoutEnabled) { this.showMessage('注销功能暂未开启，请稍后再试或联系客服'); return; }
+          if (!this.cdk) { this.showMessage('请输入兑换码'); return; }
+          if (!this.nickname) { this.showMessage('请输入要注销的账号昵称'); return; }
+          if (this.logoutCooldown > 0) return;
+          this.loading = true;
+          // 注销走真实浏览器流程，耗时较长，超时放宽到 3 分钟
+          axios.post(BASE_URL + '/offline/logout', { cdk: this.cdk, nickname: this.nickname }, { timeout: 180000 })
+            .then(res => {
+              const body = res.data || {};
+              if (body.code === 0) {
+                this.result = body.data;
+                this.showMessage('注销成功，该账号已在所有设备退出登录', 'success');
+                if (body.data && typeof body.data.remaining === 'number') this.logoutRemaining = body.data.remaining;
+                if (body.data && body.data.cooldown > 0) this.startCooldown(body.data.cooldown);
+              } else {
+                this.showMessage(body.message || '注销失败');
+                if (body.data && body.data.cooldown) this.startCooldown(body.data.cooldown);
+                if (body.data && typeof body.data.remaining === 'number') this.logoutRemaining = body.data.remaining;
+              }
+            })
+            .catch(err => {
+              if (err && err.code === 'ECONNABORTED') {
+                this.showMessage('注销处理超时，请稍后重试或联系客服确认账号状态');
+              } else {
+                this.showMessage('网络错误，请稍后重试');
+              }
+            })
+            .finally(() => { this.loading = false; });
+        },
+        startCooldown(sec) {
+          const seconds = Math.max(1, parseInt(sec, 10) || this.logoutCooldownSeconds || 60);
+          this.logoutCooldown = seconds;
+          if (this.cooldownTimer) clearInterval(this.cooldownTimer);
+          this.cooldownTimer = setInterval(() => {
+            this.logoutCooldown -= 1;
+            if (this.logoutCooldown <= 0) {
+              this.logoutCooldown = 0;
+              clearInterval(this.cooldownTimer);
+              this.cooldownTimer = null;
+            }
+          }, 1000);
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>

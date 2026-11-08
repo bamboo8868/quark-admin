@@ -435,6 +435,10 @@
       border-radius: 3px;
       color: inherit;
     }
+    /* QA rows rendered in the same notice style */
+    .notice.qa-notice .n-body { flex: 1; white-space: pre-wrap; word-break: break-word; }
+    .notice.qa-notice.qa-clickable { cursor: pointer; transition: background .18s; }
+    .notice.qa-notice.qa-clickable:hover { background: #fbf1d8; }
 
     /* ---------- QA accordion ---------- */
     .qa-list { display: flex; flex-direction: column; gap: 10px; }
@@ -707,7 +711,7 @@
       </template>
     </div>
 
-    <!-- Notice card -->
+    <!-- Notice & QA card -->
     <div class="card">
       <div class="card-head">
         <div class="icon-chip">
@@ -716,7 +720,7 @@
             <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path>
           </svg>
         </div>
-        <h2>注意事项</h2>
+        <h2>注意事项&amp;常见问题</h2>
       </div>
 
       <div class="notice">
@@ -731,37 +735,13 @@
         <div class="n-label">关于续费</div>
         <div class="n-body"><mark>租期未结束前使用续费CDK可在原到期时间基础上累加时长；已过期则从续费时刻开始计算。</mark></div>
       </div>
-    </div>
 
-    <!-- QA accordion -->
-    <div class="card" v-if="qas.length">
-      <div class="card-head">
-        <div class="icon-chip">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-            <path d="M12 17h.01"></path>
-          </svg>
+      <template v-if="qas.length">
+        <div class="notice qa-notice" v-for="item in qas" :key="item.id" :class="{ 'qa-clickable': item.link }" @click="openQaLink(item)">
+          <div class="n-label">{{ item.question }}</div>
+          <div class="n-body"><mark>{{ item.answer }}</mark><span v-if="item.link" class="qa-link-hint">查看链接 ›</span></div>
         </div>
-        <h2>常见问题</h2>
-      </div>
-
-      <div class="qa-list">
-        <div class="qa-item" v-for="item in qas" :key="item.id" :class="{ open: openQa === item.id }">
-          <div class="qa-question" @click="toggleQa(item.id)">
-            <span class="q-badge">Q</span>
-            <span class="q-text">{{ item.question }}</span>
-            <svg class="q-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </div>
-          <div class="qa-answer">
-            <div>
-              <div class="qa-answer-inner" :class="{ 'qa-clickable': item.link }" @click="openQaLink(item)">{{ item.answer }}<span v-if="item.link" class="qa-link-hint">查看链接 ›</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
+      </template>
     </div>
 
     <div class="footer">

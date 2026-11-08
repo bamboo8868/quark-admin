@@ -140,5 +140,24 @@ export const settingController = {
       data.customer_service_link === undefined ? '' : String(data.customer_service_link).trim()
     );
     return { code: 0, message: '操作成功', data: { daily_game_limit, customer_service_link } };
+  },
+
+  // GET /config/logout-setting — 注销页配置（功能开关 + 每日次数 + 间隔时间）
+  getLogoutSetting: async (request, reply) => {
+    const [enabled, daily_limit, cooldown_seconds] = await Promise.all([
+      settingService.getLogoutEnabled(),
+      settingService.getLogoutDailyLimit(),
+      settingService.getLogoutCooldownSeconds()
+    ]);
+    return { code: 0, message: '操作成功', data: { enabled, daily_limit, cooldown_seconds } };
+  },
+
+  // PUT /config/logout-setting  Body: { enabled, daily_limit, cooldown_seconds }
+  updateLogoutSetting: async (request, reply) => {
+    const data = request.body || {};
+    const enabled = await settingService.setLogoutEnabled(data.enabled);
+    const daily_limit = await settingService.setLogoutDailyLimit(data.daily_limit);
+    const cooldown_seconds = await settingService.setLogoutCooldownSeconds(data.cooldown_seconds);
+    return { code: 0, message: '操作成功', data: { enabled, daily_limit, cooldown_seconds } };
   }
 };

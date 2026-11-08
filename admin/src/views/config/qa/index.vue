@@ -55,6 +55,7 @@ const {
         >
           <el-option label="离线" value="offline" />
           <el-option label="租号" value="rent" />
+          <el-option label="注销页" value="logout" />
         </el-select>
       </el-form-item>
       <el-form-item label="状态" prop="status">
@@ -114,10 +115,10 @@ const {
         >
           <template #type="{ row }">
             <el-tag
-              :type="row.type === 'rent' ? 'warning' : 'primary'"
+              :type="row.type === 'rent' ? 'warning' : row.type === 'logout' ? 'danger' : 'primary'"
               size="small"
             >
-              {{ row.type === "rent" ? "租号" : "离线" }}
+              {{ row.type === "rent" ? "租号" : row.type === "logout" ? "注销页" : "离线" }}
             </el-tag>
           </template>
           <template #status="{ row }">

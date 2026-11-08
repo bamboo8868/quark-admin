@@ -32,6 +32,10 @@ export async function configRoutes(app) {
   // ==================== Config Setting (会员中心配置) ====================
   app.get('/config/member-setting', settingController.getMemberSetting);
   app.put('/config/member-setting', settingController.updateMemberSetting);
+
+  // ==================== Config Setting (注销页配置) ====================
+  app.get('/config/logout-setting', settingController.getLogoutSetting);
+  app.put('/config/logout-setting', settingController.updateLogoutSetting);
 }
 
 export default configRoutes;

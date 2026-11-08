@@ -115,6 +115,7 @@ menus:
   pureConfigQa: Q&A
   pureConfigAnnouncement: Announcement
   pureConfigPurchase: Purchase Link
+  pureConfigLogout: Logout Settings
   pureSteamManagement: Steam
   pureSteamFamily: Family Group
   pureCodeMirror: CodeMirror
