@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="会员中心 - 注册登录、CDK 兑换会员、会员游戏库表格">
+  <meta name="renderer" content="webkit">
+  <title>会员中心 · 高能电玩</title>
+  <style>
+    :root {
+      --primary: #2563eb; --primary-dark: #1d4ed8; --indigo: #4f46e5; --violet: #7c3aed;
+      --tile: #eff6ff; --text: #1f2937; --heading: #0f172a;
+      --muted: #64748b; --muted-2: #94a3b8; --border: #e2e8f0; --border-2: #d1d5db;
+      --success: #047857; --success-bg: #ecfdf5; --danger: #dc2626; --danger-bg: #fef2f2;
+      --warning: #f59e0b; --gold: #d4a017; --bronze: #b06a2c; --dark: #0f172a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100%; background: linear-gradient(135deg, #eff6ff, #eef2ff); color: var(--text); font-family: Inter, system-ui, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 15px; -webkit-font-smoothing: antialiased; }
+    body { display: flex; flex-direction: column; min-height: 100vh; }
+    [v-cloak] { display: none !important; }
+    svg.ic { width: 1em; height: 1em; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: .3px; }
+    .grad-text { background: linear-gradient(90deg, var(--primary), var(--violet)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+    /* palette scrollbar */
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: #e8eefb; border-radius: 8px; }
+    ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #93b4f5, #6d8df0); border-radius: 8px; border: 2px solid #e8eefb; }
+    ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #6d8df0, #4f46e5); }
+    * { scrollbar-width: thin; scrollbar-color: #6d8df0 #e8eefb; }
+
+    /* ---------- Navbar ---------- */
+    .navbar { position: sticky; top: 0; z-index: 100; background: rgba(255, 255, 255, .82); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-bottom: 1px solid var(--border); }
+    .nav-inner { max-width: 1400px; margin: 0 auto; height: 64px; display: flex; align-items: center; gap: 18px; padding: 0 24px; }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; flex-shrink: 0; }
+    .logo-chip { width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, var(--primary), var(--indigo)); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 19px; box-shadow: 0 6px 14px -6px rgba(37, 99, 235, .6); }
+    .logo-text .name { font-size: 17px; font-weight: 800; color: var(--heading); }
+    .logo-text .sub { display: block; font-size: 11px; color: var(--muted); font-weight: 600; }
+    .nav-links { display: flex; align-items: center; gap: 4px; }
+    .nav-links a { font-size: 14px; font-weight: 600; color: var(--muted); text-decoration: none; padding: 7px 12px; border-radius: 8px; position: relative; transition: color .15s, background .15s; }
+    .nav-links a:hover { color: var(--primary-dark); background: var(--tile); }
+    .nav-links a.active { color: var(--primary-dark); font-weight: 700; }
+    .nav-links a.active::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 2px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--primary), var(--violet)); }
+    .nav-search { flex: 1; max-width: 420px; margin-left: auto; display: flex; align-items: center; position: relative; }
+    .nav-search .ic { position: absolute; left: 12px; color: var(--muted-2); font-size: 15px; pointer-events: none; }
+    .nav-search input { flex: 1; height: 40px; border-radius: 10px 0 0 10px; border: 1px solid var(--border-2); border-right: none; background: #f8fafc; padding: 0 14px 0 36px; font-size: 13px; color: var(--text); outline: none; transition: box-shadow .15s, border-color .15s; }
+    .nav-search input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, .12); }
+    .nav-search .btn-search { height: 40px; padding: 0 20px; border: none; border-radius: 0 10px 10px 0; background: var(--primary); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; }
+    .nav-search .btn-search:hover { background: var(--primary-dark); }
+    .nav-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .user-wrap { position: relative; }
+    .user-badge { display: flex; align-items: center; gap: 8px; padding: 5px 14px 5px 6px; border-radius: 999px; background: #fff; border: 1px solid var(--border); font-size: 13px; font-weight: 700; color: var(--heading); cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+    .user-badge:hover { border-color: var(--primary); box-shadow: 0 4px 12px -6px rgba(37, 99, 235, .4); }
+    .tier-dot { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; background: linear-gradient(135deg, #64748b, #94a3b8); }
+    .tier-dot.bronze { background: linear-gradient(135deg, #b06a2c, #d97706); }
+    .tier-dot.gold { background: linear-gradient(135deg, #d4a017, #fbbf24); }
+    .menu-backdrop { position: fixed; inset: 0; z-index: 140; }
+    .user-menu { position: absolute; right: 0; top: calc(100% + 8px); z-index: 150; min-width: 220px; padding: 10px; background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 18px 40px -12px rgba(15, 23, 42, .25); animation: menuIn .16s ease; }
+    @keyframes menuIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+    .user-menu .um-row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 10px; font-size: 12px; font-weight: 600; }
+    .user-menu .um-row span:first-child { color: var(--muted); }
+    .user-menu .um-row span:last-child { color: var(--heading); font-weight: 800; }
+    .user-menu .um-divider { height: 1px; background: var(--border); margin: 6px 4px; }
+    .user-menu .um-logout { width: 100%; padding: 9px 10px; border: none; border-radius: 9px; background: var(--danger-bg); color: var(--danger); font-size: 12px; font-weight: 800; cursor: pointer; }
+    .btn-login { height: 38px; padding: 0 20px; border: none; border-radius: 10px; background: linear-gradient(90deg, var(--primary), var(--indigo)); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 18px -8px rgba(37, 99, 235, .7); }
+    .btn-login:hover { filter: brightness(1.06); }
+
+    /* ---------- Alert ---------- */
+    .alert { position: fixed; top: 76px; left: 50%; transform: translateX(-50%); z-index: 300; display: none; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 10px; font-size: 14px; font-weight: 600; box-shadow: 0 12px 30px -10px rgba(15, 23, 42, .3); }
+    .alert.show { display: flex; animation: menuIn .2s ease; }
+    .alert.error { background: var(--danger-bg); color: var(--danger); border: 1px solid #fecaca; }
+    .alert.success { background: var(--success-bg); color: var(--success); border: 1px solid #a7f3d0; }
+
+    /* ---------- Hero ---------- */
+    .hero-wrap { max-width: 1400px; margin: 0 auto; padding: 24px 24px 0; width: 100%; }
+    .hero-grid { display: grid; grid-template-columns: 1.5fr .95fr 1fr; gap: 16px; align-items: stretch; }
+    .hero-intro { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 30px 34px 24px; box-shadow: 0 16px 36px -18px rgba(30, 64, 175, .25); display: flex; flex-direction: column; }
+    .hero-intro h1 { font-size: 30px; font-weight: 800; color: var(--heading); letter-spacing: -.5px; }
+    .hero-intro p.lead { margin-top: 12px; font-size: 13px; color: var(--muted); font-weight: 500; line-height: 1.9; max-width: 560px; }
+    .intro-stats { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: auto; padding-top: 22px; }
+    .intro-stats .col { padding: 14px 16px 4px; border-top: 1px solid var(--border); }
+    .intro-stats .col + .col { border-left: 1px solid var(--border); }
+    .intro-stats .col:first-child { padding-left: 0; }
+    .intro-stats .lbl { font-size: 10px; font-weight: 800; color: var(--muted-2); letter-spacing: 1.2px; }
+    .intro-stats .val { margin-top: 7px; font-size: 13px; font-weight: 800; color: var(--heading); }
+    .redeem-card { background: #fff; border: 1.6px solid rgba(37, 99, 235, .5); border-radius: 16px; padding: 24px 22px; box-shadow: 0 16px 36px -18px rgba(37, 99, 235, .45); display: flex; flex-direction: column; gap: 12px; }
+    .rc-title { text-align: center; font-size: 19px; font-weight: 800; color: var(--heading); }
+    .rc-title .rc-hl { color: var(--warning); }
+    .rc-meta { text-align: center; font-size: 12px; color: var(--muted); font-weight: 600; margin-top: -4px; }
+    .rc-meta strong { color: var(--gold); font-weight: 800; }
+    .redeem-card input { width: 100%; height: 44px; border-radius: 10px; border: 1px solid var(--primary); background: #fff; padding: 0 16px; font-size: 14px; font-weight: 600; color: var(--heading); outline: none; letter-spacing: 1px; }
+    .redeem-card input:focus { box-shadow: 0 0 0 3px rgba(37, 99, 235, .12); }
+    .btn-redeem { width: 100%; height: 42px; border: none; border-radius: 10px; background: linear-gradient(90deg, var(--primary), var(--indigo)); color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 18px -8px rgba(37, 99, 235, .7); }
+    .btn-redeem:disabled { opacity: .6; cursor: not-allowed; }
+    .btn-buy { width: 100%; height: 42px; border: 1px solid #bfdbfe; border-radius: 10px; background: var(--tile); color: var(--primary); font-size: 14px; font-weight: 700; cursor: pointer; }
+    .btn-buy:hover { background: #dbeafe; }
+    .hero-dark { background: linear-gradient(150deg, #16283c, #0f172a); border-radius: 16px; padding: 30px 28px; color: #fff; box-shadow: 0 18px 38px -18px rgba(15, 23, 42, .6); display: flex; flex-direction: column; justify-content: center; }
+    .hero-dark .hd-icon { width: 52px; height: 52px; border-radius: 50%; background: rgba(56, 189, 248, .14); border: 1px solid rgba(56, 189, 248, .3); display: flex; align-items: center; justify-content: center; margin-bottom: 18px; color: #7dd3fc; font-size: 22px; }
+    .hero-dark .hd-label { font-size: 12px; font-weight: 700; color: #9fb3c8; }
+    .hero-dark h2 { margin-top: 8px; font-size: 22px; font-weight: 800; }
+    .hero-dark p { margin-top: 10px; font-size: 12px; color: #9fb3c8; font-weight: 500; line-height: 1.8; }
+
+    /* ---------- Feature strip ---------- */
+    .feature-strip { max-width: 1400px; margin: 16px auto 0; padding: 0 24px; width: 100%; }
+    .feature-inner { display: grid; grid-template-columns: repeat(4, 1fr); background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 12px 28px -18px rgba(30, 64, 175, .25); padding: 16px 0; }
+    .ft-item { display: flex; align-items: flex-start; gap: 10px; padding: 4px 24px; }
+    .ft-item + .ft-item { border-left: 1px solid var(--border); }
+    .ft-item .ft-icon { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; margin-top: 2px; border: 1.6px solid var(--success); display: flex; align-items: center; justify-content: center; }
+    .ft-item .ft-icon::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+    .ft-item .ft-title { font-size: 13px; font-weight: 800; color: var(--heading); }
+    .ft-item .ft-sub { margin-top: 4px; font-size: 11px; color: var(--muted-2); font-weight: 600; }
+
+    /* ---------- Library / table ---------- */
+    .library-wrap { max-width: 1400px; margin: 16px auto 0; padding: 0 24px 40px; width: 100%; flex: 1; }
+    .library { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 22px 24px 24px; box-shadow: 0 16px 36px -18px rgba(30, 64, 175, .25); }
+    .lib-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .lib-label { font-size: 11px; font-weight: 800; color: var(--primary); letter-spacing: 1.4px; }
+    .lib-head h2 { margin-top: 6px; font-size: 21px; font-weight: 800; color: var(--heading); display: flex; align-items: baseline; gap: 10px; }
+    .lib-head h2 .lib-count { font-size: 12px; color: var(--muted); font-weight: 600; }
+    .lib-tools { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .lib-search { position: relative; display: flex; align-items: center; }
+    .lib-search .ic { position: absolute; left: 12px; color: var(--muted-2); font-size: 15px; pointer-events: none; }
+    .lib-search input { width: 280px; height: 40px; border-radius: 10px; border: 1px solid var(--border-2); background: #f8fafc; padding: 0 14px 0 36px; font-size: 13px; color: var(--text); outline: none; }
+    .lib-search input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, .12); }
+    .lib-sort { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border: 1px solid var(--border-2); border-radius: 10px; background: #fff; }
+    .lib-sort .ls-label { font-size: 12px; color: var(--muted); font-weight: 700; }
+    .lib-sort select { border: none; outline: none; background: transparent; font-size: 13px; font-weight: 700; color: var(--heading); cursor: pointer; }
+
+    .table-scroll { margin-top: 18px; overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; }
+    table.games { width: 100%; border-collapse: collapse; min-width: 860px; font-size: 13px; }
+    table.games thead th { position: sticky; top: 0; background: linear-gradient(90deg, var(--tile), #eef2ff); color: #334155; font-size: 12px; font-weight: 800; letter-spacing: .4px; text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    table.games tbody td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    table.games tbody tr { transition: background .15s; }
+    table.games tbody tr:hover { background: #f8fafc; }
+    table.games tbody tr:last-child td { border-bottom: none; }
+    td.idx { color: var(--muted-2); font-weight: 700; width: 48px; }
+    td.gname { font-weight: 800; color: var(--heading); }
+    td.gname .g-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--violet)); margin-right: 8px; vertical-align: middle; }
+    .cell-copy { display: flex; align-items: center; gap: 8px; }
+    .cell-copy .v-text { min-width: 0; word-break: break-all; font-weight: 600; color: var(--text); }
+    .btn-copy-sm { flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: var(--primary); background: #fff; border: 1px solid #bfdbfe; border-radius: 7px; padding: 4px 10px; cursor: pointer; transition: all .16s; }
+    .btn-copy-sm:hover { background: var(--tile); }
+    .btn-copy-sm.copied { color: var(--success); border-color: #a7f3d0; background: var(--success-bg); }
+    .btn-copy-sm .ic { font-size: 13px; }
+    .btn-eye { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid var(--border-2); background: #fff; border-radius: 7px; color: var(--muted); cursor: pointer; }
+    .btn-eye:hover { color: var(--primary); border-color: #bfdbfe; }
+    .totp-cell { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .totp-code { font-weight: 800; letter-spacing: 2px; color: var(--primary-dark); font-variant-numeric: tabular-nums; font-size: 15px; }
+    .totp-code.placeholder { color: var(--muted-2); font-weight: 600; letter-spacing: 0; font-size: 12px; }
+    .btn-mini { flex-shrink: 0; border: 1px solid #bfdbfe; background: var(--tile); color: var(--primary-dark); border-radius: 7px; padding: 5px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .btn-mini:hover:not(:disabled) { background: #dbeafe; }
+    .btn-mini:disabled { opacity: .55; cursor: not-allowed; }
+    .totp-hint { font-size: 11px; color: var(--muted); font-weight: 600; }
+
+    .lib-locked, .ga-empty, .ga-loading { text-align: center; padding: 60px 20px; color: var(--muted); }
+    .lib-locked .lock-ic { width: 60px; height: 60px; margin: 0 auto 14px; border-radius: 50%; background: var(--tile); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 26px; }
+    .lib-locked h3 { font-size: 17px; font-weight: 800; color: var(--heading); }
+    .lib-locked p { margin-top: 8px; font-size: 13px; }
+    .lib-locked .btn-login { margin-top: 16px; }
+    .ga-empty .emoji, .ga-loading .emoji { font-size: 44px; margin-bottom: 10px; }
+
+    .lib-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+    .lib-range { font-size: 12px; color: var(--muted); font-weight: 600; }
+    .pager { display: flex; align-items: center; gap: 8px; }
+    .pager button { height: 34px; min-width: 34px; padding: 0 12px; border: 1px solid var(--border-2); background: #fff; border-radius: 8px; font-size: 13px; font-weight: 700; color: var(--heading); cursor: pointer; }
+    .pager button:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+    .pager button:disabled { opacity: .5; cursor: not-allowed; }
+    .pager .pg-info { font-size: 13px; font-weight: 700; color: var(--muted); padding: 0 6px; }
+
+    /* ---------- Modal ---------- */
+    .modal-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(15, 23, 42, .5); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .modal-dialog { position: relative; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; background: #fff; border-radius: 16px; padding: 28px 26px; box-shadow: 0 30px 60px -20px rgba(15, 23, 42, .5); animation: menuIn .2s ease; }
+    .modal-close { position: absolute; top: 14px; right: 14px; width: 32px; height: 32px; border: none; background: #f1f5f9; border-radius: 8px; color: var(--muted); font-size: 18px; cursor: pointer; }
+    .modal-close:hover { background: #e2e8f0; color: var(--heading); }
+    .modal-head { text-align: center; margin-bottom: 18px; }
+    .mh-icon { width: 52px; height: 52px; margin: 0 auto 12px; border-radius: 14px; background: linear-gradient(135deg, var(--primary), var(--indigo)); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+    .modal-head h3 { font-size: 20px; font-weight: 800; color: var(--heading); }
+    .modal-head p { margin-top: 6px; font-size: 13px; color: var(--muted); }
+    .auth-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .auth-tabs .tab { flex: 1; height: 38px; border: 1px solid var(--border-2); background: #fff; border-radius: 9px; font-size: 13px; font-weight: 700; color: var(--muted); cursor: pointer; }
+    .auth-tabs .tab.active { background: var(--tile); border-color: var(--primary); color: var(--primary-dark); }
+    .form-group { margin-bottom: 14px; }
+    .form-label { display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px; }
+    .form-input { width: 100%; height: 42px; border: 1px solid var(--border-2); border-radius: 9px; padding: 0 14px; font-size: 14px; color: var(--text); outline: none; background: #fff; }
+    .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, .12); }
+    .pwd-wrap { position: relative; }
+    .pwd-wrap .form-input { padding-right: 60px; }
+    .pwd-toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); border: none; background: transparent; color: var(--primary); font-size: 12px; font-weight: 700; cursor: pointer; }
+    .btn-submit { width: 100%; height: 44px; border: none; border-radius: 10px; background: linear-gradient(90deg, var(--primary), var(--indigo)); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 18px -8px rgba(37, 99, 235, .7); }
+    .btn-submit:disabled { opacity: .6; cursor: not-allowed; }
+    .form-note { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; font-size: 12px; color: var(--muted); }
+    .form-note.center { justify-content: center; }
+    .link-btn { border: none; background: transparent; color: var(--primary); font-size: 12px; font-weight: 700; cursor: pointer; }
+
+    /* ---------- FAB / footer ---------- */
+    .cs-fab { position: fixed; right: 22px; bottom: 26px; z-index: 120; display: flex; align-items: center; gap: 8px; border: none; cursor: pointer; padding: 12px 18px; border-radius: 999px; background: linear-gradient(90deg, var(--primary), var(--indigo)); color: #fff; font-size: 13px; font-weight: 700; box-shadow: 0 14px 30px -10px rgba(37, 99, 235, .7); }
+    .cs-fab:hover { filter: brightness(1.06); }
+    .cs-fab .ic { font-size: 17px; }
+    footer { background: var(--dark); color: #fff; padding: 22px 16px; text-align: center; font-size: 14px; }
+    footer a { color: #93c5fd; text-decoration: none; margin-left: 8px; }
+
+    @media (max-width: 960px) {
+      .hero-grid { grid-template-columns: 1fr; }
+      .feature-inner { grid-template-columns: repeat(2, 1fr); gap: 12px 0; }
+      .ft-item:nth-child(3) { border-left: none; }
+      .nav-search { display: none; }
+    }
+    @media (max-width: 560px) {
+      .nav-inner { padding: 0 14px; gap: 10px; }
+      .logo-text .sub { display: none; }
+      .hero-wrap, .feature-strip, .library-wrap { padding-left: 14px; padding-right: 14px; }
+      .feature-inner { grid-template-columns: 1fr; }
+      .ft-item + .ft-item { border-left: none; border-top: 1px solid var(--border); padding-top: 12px; }
+      .lib-search input { width: 100%; }
+      .lib-tools { width: 100%; }
+      .lib-search { flex: 1; }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app" v-cloak>
+    <!-- Navbar -->
+    <header class="navbar">
+      <div class="nav-inner">
+        <a class="logo" href="./member.html">
+          <div class="logo-chip"><svg class="ic" viewBox="0 0 24 24"><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="18" y1="11" x2="18.01" y2="11"></line><rect x="2" y="6" width="20" height="12" rx="2"></rect></svg></div>
+          <div class="logo-text"><span class="name">高能电玩</span><span class="sub">会员中心 · 尊享权益</span></div>
+        </a>
+        <nav class="nav-links">
+          <a href="./index.html">租号兑换</a>
+          <a href="./member.html" class="active">会员中心</a>
+        </nav>
+        <div class="nav-search">
+          <svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+          <input type="text" v-model.trim="search" placeholder="搜索游戏名 / 账号" @keyup.enter="reloadGames">
+          <button class="btn-search" @click="reloadGames">搜索</button>
+        </div>
+        <div class="nav-right">
+          <div class="user-wrap" v-if="user">
+            <div class="menu-backdrop" v-if="userMenuOpen" @click="userMenuOpen = false"></div>
+            <div class="user-badge" @click="userMenuOpen = !userMenuOpen">
+              <span class="tier-dot" :class="tierClass">{{ tierIcon }}</span>
+              <span>{{ user.nickname || user.username }}</span>
+              <span style="font-size:10px;color:var(--muted)">▼</span>
+            </div>
+            <div class="user-menu" v-if="userMenuOpen">
+              <div class="um-row"><span>会员等级</span><span>{{ levelName }}</span></div>
+              <div class="um-row"><span>到期时间</span><span>{{ expireText }}</span></div>
+              <div class="um-divider"></div>
+              <button class="um-logout" @click="logout">退出登录</button>
+            </div>
+          </div>
+          <button class="btn-login" v-else @click="openAuthModal('login')">登录 / 注册</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Alert -->
+    <div class="alert" :class="[alert.type, { show: alert.show }]">
+      <svg class="ic" viewBox="0 0 24 24" v-if="alert.type === 'error'"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>
+      <svg class="ic" viewBox="0 0 24 24" v-else><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>
+      <span>{{ alert.text }}</span>
+    </div>
+
+    <!-- Hero -->
+    <section class="hero-wrap">
+      <div class="hero-grid">
+        <div class="hero-intro">
+          <h1>开通会员，<span class="grad-text">畅玩全站游戏</span></h1>
+          <p class="lead">会员有效期内无需逐款购买，游戏库表格一目了然：账号、密码、动态验证码即取即用；兑换成功后即时生效。</p>
+          <div class="intro-stats">
+            <div class="col"><div class="lbl">MEMBER ACCESS</div><div class="val">会员畅玩全站游戏</div></div>
+            <div class="col"><div class="lbl">GAME LIBRARY</div><div class="val">表格化游戏库</div></div>
+            <div class="col"><div class="lbl">TOTP CODE</div><div class="val">动态验证码实时生成</div></div>
+          </div>
+        </div>
+        <div class="redeem-card">
+          <div class="rc-title">会员卡密<span class="rc-hl">兑换</span></div>
+          <div class="rc-meta" v-if="user">当前会员：<strong>{{ levelName }}</strong>　到期：{{ expireText }}</div>
+          <input type="text" v-model.trim="cdkCode" placeholder="请输入兑换码，例如 M64KTDB2" @keyup.enter="redeemMemberCdk">
+          <button class="btn-redeem" :disabled="loading" @click="redeemMemberCdk">{{ loading ? '兑换中…' : '立即兑换' }}</button>
+          <button class="btn-buy" @click="buyMember">购买会员</button>
+        </div>
+        <div class="hero-dark">
+          <div class="hd-icon"><svg class="ic" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="5.5"></circle><path d="m21 2-9.6 9.6"></path><path d="m15.5 7.5 3 3L22 7l-3-3"></path></svg></div>
+          <div class="hd-label">核心服务</div>
+          <h2>无需上号器，直接登录</h2>
+          <p>表格内直接复制账号密码，点击刷新获取动态验证码，流程简单清晰。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Feature strip -->
+    <section class="feature-strip">
+      <div class="feature-inner">
+        <div class="ft-item"><span class="ft-icon"></span><div><div class="ft-title">极速兑换</div><div class="ft-sub">验证后立即交付</div></div></div>
+        <div class="ft-item"><span class="ft-icon"></span><div><div class="ft-title">安全透明</div><div class="ft-sub">账号信息随时可查</div></div></div>
+        <div class="ft-item"><span class="ft-icon"></span><div><div class="ft-title">正版体验</div><div class="ft-sub">覆盖热门游戏平台</div></div></div>
+        <div class="ft-item"><span class="ft-icon"></span><div><div class="ft-title">售后支持</div><div class="ft-sub">使用问题及时处理</div></div></div>
+      </div>
+    </section>
+
+    <!-- Game library (table) -->
+    <section class="library-wrap">
+      <div class="library">
+        <div class="lib-head">
+          <div>
+            <div class="lib-label">GAME LIBRARY</div>
+            <h2>会员游戏库 <span class="lib-count">共 {{ total }} 款</span></h2>
+          </div>
+          <div class="lib-tools">
+            <div class="lib-search">
+              <svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+              <input type="text" v-model.trim="search" placeholder="搜索游戏名称或账号" @keyup.enter="reloadGames">
+            </div>
+            <div class="lib-sort">
+              <span class="ls-label">每页</span>
+              <select v-model.number="limit" @change="reloadGames">
+                <option :value="10">10</option>
+                <option :value="20">20</option>
+                <option :value="50">50</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- locked -->
+        <div class="lib-locked" v-if="!user">
+          <div class="lock-ic"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
+          <h3>登录后查看会员游戏库</h3>
+          <p>会员游戏账号、密码与动态验证码仅对登录会员开放</p>
+          <button class="btn-login" @click="openAuthModal('login')">登录 / 注册</button>
+        </div>
+
+        <!-- table -->
+        <template v-else>
+          <div class="table-scroll" v-if="games.length">
+            <table class="games">
+              <thead>
+                <tr>
+                  <th>#</th><th>游戏名称</th><th>游戏账号</th><th>密码</th><th>动态验证码</th><th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(g, idx) in games" :key="g.id">
+                  <td class="idx">{{ (page - 1) * limit + idx + 1 }}</td>
+                  <td class="gname"><span class="g-dot"></span>{{ g.game_name }}</td>
+                  <td>
+                    <div class="cell-copy">
+                      <span class="v-text mono">{{ g.account }}</span>
+                      <button class="btn-copy-sm" type="button" :class="{ copied: copiedField === 'acc-' + g.id }" @click="copyText(g.account, 'acc-' + g.id)">
+                        <svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        <span>{{ copiedField === 'acc-' + g.id ? '已复制' : '复制' }}</span>
+                      </button>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="cell-copy">
+                      <span class="v-text mono">{{ pwdVisible[g.id] ? g.password : '••••••••' }}</span>
+                      <button class="btn-eye" type="button" @click="$set(pwdVisible, g.id, !pwdVisible[g.id])" :title="pwdVisible[g.id] ? '隐藏' : '显示'">
+                        <svg class="ic" viewBox="0 0 24 24" v-if="pwdVisible[g.id]"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        <svg class="ic" viewBox="0 0 24 24" v-else><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"></path><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                      </button>
+                      <button class="btn-copy-sm" type="button" :class="{ copied: copiedField === 'pwd-' + g.id }" @click="copyText(g.password, 'pwd-' + g.id)">
+                        <svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        <span>{{ copiedField === 'pwd-' + g.id ? '已复制' : '复制' }}</span>
+                      </button>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="totp-cell">
+                      <span class="totp-code mono" :class="{ placeholder: !(totpMap[g.id] && totpMap[g.id].code) }">{{ (totpMap[g.id] && totpMap[g.id].code) || '点击刷新获取' }}</span>
+                      <button class="btn-copy-sm" type="button" v-if="totpMap[g.id] && totpMap[g.id].code" :class="{ copied: copiedField === 'totp-' + g.id }" @click="copyText(totpMap[g.id].code, 'totp-' + g.id)">
+                        <svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        <span>{{ copiedField === 'totp-' + g.id ? '已复制' : '复制' }}</span>
+                      </button>
+                      <button class="btn-mini" type="button" :disabled="!g.has_secret || totpLoading[g.id] || totpCooldown[g.id] > 0 || (totpMap[g.id] && totpMap[g.id].exhausted)" @click="refreshTotp(g.id)">{{ totpCooldown[g.id] > 0 ? (totpCooldown[g.id] + 's') : (totpLoading[g.id] ? '获取中…' : ((totpMap[g.id] && totpMap[g.id].exhausted) ? '今日已用完' : '刷新')) }}</button>
+                      <span class="totp-hint" v-if="totpMap[g.id] && !totpMap[g.id].exhausted && totpMap[g.id].remaining !== null && totpMap[g.id].remaining !== undefined">今日剩余 {{ totpMap[g.id].remaining }} 次</span>
+                    </div>
+                  </td>
+                  <td>
+                    <button class="btn-copy-sm" type="button" @click="copyRow(g)">
+                      <svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                      <span>复制全部</span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="ga-loading" v-else-if="gamesLoading"><div class="emoji">⏳</div><p>加载中…</p></div>
+          <div class="ga-empty" v-else><div class="emoji">🎮</div><p>暂无符合条件的游戏</p></div>
+
+          <div class="lib-foot" v-if="total > 0">
+            <div class="lib-range">显示 {{ (page - 1) * limit + 1 }}-{{ Math.min(page * limit, total) }}，共 {{ total }} 款</div>
+            <div class="pager">
+              <button :disabled="page <= 1 || gamesLoading" @click="gotoPage(page - 1)">上一页</button>
+              <span class="pg-info">{{ page }} / {{ totalPages }}</span>
+              <button :disabled="page >= totalPages || gamesLoading" @click="gotoPage(page + 1)">下一页</button>
+            </div>
+          </div>
+        </template>
+      </div>
+    </section>
+
+    <footer>
+      <span>© 2025 高能电玩会员中心 | 安全 · 高效 · 便捷</span>
+      <a href="./index.html">租号兑换</a>
+    </footer>
+
+    <!-- Auth Modal -->
+    <div class="modal-overlay" v-if="authModalOpen" @click.self="closeAuthModal">
+      <div class="modal-dialog">
+        <button class="modal-close" @click="closeAuthModal" aria-label="关闭">×</button>
+        <div class="modal-head">
+          <div class="mh-icon">
+            <svg class="ic" viewBox="0 0 24 24" v-if="authMode === 'register'"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
+            <svg class="ic" viewBox="0 0 24 24" v-else-if="authMode === 'forgot'"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+            <svg class="ic" viewBox="0 0 24 24" v-else><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+          </div>
+          <h3>{{ authModalTitle }}</h3>
+          <p>{{ authModalSubtitle }}</p>
+        </div>
+        <div class="auth-tabs" v-if="authMode !== 'forgot'">
+          <button class="tab" :class="{ active: authMode === 'login' }" @click="switchAuthMode('login')">登录</button>
+          <button class="tab" :class="{ active: authMode === 'register' }" @click="switchAuthMode('register')">注册</button>
+        </div>
+        <form v-show="authMode === 'login'" @submit.prevent="doLogin">
+          <div class="form-group"><label class="form-label">用户名</label><input class="form-input" v-model.trim="loginForm.username" placeholder="请输入用户名" autocomplete="username"></div>
+          <div class="form-group"><label class="form-label">密码</label>
+            <div class="pwd-wrap"><input class="form-input" :type="pwdVisibleLogin ? 'text' : 'password'" v-model="loginForm.password" placeholder="请输入密码" autocomplete="current-password"><button type="button" class="pwd-toggle" @click="pwdVisibleLogin = !pwdVisibleLogin">{{ pwdVisibleLogin ? '隐藏' : '显示' }}</button></div>
+          </div>
+          <button class="btn-submit" type="submit" :disabled="loading">{{ loading ? '登录中…' : '登 录' }}</button>
+          <div class="form-note"><span>还没有账号？点击「注册」</span><button type="button" class="link-btn" @click="openForgot">忘记密码？</button></div>
+        </form>
+        <form v-show="authMode === 'register'" @submit.prevent="doRegister">
+          <div class="form-group"><label class="form-label">用户名</label><input class="form-input" v-model.trim="registerForm.username" placeholder="3-30 个字符" autocomplete="username"></div>
+          <div class="form-group"><label class="form-label">邮箱</label><input class="form-input" type="email" v-model.trim="registerForm.email" placeholder="用于找回密码" autocomplete="email"></div>
+          <div class="form-group"><label class="form-label">密码</label>
+            <div class="pwd-wrap"><input class="form-input" :type="pwdVisibleReg ? 'text' : 'password'" v-model="registerForm.password" placeholder="至少 6 位" autocomplete="new-password"><button type="button" class="pwd-toggle" @click="pwdVisibleReg = !pwdVisibleReg">{{ pwdVisibleReg ? '隐藏' : '显示' }}</button></div>
+          </div>
+          <div class="form-group"><label class="form-label">确认密码</label>
+            <div class="pwd-wrap"><input class="form-input" :type="pwdVisibleConfirm ? 'text' : 'password'" v-model="registerForm.confirm" placeholder="再次输入密码" autocomplete="new-password"><button type="button" class="pwd-toggle" @click="pwdVisibleConfirm = !pwdVisibleConfirm">{{ pwdVisibleConfirm ? '隐藏' : '显示' }}</button></div>
+          </div>
+          <button class="btn-submit" type="submit" :disabled="loading">{{ loading ? '注册中…' : '注 册' }}</button>
+          <div class="form-note center"><span>已有账号？</span><button type="button" class="link-btn" @click="switchAuthMode('login')">去登录</button></div>
+        </form>
+        <form v-show="authMode === 'forgot'" @submit.prevent="doResetPassword">
+          <div class="form-group"><label class="form-label">用户名</label><input class="form-input" v-model.trim="forgotForm.username" placeholder="请输入注册用户名"></div>
+          <div class="form-group"><label class="form-label">注册邮箱</label><input class="form-input" type="email" v-model.trim="forgotForm.email" placeholder="请输入注册邮箱"></div>
+          <div class="form-group"><label class="form-label">新密码</label>
+            <div class="pwd-wrap"><input class="form-input" :type="pwdVisibleForgot ? 'text' : 'password'" v-model="forgotForm.newPassword" placeholder="至少 6 位"><button type="button" class="pwd-toggle" @click="pwdVisibleForgot = !pwdVisibleForgot">{{ pwdVisibleForgot ? '隐藏' : '显示' }}</button></div>
+          </div>
+          <button class="btn-submit" type="submit" :disabled="loading">{{ loading ? '提交中…' : '重置密码' }}</button>
+          <div class="form-note center"><button type="button" class="link-btn" @click="switchAuthMode('login')">返回登录</button></div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Customer service FAB -->
+    <button class="cs-fab" type="button" title="联系客服" @click="openCustomerService">
+      <svg class="ic" viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
+      <span>联系客服</span>
+    </button>
+  </div>
+
+  <script src="./static/js/vue.min.js"></script>
+  <script src="./static/js/axios.min.js"></script>
+  <script>
+    var TOKEN_KEY = 'member_access_token';
+    var USER_KEY = 'member_user_info';
+    var LAST_USER_KEY = 'member_last_username';
+    var API_BASE = window.API_BASE || '';
+    var API_PREFIX = '/api/web';
+
+    new Vue({
+      el: '#app',
+      data: {
+        token: '', user: null, userMenuOpen: false,
+        authModalOpen: false, authMode: 'login', loading: false, gamesLoading: false,
+        alert: { type: 'success', text: '', show: false }, alertTimer: null, searchTimer: null,
+        games: [], total: 0, page: 1, limit: 10, search: '',
+        cdkCode: '', purchaseLink: '', customerServiceLink: '',
+        loginForm: { username: '', password: '' },
+        registerForm: { username: '', email: '', password: '', confirm: '' },
+        forgotForm: { username: '', email: '', newPassword: '' },
+        pwdVisibleLogin: false, pwdVisibleReg: false, pwdVisibleConfirm: false, pwdVisibleForgot: false,
+        pwdVisible: {}, copiedField: null,
+        totpMap: {}, totpLoading: {}, totpCooldown: {}, cooldownTimer: null
+      },
+      computed: {
+        totalPages: function () { return Math.max(1, Math.ceil(this.total / this.limit)); },
+        tierIcon: function () { var l = this.user ? Number(this.user.member_level || 0) : 0; return l >= 2 ? '🥇' : (l === 1 ? '🥉' : '👤'); },
+        tierClass: function () { var l = this.user ? Number(this.user.member_level || 0) : 0; return l >= 2 ? 'gold' : (l === 1 ? 'bronze' : ''); },
+        levelName: function () { var l = this.user ? Number(this.user.member_level || 0) : 0; return l >= 2 ? '高级会员' : (l === 1 ? '会员' : '游客'); },
+        expireText: function () {
+          if (!this.user) return '-';
+          if (!this.user.member_expire_at) return '永久有效';
+          var d = new Date(this.user.member_expire_at);
+          if (isNaN(d.getTime())) return String(this.user.member_expire_at);
+          return d.getFullYear() + '-' + this.pad(d.getMonth() + 1) + '-' + this.pad(d.getDate()) + ' ' + this.pad(d.getHours()) + ':' + this.pad(d.getMinutes());
+        },
+        authModalTitle: function () { return this.authMode === 'register' ? '创建会员账号' : (this.authMode === 'forgot' ? '找回密码' : '欢迎回来'); },
+        authModalSubtitle: function () { return this.authMode === 'register' ? '注册即可兑换会员权益' : (this.authMode === 'forgot' ? '通过用户名和邮箱重置密码' : '登录您的会员账号'); }
+      },
+      methods: {
+        api: function (method, url, data, useToken) {
+          var headers = {};
+          if (useToken && this.token) headers['Authorization'] = 'Bearer ' + this.token;
+          return axios({ method: method, url: API_BASE + API_PREFIX + url, data: data, headers: headers })
+            .then(function (res) {
+              var body = res.data;
+              if (body && body.code !== 0) { var err = new Error(body.message || '请求失败'); err.status = body.code; throw err; }
+              return body ? body.data : null;
+            })
+            .catch(function (e) {
+              if (e && e.response) { var rb = e.response.data || {}; var err = new Error(rb.message || e.message || '请求失败'); err.status = e.response.status || rb.code; throw err; }
+              throw e;
+            });
+        },
+        showMessage: function (type, text) {
+          this.alert = { type: type, text: text, show: true };
+          var self = this; clearTimeout(this.alertTimer);
+          this.alertTimer = setTimeout(function () { self.alert.show = false; }, 3500);
+        },
+        pad: function (n) { return n < 10 ? '0' + n : '' + n; },
+        readSession: function () {
+          try { this.token = localStorage.getItem(TOKEN_KEY) || ''; var raw = localStorage.getItem(USER_KEY); this.user = raw ? JSON.parse(raw) : null; }
+          catch (e) { this.token = ''; this.user = null; }
+        },
+        persistSession: function (token, user) {
+          this.token = token || this.token;
+          if (user) this.user = Object.assign({}, this.user || {}, user);
+          try { if (this.token) localStorage.setItem(TOKEN_KEY, this.token); if (this.user) localStorage.setItem(USER_KEY, JSON.stringify(this.user)); } catch (e) { }
+        },
+        logout: function () {
+          this.token = ''; this.user = null; this.cdkCode = ''; this.userMenuOpen = false;
+          this.games = []; this.total = 0; this.totpMap = {}; this.pwdVisible = {};
+          try { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY); } catch (e) { }
+          this.showMessage('success', '已退出登录');
+        },
+        buyMember: function () {
+          if (this.purchaseLink) { window.open(this.purchaseLink, '_blank', 'noopener'); return; }
+          if (!this.user) { this.showMessage('error', '请先登录后再购买会员'); this.openAuthModal('login'); return; }
+          if (this.customerServiceLink) { window.open(this.customerServiceLink, '_blank', 'noopener'); return; }
+          this.showMessage('success', '请联系客服购买会员卡密，兑换后立即生效');
+        },
+        fetchPurchaseLink: function () { var s = this; this.api('get', '/config/purchase-link').then(function (d) { s.purchaseLink = (d && d.purchase_link) || ''; }).catch(function () { }); },
+        fetchCustomerServiceLink: function () { var s = this; this.api('get', '/config/customer-service-link').then(function (d) { s.customerServiceLink = (d && d.customer_service_link) || ''; }).catch(function () { }); },
+        openCustomerService: function () { if (this.customerServiceLink) { window.open(this.customerServiceLink, '_blank', 'noopener'); return; } this.showMessage('success', '请联系客服获取帮助'); },
+        openAuthModal: function (mode) { this.authMode = mode || 'login'; this.authModalOpen = true; document.body.style.overflow = 'hidden'; },
+        closeAuthModal: function () { this.authModalOpen = false; document.body.style.overflow = ''; },
+        switchAuthMode: function (mode) { this.authMode = mode; },
+        openForgot: function () { this.forgotForm.username = this.loginForm.username; this.authMode = 'forgot'; },
+        fetchMe: function () {
+          if (!this.token) return;
+          var s = this;
+          this.api('POST', '/membership/my-info', {}, true).then(function (d) { if (d) s.persistSession(s.token, d); }).catch(function (e) { if (e.status === 401) s.logout(); });
+        },
+        fetchGames: function () {
+          if (!this.user) { this.games = []; this.total = 0; return; }
+          var s = this; this.gamesLoading = true;
+          var body = { page: this.page, limit: this.limit };
+          if (this.search) body.name = this.search;
+          return this.api('POST', '/member-games', body, true)
+            .then(function (d) { s.games = (d && d.list) || []; s.total = (d && d.total) || 0; })
+            .catch(function (e) {
+              if (e.status === 401) { s.showMessage('error', '请先登录后再查看游戏库'); s.logout(); }
+              else s.showMessage('error', e.message || '获取游戏列表失败');
+            })
+            .then(function () { s.gamesLoading = false; });
+        },
+        reloadGames: function () { this.page = 1; this.fetchGames(); },
+        gotoPage: function (p) { if (p < 1 || p > this.totalPages) return; this.page = p; this.fetchGames(); },
+        refreshTotp: function (id) {
+          var s = this;
+          if (this.totpLoading[id] || this.totpCooldown[id] > 0) return;
+          if (!this.user) { this.showMessage('error', '请先登录'); this.openAuthModal('login'); return; }
+          this.$set(this.totpLoading, id, true);
+          this.api('POST', '/member-games/totp', { id: id }, true)
+            .then(function (d) {
+              d = d || {};
+              var rem = (d.remaining === undefined || d.remaining === null) ? null : d.remaining;
+              s.$set(s.totpMap, id, { code: d.totp_code || '', remaining: rem, exhausted: rem === 0 });
+              s.setCooldown(id, 10);
+            })
+            .catch(function (e) {
+              var st = e && e.status;
+              if (st === 401) { s.showMessage('error', '请先登录'); s.openAuthModal('login'); }
+              else {
+                s.showMessage('error', (e && e.message) || '获取验证码失败');
+                if (st === 10009) { var prev = (s.totpMap[id] && s.totpMap[id].code) || ''; s.$set(s.totpMap, id, { code: prev, remaining: 0, exhausted: true }); }
+                if (st === 10008 || st === 10009) s.setCooldown(id, 10);
+              }
+            })
+            .then(function () { s.$set(s.totpLoading, id, false); });
+        },
+        setCooldown: function (id, secs) { this.$set(this.totpCooldown, id, secs); this.startCooldownTick(); },
+        startCooldownTick: function () {
+          var s = this; this.stopCooldownTick();
+          this.cooldownTimer = setInterval(function () {
+            var any = false;
+            Object.keys(s.totpCooldown).forEach(function (k) { if (s.totpCooldown[k] > 0) { s.$set(s.totpCooldown, k, s.totpCooldown[k] - 1); any = true; } });
+            if (!any) s.stopCooldownTick();
+          }, 1000);
+        },
+        stopCooldownTick: function () { if (this.cooldownTimer) { clearInterval(this.cooldownTimer); this.cooldownTimer = null; } },
+        copyText: function (text, field) {
+          var s = this;
+          if (!text) { this.showMessage('error', '没有可复制的内容'); return; }
+          var done = function () { s.copiedField = field; setTimeout(function () { if (s.copiedField === field) s.copiedField = null; }, 1500); };
+          var fallback = function () {
+            try { var ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); var ok = document.execCommand('copy'); document.body.removeChild(ta); if (ok) done(); else s.showMessage('error', '复制失败，请手动复制'); }
+            catch (e) { s.showMessage('error', '复制失败，请手动复制'); }
+          };
+          if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(fallback); else fallback();
+        },
+        copyRow: function (g) {
+          var code = (this.totpMap[g.id] && this.totpMap[g.id].code) || '';
+          var lines = ['游戏: ' + g.game_name, '账号: ' + g.account, '密码: ' + g.password];
+          if (code) lines.push('验证码: ' + code);
+          this.copyText(lines.join('\n'), null);
+          this.showMessage('success', '已复制 ' + g.game_name + ' 的账号信息');
+        },
+        redeemMemberCdk: function () {
+          if (!this.user) { this.showMessage('error', '请先登录'); this.openAuthModal('login'); return; }
+          if (!this.cdkCode) { this.showMessage('error', '请输入会员 CDK'); return; }
+          var s = this; this.loading = true;
+          this.api('POST', '/membership/redeem-cdk', { cdk_code: this.cdkCode }, true)
+            .then(function (d) { if (d) s.persistSession(s.token, d); s.cdkCode = ''; s.showMessage('success', '兑换成功！当前等级：' + (d && d.member_level_name || '')); })
+            .catch(function (e) { s.showMessage('error', e.message || '兑换失败'); })
+            .then(function () { s.loading = false; });
+        },
+        doLogin: function () {
+          if (!this.loginForm.username || !this.loginForm.password) { this.showMessage('error', '请输入用户名和密码'); return; }
+          var s = this; this.loading = true;
+          this.api('POST', '/auth/login', { username: this.loginForm.username, password: this.loginForm.password })
+            .then(function (d) {
+              s.persistSession(d.accessToken, d);
+              try { localStorage.setItem(LAST_USER_KEY, s.loginForm.username); } catch (e) { }
+              s.loginForm.password = ''; s.closeAuthModal(); s.showMessage('success', '登录成功，欢迎回来！');
+              s.fetchMe(); s.reloadGames();
+            })
+            .catch(function (e) { s.showMessage('error', e.message || '登录失败'); })
+            .then(function () { s.loading = false; });
+        },
+        doRegister: function () {
+          var f = this.registerForm; var uname = (f.username || '').trim();
+          if (!uname || !f.email || !f.password) { this.showMessage('error', '请填写完整注册信息'); return; }
+          if (uname.length < 3 || uname.length > 30) { this.showMessage('error', '用户名长度需在 3-30 个字符之间'); return; }
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) { this.showMessage('error', '邮箱格式不正确'); return; }
+          if (f.password.length < 6) { this.showMessage('error', '密码至少 6 位'); return; }
+          if (f.password !== f.confirm) { this.showMessage('error', '两次输入的密码不一致'); return; }
+          var s = this; this.loading = true;
+          this.api('POST', '/auth/register', { username: uname, email: f.email, password: f.password })
+            .then(function (d) {
+              s.registerForm = { username: '', email: '', password: '', confirm: '' };
+              if (d && d.accessToken) { s.persistSession(d.accessToken, d); s.closeAuthModal(); s.showMessage('success', '注册成功，已自动登录'); s.fetchMe(); s.reloadGames(); }
+              else { s.showMessage('success', '注册成功，请登录'); s.loginForm.username = uname; s.authMode = 'login'; }
+            })
+            .catch(function (e) { s.showMessage('error', e.message || '注册失败'); })
+            .then(function () { s.loading = false; });
+        },
+        doResetPassword: function () {
+          var f = this.forgotForm;
+          if (!f.username || !f.email || !f.newPassword) { this.showMessage('error', '请填写完整信息'); return; }
+          if (f.newPassword.length < 6) { this.showMessage('error', '新密码至少 6 位'); return; }
+          var s = this; this.loading = true;
+          this.api('POST', '/auth/reset-password', { username: f.username, email: f.email, newPassword: f.newPassword })
+            .then(function () { s.showMessage('success', '密码重置成功，请登录'); s.loginForm.username = f.username; s.forgotForm = { username: '', email: '', newPassword: '' }; s.authMode = 'login'; })
+            .catch(function (e) { s.showMessage('error', e.message || '重置失败'); })
+            .then(function () { s.loading = false; });
+        }
+      },
+      watch: {
+        search: function () { var s = this; clearTimeout(this.searchTimer); this.searchTimer = setTimeout(function () { s.reloadGames(); }, 400); }
+      },
+      mounted: function () {
+        this.readSession();
+        if (this.token) { this.fetchMe(); this.reloadGames(); }
+        else { try { var lu = localStorage.getItem(LAST_USER_KEY); if (lu) this.loginForm.username = lu; } catch (e) { } }
+        this.fetchPurchaseLink(); this.fetchCustomerServiceLink();
+        var s = this;
+        this._escHandler = function (e) { if (e.key === 'Escape' && s.authModalOpen) s.closeAuthModal(); };
+        document.addEventListener('keydown', this._escHandler);
+      },
+      beforeDestroy: function () {
+        if (this._escHandler) document.removeEventListener('keydown', this._escHandler);
+        this.stopCooldownTick(); document.body.style.overflow = '';
+      }
+    });
+  </script>
+</body>
+
+</html>

@@ -4,6 +4,7 @@ import { gameWebController } from '../web_controllers/game.webController.js';
 import { authWebController } from '../web_controllers/auth.webController.js';
 import { rentWebController } from '../web_controllers/rent.webController.js';
 import { memberCdkWebController } from '../web_controllers/memberCdk.webController.js';
+import { memberGamesWebController } from '../web_controllers/memberGames.webController.js';
 import { offlineWebController } from '../web_controllers/offline.webController.js';
 import { configCarouselWebController } from '../web_controllers/configCarousel.webController.js';
 import { configQaWebController } from '../web_controllers/configQa.webController.js';
@@ -53,6 +54,10 @@ export async function webRoutes(app) {
   // ==================== Membership CDK ====================
   app.post('/web/membership/redeem-cdk', memberCdkWebController.redeemCdk);
   app.post('/web/membership/my-info', memberCdkWebController.getMyInfo);
+
+  // ==================== Member Games (simple table library) ====================
+  app.post('/web/member-games', memberGamesWebController.getGames);
+  app.post('/web/member-games/totp', memberGamesWebController.refreshTotp);
 
   // ==================== Offline CDK (no auth required) ====================
   app.post('/web/offline/redeem', offlineWebController.redeem);
