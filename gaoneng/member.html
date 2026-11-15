@@ -160,6 +160,9 @@
     .lib-locked p { margin-top: 8px; font-size: 13px; }
     .lib-locked .btn-login { margin-top: 16px; }
     .ga-empty .emoji, .ga-loading .emoji { font-size: 44px; margin-bottom: 10px; }
+    .guest-tip { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 16px; padding: 12px 16px; border: 1px solid #bfdbfe; border-radius: 10px; background: var(--tile); font-size: 13px; font-weight: 600; color: var(--primary-dark); }
+    .guest-tip .ic { font-size: 16px; flex-shrink: 0; }
+    .guest-tip .link-btn { font-size: 13px; }
 
     .lib-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
     .lib-range { font-size: 12px; color: var(--muted); font-weight: 600; }
@@ -327,16 +330,16 @@
           </div>
         </div>
 
-        <!-- locked -->
-        <div class="lib-locked" v-if="!user">
-          <div class="lock-ic"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
-          <h3>登录后查看会员游戏库</h3>
-          <p>会员游戏账号、密码与动态验证码仅对登录会员开放</p>
-          <button class="btn-login" @click="openAuthModal('login')">登录 / 注册</button>
+        <!-- guest tip -->
+        <div class="guest-tip" v-if="!user">
+          <svg class="ic" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          <span>当前为游客视角，游戏账号与密码已隐藏为 ****。</span>
+          <button class="link-btn" type="button" @click="openAuthModal('login')">登录 / 注册</button>
+          <span>后可查看完整账号信息。</span>
         </div>
 
         <!-- table -->
-        <template v-else>
+        <template>
           <div class="table-scroll" v-if="games.length">
             <table class="games">
               <thead>
@@ -351,7 +354,7 @@
                   <td>
                     <div class="cell-copy">
                       <span class="v-text mono">{{ g.account }}</span>
-                      <button class="btn-copy-sm" type="button" :class="{ copied: copiedField === 'acc-' + g.id }" @click="copyText(g.account, 'acc-' + g.id)">
+                      <button class="btn-copy-sm" type="button" v-if="user" :class="{ copied: copiedField === 'acc-' + g.id }" @click="copyText(g.account, 'acc-' + g.id)">
                         <svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                         <span>{{ copiedField === 'acc-' + g.id ? '已复制' : '复制' }}</span>
                       </button>
@@ -359,12 +362,8 @@
                   </td>
                   <td>
                     <div class="cell-copy">
-                      <span class="v-text mono">{{ pwdVisible[g.id] ? g.password : '••••••••' }}</span>
-                      <button class="btn-eye" type="button" @click="$set(pwdVisible, g.id, !pwdVisible[g.id])" :title="pwdVisible[g.id] ? '隐藏' : '显示'">
-                        <svg class="ic" viewBox="0 0 24 24" v-if="pwdVisible[g.id]"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                        <svg class="ic" viewBox="0 0 24 24" v-else><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"></path><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                      </button>
-                      <button class="btn-copy-sm" type="button" :class="{ copied: copiedField === 'pwd-' + g.id }" @click="copyText(g.password, 'pwd-' + g.id)">
+                      <span class="v-text mono">{{ g.password }}</span>
+                      <button class="btn-copy-sm" type="button" v-if="user" :class="{ copied: copiedField === 'pwd-' + g.id }" @click="copyText(g.password, 'pwd-' + g.id)">
                         <svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                         <span>{{ copiedField === 'pwd-' + g.id ? '已复制' : '复制' }}</span>
                       </button>
@@ -377,8 +376,7 @@
                         <svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                         <span>{{ copiedField === 'totp-' + g.id ? '已复制' : '复制' }}</span>
                       </button>
-                      <button class="btn-mini" type="button" :disabled="!g.has_secret || totpLoading[g.id] || totpCooldown[g.id] > 0 || (totpMap[g.id] && totpMap[g.id].exhausted)" @click="refreshTotp(g.id)">{{ totpCooldown[g.id] > 0 ? (totpCooldown[g.id] + 's') : (totpLoading[g.id] ? '获取中…' : ((totpMap[g.id] && totpMap[g.id].exhausted) ? '今日已用完' : '刷新')) }}</button>
-                      <span class="totp-hint" v-if="totpMap[g.id] && !totpMap[g.id].exhausted && totpMap[g.id].remaining !== null && totpMap[g.id].remaining !== undefined">今日剩余 {{ totpMap[g.id].remaining }} 次</span>
+                      <button class="btn-mini" type="button" :disabled="!g.has_secret || totpLoading[g.id] || totpCooldown[g.id] > 0" @click="refreshTotp(g.id)">{{ totpCooldown[g.id] > 0 ? (totpCooldown[g.id] + 's') : (totpLoading[g.id] ? '获取中…' : '刷新') }}</button>
                     </div>
                   </td>
                   <td>
@@ -460,6 +458,21 @@
       </div>
     </div>
 
+    <!-- TOTP limit modal -->
+    <div class="modal-overlay" v-if="totpLimitModalOpen" @click.self="totpLimitModalOpen = false">
+      <div class="modal-dialog" style="max-width:380px;">
+        <button class="modal-close" @click="totpLimitModalOpen = false" aria-label="关闭">×</button>
+        <div class="modal-head">
+          <div class="mh-icon" style="background:linear-gradient(135deg,#f59e0b,#ef4444);">
+            <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>
+          </div>
+          <h3>超出最大获取次数</h3>
+          <p>{{ totpLimitMessage }}</p>
+        </div>
+        <button class="btn-submit" type="button" @click="totpLimitModalOpen = false">我知道了</button>
+      </div>
+    </div>
+
     <!-- Customer service FAB -->
     <button class="cs-fab" type="button" title="联系客服" @click="openCustomerService">
       <svg class="ic" viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
@@ -474,7 +487,7 @@
     var USER_KEY = 'member_user_info';
     var LAST_USER_KEY = 'member_last_username';
     var API_BASE = window.API_BASE || '';
-    var API_PREFIX = '/api/web';
+    var API_PREFIX = 'http://127.0.0.1:3000/api/web';
 
     new Vue({
       el: '#app',
@@ -489,7 +502,8 @@
         forgotForm: { username: '', email: '', newPassword: '' },
         pwdVisibleLogin: false, pwdVisibleReg: false, pwdVisibleConfirm: false, pwdVisibleForgot: false,
         pwdVisible: {}, copiedField: null,
-        totpMap: {}, totpLoading: {}, totpCooldown: {}, cooldownTimer: null
+        totpMap: {}, totpLoading: {}, totpCooldown: {}, cooldownTimer: null,
+        totpLimitModalOpen: false, totpLimitMessage: ''
       },
       computed: {
         totalPages: function () { return Math.max(1, Math.ceil(this.total / this.limit)); },
@@ -538,9 +552,10 @@
         },
         logout: function () {
           this.token = ''; this.user = null; this.cdkCode = ''; this.userMenuOpen = false;
-          this.games = []; this.total = 0; this.totpMap = {}; this.pwdVisible = {};
+          this.totpMap = {}; this.pwdVisible = {};
           try { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY); } catch (e) { }
           this.showMessage('success', '已退出登录');
+          this.reloadGames();
         },
         buyMember: function () {
           if (this.purchaseLink) { window.open(this.purchaseLink, '_blank', 'noopener'); return; }
@@ -561,7 +576,6 @@
           this.api('POST', '/membership/my-info', {}, true).then(function (d) { if (d) s.persistSession(s.token, d); }).catch(function (e) { if (e.status === 401) s.logout(); });
         },
         fetchGames: function () {
-          if (!this.user) { this.games = []; this.total = 0; return; }
           var s = this; this.gamesLoading = true;
           var body = { page: this.page, limit: this.limit };
           if (this.search) body.name = this.search;
@@ -590,10 +604,15 @@
             .catch(function (e) {
               var st = e && e.status;
               if (st === 401) { s.showMessage('error', '请先登录'); s.openAuthModal('login'); }
+              else if (st === 10009) {
+                // 超出每日最大获取次数：直接弹出提示层
+                s.totpLimitMessage = (e && e.message) || '今日验证码获取次数已用完，请明天再试';
+                s.totpLimitModalOpen = true;
+                s.setCooldown(id, 10);
+              }
               else {
                 s.showMessage('error', (e && e.message) || '获取验证码失败');
-                if (st === 10009) { var prev = (s.totpMap[id] && s.totpMap[id].code) || ''; s.$set(s.totpMap, id, { code: prev, remaining: 0, exhausted: true }); }
-                if (st === 10008 || st === 10009) s.setCooldown(id, 10);
+                if (st === 10008) s.setCooldown(id, 10);
               }
             })
             .then(function () { s.$set(s.totpLoading, id, false); });
@@ -619,6 +638,7 @@
           if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(fallback); else fallback();
         },
         copyRow: function (g) {
+          if (!this.user) { this.showMessage('error', '请先登录后再复制账号信息'); this.openAuthModal('login'); return; }
           var code = (this.totpMap[g.id] && this.totpMap[g.id].code) || '';
           var lines = ['游戏: ' + g.game_name, '账号: ' + g.account, '密码: ' + g.password];
           if (code) lines.push('验证码: ' + code);
@@ -680,11 +700,12 @@
       },
       mounted: function () {
         this.readSession();
-        if (this.token) { this.fetchMe(); this.reloadGames(); }
+        if (this.token) { this.fetchMe(); }
         else { try { var lu = localStorage.getItem(LAST_USER_KEY); if (lu) this.loginForm.username = lu; } catch (e) { } }
+        this.reloadGames();
         this.fetchPurchaseLink(); this.fetchCustomerServiceLink();
         var s = this;
-        this._escHandler = function (e) { if (e.key === 'Escape' && s.authModalOpen) s.closeAuthModal(); };
+        this._escHandler = function (e) { if (e.key !== 'Escape') return; if (s.totpLimitModalOpen) { s.totpLimitModalOpen = false; return; } if (s.authModalOpen) s.closeAuthModal(); };
         document.addEventListener('keydown', this._escHandler);
       },
       beforeDestroy: function () {

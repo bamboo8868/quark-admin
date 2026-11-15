@@ -231,6 +231,16 @@ export const menuConfig = [
         icon: 'ri:key-2-line'
       },
       {
+        id: 5010,
+        parentId: 5000,
+        menuType: 0,
+        title: 'menus.pureMemberSimpleGame',
+        name: 'MemberGameSimple',
+        path: '/membership/simple-game/index',
+        component: 'membership/simple-game/index',
+        icon: 'ri:game-line'
+      },
+      {
         id: 5005,
         parentId: 5000,
         menuType: 0,

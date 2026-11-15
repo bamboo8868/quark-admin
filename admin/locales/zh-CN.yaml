@@ -94,6 +94,7 @@ menus:
   pureGameTag: 标签管理
   pureMemberGame: 游戏管理
   pureMemberGameAcc: 游戏账号
+  pureMemberSimpleGame: 简易游戏列表
   pureMemberList: 会员列表
   pureMemberCdk: 会员CDK
   pureMemberCdkGroup: 会员CDK组

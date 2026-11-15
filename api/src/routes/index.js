@@ -7,6 +7,7 @@ import { gameTagRoutes } from './gameTag.routes.js';
 import { gameRoutes } from './game.routes.js';
 import { memberRoutes } from './member.routes.js';
 import { gameAccMgrRoutes } from './gameAccMgr.routes.js';
+import { memberGamesSimpleRoutes } from './memberGamesSimple.routes.js';
 import { rentRoutes } from './rent.routes.js';
 import { offlineRoutes } from './offline.routes.js';
 import { configRoutes } from './config.routes.js';
@@ -60,6 +61,7 @@ export async function registerRoutes(app) {
   await app.register(gameRoutes, { prefix: '/api' });
   await app.register(memberRoutes, { prefix: '/api' });
   await app.register(gameAccMgrRoutes, { prefix: '/api' });
+  await app.register(memberGamesSimpleRoutes, { prefix: '/api' });
   await app.register(rentRoutes, { prefix: '/api' });
   await app.register(offlineRoutes, { prefix: '/api' });
   await app.register(configRoutes, { prefix: '/api' });

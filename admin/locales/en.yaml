@@ -94,6 +94,7 @@ menus:
   pureGameTag: Tag Management
   pureMemberGame: Game Management
   pureMemberGameAcc: Game Account
+  pureMemberSimpleGame: Simple Game List
   pureMemberList: Member List
   pureMemberCdk: Member CDK
   pureMemberCdkGroup: CDK Group

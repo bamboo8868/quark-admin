@@ -48,13 +48,11 @@ export const memberGamesWebController = {
   /**
    * Get member games list (table data) with search + pagination.
    * POST /web/member-games
-   * Auth: member token required (credentials are member-only).
+   * Auth: optional. Guests may browse the list but account/password are masked
+   * as ****; a valid member token reveals the real credentials.
    */
   getGames: async (request, reply) => {
     const user = getWebUser(request);
-    if (!user) {
-      return reply.code(401).send({ code: 401, message: '请先登录', data: null });
-    }
 
     const body = request.body || {};
     const page = Math.max(1, parseInt(body.page, 10) || 1);
@@ -65,6 +63,11 @@ export const memberGamesWebController = {
       page,
       limit
     );
+
+    // 未登录也可浏览游戏列表，但账号与密码统一隐藏为 ****（登录后返回真实值）
+    if (!user && data && Array.isArray(data.list)) {
+      data.list = data.list.map((item) => ({ ...item, account: '****', password: '****' }));
+    }
 
     return { code: 0, message: '操作成功', data };
   },
