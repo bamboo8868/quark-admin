@@ -64,6 +64,9 @@ function handleCopy(row: any) {
       <el-form-item label="账号" prop="account">
         <el-input v-model="form.account" placeholder="搜索账号" clearable class="w-45!" />
       </el-form-item>
+      <el-form-item label="游戏名称" prop="game_name">
+        <el-input v-model="form.game_name" placeholder="搜索游戏名称" clearable class="w-45!" />
+      </el-form-item>
       <el-form-item label="查询" prop="visible">
         <el-select v-model="form.visible" placeholder="请选择状态" clearable class="w-45!">
           <el-option label="是" :value="1" />

@@ -19,6 +19,9 @@ export class AccountsSimpleModel extends BaseModel {
     if (filters.account) {
       query = query.where('account', 'like', `%${filters.account}%`);
     }
+    if (filters.game_name) {
+      query = query.where('game_name', 'like', `%${filters.game_name}%`);
+    }
     if (filters.visible !== undefined && filters.visible !== null && filters.visible !== '') {
       query = query.where('visible', filters.visible);
     }

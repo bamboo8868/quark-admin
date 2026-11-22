@@ -15,6 +15,7 @@ export const accountsSimpleController = {
 
     const filters = {
       account: body.account,
+      game_name: body.game_name,
       visible: body.visible
     };
 

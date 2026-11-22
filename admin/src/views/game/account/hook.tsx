@@ -26,6 +26,7 @@ export function useGameAccount() {
   /** Search form */
   const form = reactive({
     account: "",
+    game_name: "",
     visible: null as number | null
   });
 
@@ -46,6 +47,11 @@ export function useGameAccount() {
       label: "ID",
       prop: "id",
       minWidth: 70
+    },
+    {
+      label: "游戏名称",
+      prop: "game_name",
+      minWidth: 150
     },
     {
       label: "用户名",
@@ -138,6 +144,7 @@ export function useGameAccount() {
       props: {
         formInline: {
           account: row?.account ?? "",
+          game_name: row?.game_name ?? "",
           nickname: row?.nickname ?? "",
           password: row?.password ?? "",
           code: row?.code ?? "",
@@ -318,6 +325,12 @@ const AccountFormComponent = defineComponent({
         rules={rules}
         label-width="90px"
       >
+        <el-form-item label="游戏名称" prop="game_name">
+          <el-input
+            v-model={props.formInline.game_name}
+            placeholder="请输入游戏名称"
+          />
+        </el-form-item>
         <el-form-item label="昵称" prop="nickname">
           <el-input
             v-model={props.formInline.nickname}
