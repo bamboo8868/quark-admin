@@ -644,7 +644,7 @@
   <script src="./static/js/axios.min.js"></script>
   <script>
     // ===== 接口请求地址配置：所有请求统一前缀，切换后端域名 / 环境只需改这里 =====
-    var BASE_URL = window.BASE_URL || 'http://127.0.0.1:3000/api/web';  // 本地联调默认值；生产同源部署可改为 '/api/web'
+    var BASE_URL = window.BASE_URL || '/api/web';  // 本地联调默认值；生产同源部署可改为 '/api/web'
 
     // ===== 会员登录会话存储键（与其他站点隔离） =====
     var TOKEN_KEY = 'sanli_member_access_token';

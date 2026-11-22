@@ -110,7 +110,7 @@
     .page {
       position: relative;
       z-index: 1;
-      max-width: 460px;
+      max-width: 680px;
       margin: 0 auto;
       padding: 60px 16px 40px;
     }
@@ -170,7 +170,7 @@
     .my-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
     .my-summary { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; }
     .my-summary .my-game, .my-summary .my-cdkcode, .my-summary .my-account { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .my-game { font-size: 14px; font-weight: 600; color: var(--text); flex-shrink: 1; }
+    .my-game { font-size: 14px; font-weight: 600; color: var(--text); flex-shrink: 0; max-width: 100%; }
     .my-version { flex-shrink: 0; font-size: 11px; font-weight: 500; color: var(--muted-2); border: 1px solid var(--glass-2); border-radius: 999px; padding: 2px 8px; }
     .my-version.my-expired { color: var(--danger); border-color: rgba(248, 113, 113, 0.4); }
     .my-cdkcode { font-size: 12px; color: var(--muted); flex-shrink: 1; }
@@ -298,6 +298,7 @@
       .user-badge .u-name { max-width: 64px; }
       .btn-login { height: 32px; padding: 0 12px; font-size: 12px; }
       .page { padding-top: 32px; }
+      .my-game { flex-shrink: 1; }
       .result-grid { grid-template-columns: 76px 1fr; }
     }
     @media (max-width: 380px) {
@@ -526,11 +527,11 @@
   </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/axios@1.7.9/dist/axios.min.js"></script>
+  <script src="/static/js/vue.min.js"></script>
+  <script src="static/js/axios.min.js"></script>
   <script>
     // 后端地址集中配置：同源部署时改为 '/api/web' 或注入 window.BASE_URL
-    var BASE_URL = window.BASE_URL || 'http://127.0.0.1:3000/api/web';
+    var BASE_URL = window.BASE_URL || '/api/web';
     // 与 index.html 共享同一套会话键（同站点登录态互通）
     var TOKEN_KEY = 'sanli_member_access_token';
     var USER_KEY = 'sanli_member_user_info';
