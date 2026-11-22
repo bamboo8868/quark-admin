@@ -1,0 +1,791 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="阿克曼电玩我的兑换记录">
+  <meta name="renderer" content="webkit">
+  <title>阿克曼电玩 · 我的兑换</title>
+  <style>
+    :root {
+      --bg: #0A0A0C;
+      --text: #F2F2F4;
+      --muted: #9D9DA8;
+      --muted-2: #C4C4CE;
+      --muted-3: #B0B8C1;
+      --glass: rgba(255, 255, 255, 0.13);
+      --glass-2: rgba(255, 255, 255, 0.14);
+      --field-bg: rgba(255, 255, 255, 0.05);
+      --success: #34d399;
+      --danger: #f87171;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100%;
+    }
+
+    [v-cloak], .hidden { display: none !important; }
+
+    /* ---------- Blurred game-art backdrop ---------- */
+    .bg { position: fixed; inset: 0; overflow: hidden; background: #000; z-index: 0; }
+    .bg .glow {
+      position: absolute;
+      left: 50%; top: 40%;
+      width: 984px; height: 984px;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(90, 120, 210, 0.16), transparent 62%);
+      pointer-events: none;
+    }
+    .bg .bg-img {
+      position: absolute;
+      inset: -40px;
+      background: url('./static/img/bg.png') center / cover no-repeat;
+      filter: blur(4px) brightness(0.6) saturate(0.8);
+      opacity: 0.85;
+    }
+    .bg .vignette {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(0, 0, 0, 0.72), transparent 62%),
+        linear-gradient(90deg, #000, transparent 12%, transparent 88%, #000),
+        linear-gradient(180deg, #000, transparent 14%, transparent 86%, #000);
+      pointer-events: none;
+    }
+
+    /* ---------- Navbar (frosted glass) ---------- */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      gap: 17px;
+      padding: 0 40px;
+      background: rgba(16, 16, 20, 0.7);
+      backdrop-filter: blur(50px);
+      -webkit-backdrop-filter: blur(50px);
+    }
+    .navbar .logo-chip {
+      background: #FFFFFF;
+      color: #000;
+      border-radius: 4px;
+      padding: 5px 13px;
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.34px;
+      flex-shrink: 0;
+    }
+    .navbar .nav-link {
+      color: var(--muted-2);
+      font-size: 16px;
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      position: relative;
+      transition: color .15s;
+    }
+    .navbar .nav-link:hover { color: var(--text); }
+    .navbar .nav-link.active { color: var(--text); }
+    .navbar .nav-link.active::after {
+      content: "";
+      position: absolute;
+      left: 12px; right: 12px; bottom: 0;
+      height: 2px;
+      border-radius: 2px;
+      background: #fff;
+    }
+
+    /* ---------- Layout ---------- */
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 460px;
+      margin: 0 auto;
+      padding: 60px 16px 40px;
+    }
+    .page-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .page-head h2 { font-size: 18px; font-weight: 600; color: var(--text); }
+    .btn-refresh-list { border: 1px solid var(--glass-2); background: rgba(255, 255, 255, 0.06); color: var(--muted-2); border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background .16s; }
+    .btn-refresh-list:hover { background: rgba(255, 255, 255, 0.12); }
+    .btn-refresh-list:disabled { opacity: .5; cursor: not-allowed; }
+
+    .card {
+      border-radius: 16px;
+      padding: 16px 18px 30px;
+      background: linear-gradient(135deg, #1C2740 0%, #141C2E 52%, #0D1119 100%);
+      box-shadow: inset 0 0 0 1px var(--glass), 0 26px 60px -28px rgba(0, 0, 0, 0.95);
+      margin-bottom: 14px;
+    }
+
+    .btn-primary {
+      width: 100%;
+      height: 53px;
+      margin-top: 14px;
+      border: none;
+      border-radius: 10px;
+      background: #FFFFFF;
+      color: #0A0A0C;
+      font-size: 19px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px -6px rgba(0, 0, 0, 0.6);
+      transition: filter .15s, transform .05s;
+    }
+    .btn-primary:hover { filter: brightness(0.94); }
+    .btn-primary:active { transform: translateY(1px); }
+    .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+    /* ---------- Alert ---------- */
+    .alert {
+      border-radius: 10px;
+      padding: 11px 14px;
+      margin-bottom: 14px;
+      font-size: 13px;
+      font-weight: 600;
+      display: none;
+      box-shadow: inset 0 0 0 1px var(--glass);
+    }
+    .alert.show { display: block; }
+    .alert.error { background: rgba(248, 113, 113, 0.12); color: var(--danger); }
+    .alert.success { background: rgba(52, 211, 153, 0.12); color: var(--success); }
+
+    /* ---------- CDK list ---------- */
+    .my-empty { text-align: center; color: var(--muted); font-size: 13px; padding: 26px 10px; }
+    .my-empty .btn-primary { margin-top: 16px; }
+    .my-empty .link-btn { margin-top: 14px; display: inline-block; }
+    .my-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .my-summary { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; }
+    .my-summary .my-game, .my-summary .my-cdkcode, .my-summary .my-account { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .my-game { font-size: 14px; font-weight: 600; color: var(--text); flex-shrink: 1; }
+    .my-version { flex-shrink: 0; font-size: 11px; font-weight: 500; color: var(--muted-2); border: 1px solid var(--glass-2); border-radius: 999px; padding: 2px 8px; }
+    .my-version.my-expired { color: var(--danger); border-color: rgba(248, 113, 113, 0.4); }
+    .my-cdkcode { font-size: 12px; color: var(--muted); flex-shrink: 1; }
+    .my-account { font-size: 12px; color: var(--muted-2); flex-shrink: 1; }
+    .my-head .btn-mini { flex-shrink: 0; }
+    .my-hint { margin-top: 6px; font-size: 11px; color: var(--muted); }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 84px 1fr;
+      row-gap: 13px;
+      align-items: center;
+      margin-top: 14px;
+    }
+    .result-grid .label { color: var(--muted); font-weight: 500; }
+    .result-grid .value { font-weight: 600; color: var(--text); word-break: break-all; }
+    .value-copy { display: flex; align-items: center; gap: 8px; }
+    .value-copy .v-text { min-width: 0; word-break: break-all; }
+    .btn-copy-sm {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted-2);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--glass-2);
+      border-radius: 7px;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: background .16s, border-color .16s, color .16s;
+    }
+    .btn-copy-sm:hover { background: rgba(255, 255, 255, 0.12); }
+    .btn-copy-sm.copied { color: var(--success); border-color: rgba(52, 211, 153, 0.5); }
+    .btn-copy-sm svg { width: 13px; height: 13px; }
+
+    .totp-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .totp-code {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: #fff;
+      font-variant-numeric: tabular-nums;
+    }
+    .btn-mini {
+      border: 1px solid var(--glass-2);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--muted-2);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .16s;
+    }
+    .btn-mini:hover { background: rgba(255, 255, 255, 0.12); }
+    .btn-mini:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ---------- Navbar user / auth ---------- */
+    .nav-right { margin-left: auto; display: flex; align-items: center; flex-shrink: 0; }
+    .user-wrap { position: relative; }
+    .user-badge { display: flex; align-items: center; gap: 8px; padding: 5px 14px 5px 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--glass-2); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s; }
+    .user-badge:hover { background: rgba(255, 255, 255, 0.14); }
+    .user-badge .u-avatar { width: 26px; height: 26px; border-radius: 50%; background: #fff; color: #0A0A0C; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+    .user-badge .u-name { max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .user-badge .u-caret { font-size: 10px; color: var(--muted); }
+    .menu-backdrop { position: fixed; inset: 0; z-index: 140; }
+    .user-menu { position: absolute; right: 0; top: calc(100% + 10px); z-index: 150; min-width: 220px; padding: 10px; background: #141C2E; border: 1px solid var(--glass-2); border-radius: 12px; box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.85); animation: menuIn .16s ease; }
+    @keyframes menuIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+    .user-menu .um-row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 10px; font-size: 12px; font-weight: 500; }
+    .user-menu .um-row span:first-child { color: var(--muted); }
+    .user-menu .um-row span:last-child { color: var(--text); font-weight: 600; }
+    .user-menu .um-divider { height: 1px; background: var(--glass-2); margin: 6px 4px; }
+    .user-menu .um-logout { width: 100%; padding: 9px 10px; border: none; border-radius: 8px; background: rgba(248, 113, 113, 0.12); color: var(--danger); font-size: 12px; font-weight: 600; cursor: pointer; }
+    .user-menu .um-logout:hover { background: rgba(248, 113, 113, 0.2); }
+    .btn-login { height: 36px; padding: 0 18px; border: none; border-radius: 8px; background: #fff; color: #0A0A0C; font-size: 13px; font-weight: 600; cursor: pointer; transition: filter .15s; }
+    .btn-login:hover { filter: brightness(0.92); }
+
+    /* ---------- Auth modal ---------- */
+    .modal-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .modal-dialog { position: relative; width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; background: linear-gradient(135deg, #1C2740 0%, #141C2E 52%, #0D1119 100%); box-shadow: inset 0 0 0 1px var(--glass), 0 30px 60px -20px rgba(0, 0, 0, 0.9); border-radius: 16px; padding: 26px 22px; animation: menuIn .2s ease; }
+    .modal-close { position: absolute; top: 12px; right: 12px; width: 30px; height: 30px; border: none; background: rgba(255, 255, 255, 0.08); border-radius: 8px; color: var(--muted-2); font-size: 17px; cursor: pointer; }
+    .modal-close:hover { background: rgba(255, 255, 255, 0.16); color: var(--text); }
+    .modal-head { text-align: center; margin-bottom: 18px; }
+    .modal-head h3 { font-size: 19px; font-weight: 600; color: var(--text); }
+    .modal-head p { margin-top: 6px; font-size: 12.5px; color: var(--muted); }
+    .auth-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .auth-tabs .tab { flex: 1; height: 38px; border: 1px solid var(--glass-2); background: var(--field-bg); border-radius: 9px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; }
+    .auth-tabs .tab.active { background: rgba(255, 255, 255, 0.14); border-color: rgba(255, 255, 255, 0.4); color: var(--text); }
+    .form-group { margin-bottom: 14px; }
+    .form-label { display: block; font-size: 12.5px; font-weight: 500; color: var(--muted); margin-bottom: 6px; }
+    .form-input { width: 100%; height: 42px; border: 1px solid var(--glass-2); border-radius: 9px; padding: 0 14px; font-size: 14px; color: var(--text); outline: none; background: var(--field-bg); transition: border-color .15s, box-shadow .15s; }
+    .form-input::placeholder { color: #6f6f7a; }
+    .form-input:focus { border-color: rgba(255, 255, 255, 0.32); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06); }
+    .pwd-wrap { position: relative; }
+    .pwd-wrap .form-input { padding-right: 60px; }
+    .pwd-toggle { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: none; background: transparent; color: var(--muted-2); font-size: 12px; font-weight: 600; cursor: pointer; }
+    .pwd-toggle:hover { color: var(--text); }
+    .btn-submit { width: 100%; height: 46px; border: none; border-radius: 10px; background: #fff; color: #0A0A0C; font-size: 15px; font-weight: 600; letter-spacing: 2px; cursor: pointer; transition: filter .15s; }
+    .btn-submit:hover { filter: brightness(0.94); }
+    .btn-submit:disabled { opacity: .6; cursor: not-allowed; }
+    .form-note { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; font-size: 12px; color: var(--muted); }
+    .form-note.center { justify-content: center; }
+    .link-btn { border: none; background: transparent; color: #9cc4ff; font-size: 12px; font-weight: 600; cursor: pointer; padding: 0; }
+    .link-btn:hover { text-decoration: underline; }
+
+    /* ---------- Footer ---------- */
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 22.5px;
+      padding: 28px 16px 40px;
+    }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 560px) {
+      .navbar { height: 56px; padding: 0 12px; gap: 6px; }
+      .navbar .logo-chip { font-size: 14px; padding: 4px 10px; }
+      .navbar .nav-link { font-size: 13px; padding: 5px 6px; }
+      .navbar .nav-link.active::after { left: 6px; right: 6px; }
+      .user-badge { padding: 3px 10px 3px 4px; gap: 6px; font-size: 12px; }
+      .user-badge .u-avatar { width: 22px; height: 22px; font-size: 12px; }
+      .user-badge .u-name { max-width: 64px; }
+      .btn-login { height: 32px; padding: 0 12px; font-size: 12px; }
+      .page { padding-top: 32px; }
+      .result-grid { grid-template-columns: 76px 1fr; }
+    }
+    @media (max-width: 380px) {
+      .navbar { gap: 4px; }
+      .user-badge .u-name { display: none; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Blurred game-art backdrop -->
+  <div class="bg" aria-hidden="true">
+    <div class="bg-img"></div>
+    <div class="glow"></div>
+    <div class="vignette"></div>
+  </div>
+
+  <div id="app" v-cloak>
+  <!-- Navbar -->
+  <div class="navbar">
+    <div class="logo-chip">阿克曼电玩</div>
+    <a class="nav-link" href="./index.html">游戏兑换</a>
+    <a class="nav-link active" href="./my.html">我的兑换</a>
+    <div class="nav-right">
+      <div class="user-wrap" v-if="user">
+        <div class="menu-backdrop" v-if="userMenuOpen" @click="userMenuOpen = false"></div>
+        <div class="user-badge" @click="userMenuOpen = !userMenuOpen">
+          <span class="u-avatar">{{ (user.nickname || user.username || '?').charAt(0) }}</span>
+          <span class="u-name">{{ user.nickname || user.username }}</span>
+          <span class="u-caret">▼</span>
+        </div>
+        <div class="user-menu" v-if="userMenuOpen">
+          <div class="um-row"><span>会员等级</span><span>{{ levelName }}</span></div>
+          <div class="um-row"><span>到期时间</span><span>{{ expireText }}</span></div>
+          <div class="um-divider"></div>
+          <button class="um-logout" @click="logout">退出登录</button>
+        </div>
+      </div>
+      <button class="btn-login" v-else @click="openAuthModal('login')">登录 / 注册</button>
+    </div>
+  </div>
+
+  <div class="page">
+    <!-- Alert -->
+    <div class="alert" :class="[alert.type, { show: alert.show }]">{{ alert.text }}</div>
+
+    <div class="page-head" v-if="user">
+      <h2>我的兑换</h2>
+      <button class="btn-refresh-list" @click="fetchMyCdks" :disabled="myCdksLoading">{{ myCdksLoading ? '刷新中…' : '刷新列表' }}</button>
+    </div>
+
+    <!-- Not logged in -->
+    <div class="card" v-if="!user">
+      <div class="my-empty">
+        <p>登录后查看您兑换过的 CDK 与对应账号</p>
+        <button class="btn-primary" @click="openAuthModal('login')">登录 / 注册</button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="card" v-else-if="myCdksLoading && !myCdks.length"><div class="my-empty">加载中…</div></div>
+
+    <!-- Empty -->
+    <div class="card" v-else-if="!myCdks.length">
+      <div class="my-empty">
+        <p>暂无兑换记录</p>
+        <a class="link-btn" href="./index.html">去「游戏兑换」兑换一个 CDK ›</a>
+      </div>
+    </div>
+
+    <!-- CDK history -->
+    <template v-else>
+      <div class="card" v-for="row in myCdks" :key="row.id">
+        <div class="my-head">
+          <div class="my-summary">
+            <span class="my-game" :title="row.game_name">{{ row.game_name }}</span>
+            <span class="my-version" v-if="row.version_name">{{ row.version_name }}</span>
+            <span class="my-version my-expired" v-if="row.expired">已到期</span>
+            <span class="my-cdkcode mono" :title="row.cdk_code">{{ row.cdk_code }}</span>
+            <span class="my-account" :title="row.account">{{ row.account }}</span>
+          </div>
+          <button class="btn-mini" type="button" @click="toggleExpand(row.id)">{{ expandedMap[row.id] ? '收起' : '查看' }}</button>
+        </div>
+        <div class="result-grid" v-if="expandedMap[row.id]">
+          <div class="label">账号</div>
+          <div class="value value-copy">
+            <span class="v-text">{{ row.account }}</span>
+            <button class="btn-copy-sm" type="button" :class="{ copied: copiedField === 'acc-' + row.id }" @click="copyText(row.account, 'acc-' + row.id)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span>{{ copiedField === 'acc-' + row.id ? '已复制' : '复制' }}</span>
+            </button>
+          </div>
+
+          <div class="label">密码</div>
+          <div class="value value-copy">
+            <span class="v-text">{{ row.password }}</span>
+            <button class="btn-copy-sm" type="button" :class="{ copied: copiedField === 'pwd-' + row.id }" @click="copyText(row.password, 'pwd-' + row.id)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span>{{ copiedField === 'pwd-' + row.id ? '已复制' : '复制' }}</span>
+            </button>
+          </div>
+
+          <div class="label">动态验证码</div>
+          <div class="value">
+            <div class="totp-row">
+              <span class="totp-code">{{ myTotpMap[row.id] || '------' }}</span>
+              <button class="btn-copy-sm" type="button" v-if="myTotpMap[row.id]" :class="{ copied: copiedField === 'totp-' + row.id }" @click="copyText(myTotpMap[row.id], 'totp-' + row.id)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span>{{ copiedField === 'totp-' + row.id ? '已复制' : '复制' }}</span>
+              </button>
+              <button class="btn-mini" @click="refreshMyTotp(row)"
+                :disabled="myTotpLoading[row.id] || myTotpCooldown[row.id] > 0 || row.remaining === 0">{{ myTotpCooldown[row.id] > 0 ? myTotpCooldown[row.id] + ' 秒后可刷新' : (myTotpLoading[row.id] ? '获取中…' : (row.remaining === 0 ? '今日已用完' : '刷新验证码')) }}</button>
+            </div>
+            <div class="my-hint" v-if="row.remaining !== null && row.remaining !== undefined">今日剩余 {{ row.remaining }} 次</div>
+          </div>
+
+          <div class="label">兑换时间</div>
+          <div class="value">{{ row.used_at || '-' }}</div>
+        </div>
+      </div>
+    </template>
+
+    <div class="footer">阿克曼电玩 · 我的兑换</div>
+  </div>
+
+  <!-- Auth modal -->
+  <div class="modal-overlay" v-if="showAuthModal" @click.self="closeAuthModal">
+    <div class="modal-dialog">
+      <button class="modal-close" @click="closeAuthModal" aria-label="关闭">×</button>
+
+      <!-- Login -->
+      <template v-if="authTab === 'login'">
+        <div class="modal-head"><h3>会员登录</h3><p>登录后可查看您的兑换记录</p></div>
+        <div class="auth-tabs">
+          <button class="tab active" type="button">登录</button>
+          <button class="tab" type="button" @click="authTab = 'register'">注册</button>
+        </div>
+        <form @submit.prevent="doLogin">
+          <div class="form-group">
+            <label class="form-label">用户名</label>
+            <input class="form-input" type="text" v-model.trim="loginForm.username" placeholder="请输入用户名" autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label class="form-label">密码</label>
+            <div class="pwd-wrap">
+              <input class="form-input" :type="showPwd.login ? 'text' : 'password'" v-model="loginForm.password" placeholder="请输入密码" autocomplete="current-password">
+              <button class="pwd-toggle" type="button" @click="showPwd.login = !showPwd.login">{{ showPwd.login ? '隐藏' : '显示' }}</button>
+            </div>
+          </div>
+          <button class="btn-submit" type="submit" :disabled="authLoading">{{ authLoading ? '登录中…' : '登 录' }}</button>
+          <div class="form-note">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" v-model="rememberUsername"> 记住用户名</label>
+            <button type="button" class="link-btn" @click="authTab = 'forgot'">忘记密码？</button>
+          </div>
+        </form>
+      </template>
+
+      <!-- Register -->
+      <template v-else-if="authTab === 'register'">
+        <div class="modal-head"><h3>会员注册</h3><p>注册后兑换将自动绑定会员账号</p></div>
+        <div class="auth-tabs">
+          <button class="tab" type="button" @click="authTab = 'login'">登录</button>
+          <button class="tab active" type="button">注册</button>
+        </div>
+        <form @submit.prevent="doRegister">
+          <div class="form-group">
+            <label class="form-label">用户名</label>
+            <input class="form-input" type="text" v-model.trim="registerForm.username" placeholder="3-30 位字母/数字/下划线" autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label class="form-label">邮箱</label>
+            <input class="form-input" type="email" v-model.trim="registerForm.email" placeholder="用于找回密码" autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label class="form-label">密码</label>
+            <div class="pwd-wrap">
+              <input class="form-input" :type="showPwd.register ? 'text' : 'password'" v-model="registerForm.password" placeholder="至少 6 位" autocomplete="new-password">
+              <button class="pwd-toggle" type="button" @click="showPwd.register = !showPwd.register">{{ showPwd.register ? '隐藏' : '显示' }}</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">确认密码</label>
+            <div class="pwd-wrap">
+              <input class="form-input" :type="showPwd.register ? 'text' : 'password'" v-model="registerForm.confirmPassword" placeholder="再次输入密码" autocomplete="new-password">
+            </div>
+          </div>
+          <button class="btn-submit" type="submit" :disabled="authLoading">{{ authLoading ? '注册中…' : '注 册' }}</button>
+        </form>
+      </template>
+
+      <!-- Forgot password -->
+      <template v-else>
+        <div class="modal-head"><h3>找回密码</h3><p>通过注册邮箱重置密码</p></div>
+        <form @submit.prevent="doResetPassword">
+          <div class="form-group">
+            <label class="form-label">用户名</label>
+            <input class="form-input" type="text" v-model.trim="forgotForm.username" placeholder="请输入用户名">
+          </div>
+          <div class="form-group">
+            <label class="form-label">注册邮箱</label>
+            <input class="form-input" type="email" v-model.trim="forgotForm.email" placeholder="请输入注册时填写的邮箱">
+          </div>
+          <div class="form-group">
+            <label class="form-label">新密码</label>
+            <div class="pwd-wrap">
+              <input class="form-input" :type="showPwd.forgot ? 'text' : 'password'" v-model="forgotForm.newPassword" placeholder="至少 6 位" autocomplete="new-password">
+              <button class="pwd-toggle" type="button" @click="showPwd.forgot = !showPwd.forgot">{{ showPwd.forgot ? '隐藏' : '显示' }}</button>
+            </div>
+          </div>
+          <button class="btn-submit" type="submit" :disabled="authLoading">{{ authLoading ? '提交中…' : '重置密码' }}</button>
+          <div class="form-note center">
+            <button type="button" class="link-btn" @click="authTab = 'login'">返回登录</button>
+          </div>
+        </form>
+      </template>
+    </div>
+  </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios@1.7.9/dist/axios.min.js"></script>
+  <script>
+    // 后端地址集中配置：同源部署时改为 '/api/web' 或注入 window.BASE_URL
+    var BASE_URL = window.BASE_URL || 'http://127.0.0.1:3000/api/web';
+    // 与 index.html 共享同一套会话键（同站点登录态互通）
+    var TOKEN_KEY = 'sanli_member_access_token';
+    var USER_KEY = 'sanli_member_user_info';
+    var LAST_USERNAME_KEY = 'sanli_member_last_username';
+
+    new Vue({
+      el: '#app',
+      data: {
+        alert: { show: false, text: '', type: 'error' },
+        alertTimer: null,
+        copiedField: '',
+        copyTimer: null,
+        token: '',
+        user: null,
+        userMenuOpen: false,
+        showAuthModal: false,
+        authTab: 'login',
+        authLoading: false,
+        rememberUsername: true,
+        showPwd: { login: false, register: false, forgot: false },
+        loginForm: { username: '', password: '' },
+        registerForm: { username: '', email: '', password: '', confirmPassword: '' },
+        forgotForm: { username: '', email: '', newPassword: '' },
+        myCdks: [],
+        myCdksLoading: false,
+        expandedMap: {},
+        myTotpMap: {},
+        myTotpLoading: {},
+        myTotpCooldown: {},
+        myCooldownTimer: null
+      },
+      computed: {
+        levelName() {
+          if (!this.user) return '-';
+          const map = { 0: '普通用户', 1: '普通会员', 2: '高级会员', 3: '至尊会员' };
+          return map[this.user.level] || '会员';
+        },
+        expireText() {
+          if (!this.user || !this.user.expire_time) return '永久';
+          return String(this.user.expire_time).slice(0, 10);
+        }
+      },
+      mounted() {
+        this.readSession();
+        if (this.token) {
+          this.fetchMe();
+          this.fetchMyCdks();
+        } else {
+          try {
+            const last = localStorage.getItem(LAST_USERNAME_KEY);
+            if (last) this.loginForm.username = last;
+          } catch (e) {}
+        }
+      },
+      beforeDestroy() {
+        if (this.myCooldownTimer) clearInterval(this.myCooldownTimer);
+        if (this.alertTimer) clearTimeout(this.alertTimer);
+        if (this.copyTimer) clearTimeout(this.copyTimer);
+      },
+      methods: {
+        showMessage(text, type) {
+          this.alert.text = text;
+          this.alert.type = type || 'error';
+          this.alert.show = true;
+          if (this.alertTimer) clearTimeout(this.alertTimer);
+          this.alertTimer = setTimeout(() => { this.alert.show = false; }, 3500);
+        },
+        copyText(text, field) {
+          if (!text) return;
+          const done = () => {
+            this.copiedField = field;
+            if (this.copyTimer) clearTimeout(this.copyTimer);
+            this.copyTimer = setTimeout(() => { this.copiedField = ''; }, 1600);
+          };
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(done).catch(() => this.fallbackCopy(text, done));
+          } else {
+            this.fallbackCopy(text, done);
+          }
+        },
+        fallbackCopy(text, done) {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          try { document.execCommand('copy'); done(); } catch (e) { this.showMessage('复制失败，请手动复制'); }
+          document.body.removeChild(ta);
+        },
+        // ===== 会话 =====
+        readSession() {
+          try {
+            this.token = localStorage.getItem(TOKEN_KEY) || '';
+            const raw = localStorage.getItem(USER_KEY);
+            this.user = raw ? JSON.parse(raw) : null;
+          } catch (e) { this.token = ''; this.user = null; }
+        },
+        persistSession(token, user) {
+          this.token = token || this.token;
+          if (user) this.user = Object.assign({}, this.user || {}, user);
+          try {
+            if (this.token) localStorage.setItem(TOKEN_KEY, this.token);
+            if (this.user) localStorage.setItem(USER_KEY, JSON.stringify(this.user));
+          } catch (e) {}
+        },
+        authHeaders() {
+          return this.token ? { Authorization: 'Bearer ' + this.token } : {};
+        },
+        fetchMe() {
+          axios.post(BASE_URL + '/membership/my-info', {}, { headers: this.authHeaders() })
+            .then(res => {
+              if (res.data.code === 0 && res.data.data) this.persistSession('', res.data.data);
+            })
+            .catch(err => {
+              if (err.response && err.response.status === 401) this.logout(true);
+            });
+        },
+        logout(silent) {
+          this.token = ''; this.user = null; this.userMenuOpen = false;
+          this.myCdks = []; this.myTotpMap = {}; this.myTotpCooldown = {};
+          try { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY); } catch (e) {}
+          if (!silent) this.showMessage('已退出登录', 'success');
+        },
+        // ===== 登录 / 注册 / 找回密码 =====
+        openAuthModal(tab) {
+          this.authTab = tab || 'login';
+          this.showAuthModal = true;
+          this.userMenuOpen = false;
+        },
+        closeAuthModal() { this.showAuthModal = false; },
+        doLogin() {
+          if (!this.loginForm.username || !this.loginForm.password) { this.showMessage('请输入用户名和密码'); return; }
+          this.authLoading = true;
+          axios.post(BASE_URL + '/auth/login', { username: this.loginForm.username, password: this.loginForm.password })
+            .then(res => {
+              if (res.data.code === 0 && res.data.data) {
+                const d = res.data.data;
+                this.persistSession(d.accessToken || d.access_token, d.member || d.user || null);
+                try {
+                  if (this.rememberUsername) localStorage.setItem(LAST_USERNAME_KEY, this.loginForm.username);
+                  else localStorage.removeItem(LAST_USERNAME_KEY);
+                } catch (e) {}
+                this.showAuthModal = false;
+                this.loginForm.password = '';
+                this.showMessage('登录成功，欢迎回来！', 'success');
+                this.fetchMe();
+                this.fetchMyCdks();
+              } else {
+                this.showMessage(res.data.message || '登录失败');
+              }
+            })
+            .catch(err => this.showMessage((err.response && err.response.data && err.response.data.message) || '网络错误，请稍后重试'))
+            .finally(() => { this.authLoading = false; });
+        },
+        doRegister() {
+          const f = this.registerForm;
+          if (!/^[A-Za-z0-9_]{3,30}$/.test(f.username)) { this.showMessage('用户名需为 3-30 位字母/数字/下划线'); return; }
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) { this.showMessage('请输入正确的邮箱'); return; }
+          if (!f.password || f.password.length < 6) { this.showMessage('密码至少 6 位'); return; }
+          if (f.password !== f.confirmPassword) { this.showMessage('两次输入的密码不一致'); return; }
+          this.authLoading = true;
+          axios.post(BASE_URL + '/auth/register', { username: f.username, email: f.email, password: f.password })
+            .then(res => {
+              if (res.data.code === 0) {
+                const d = res.data.data || {};
+                if (d.accessToken || d.access_token) {
+                  this.persistSession(d.accessToken || d.access_token, d.member || d.user || null);
+                  this.showAuthModal = false;
+                  this.showMessage('注册成功，已自动登录', 'success');
+                  this.fetchMe();
+                  this.fetchMyCdks();
+                } else {
+                  this.loginForm.username = f.username;
+                  this.authTab = 'login';
+                  this.showMessage('注册成功，请登录', 'success');
+                }
+              } else {
+                this.showMessage(res.data.message || '注册失败');
+              }
+            })
+            .catch(err => this.showMessage((err.response && err.response.data && err.response.data.message) || '网络错误，请稍后重试'))
+            .finally(() => { this.authLoading = false; });
+        },
+        doResetPassword() {
+          const f = this.forgotForm;
+          if (!f.username || !f.email) { this.showMessage('请输入用户名和注册邮箱'); return; }
+          if (!f.newPassword || f.newPassword.length < 6) { this.showMessage('新密码至少 6 位'); return; }
+          this.authLoading = true;
+          axios.post(BASE_URL + '/auth/reset-password', { username: f.username, email: f.email, newPassword: f.newPassword })
+            .then(res => {
+              if (res.data.code === 0) {
+                this.showMessage('密码重置成功，请使用新密码登录', 'success');
+                this.loginForm.username = f.username;
+                this.authTab = 'login';
+              } else {
+                this.showMessage(res.data.message || '重置失败');
+              }
+            })
+            .catch(err => this.showMessage((err.response && err.response.data && err.response.data.message) || '网络错误，请稍后重试'))
+            .finally(() => { this.authLoading = false; });
+        },
+        // ===== 我的兑换 =====
+        toggleExpand(id) {
+          this.$set(this.expandedMap, id, !this.expandedMap[id]);
+        },
+        fetchMyCdks() {
+          if (!this.token) return;
+          this.myCdksLoading = true;
+          axios.post(BASE_URL + '/offline/my-cdks', {}, { headers: this.authHeaders() })
+            .then(res => {
+              if (res.data.code === 0 && res.data.data) this.myCdks = res.data.data.list || [];
+              else this.showMessage(res.data.message || '获取兑换记录失败');
+            })
+            .catch(err => {
+              if (err.response && err.response.status === 401) { this.logout(true); this.showMessage('登录已过期，请重新登录'); }
+              else this.showMessage('网络错误，请稍后重试');
+            })
+            .finally(() => { this.myCdksLoading = false; });
+        },
+        refreshMyTotp(row) {
+          if (this.myTotpLoading[row.id] || this.myTotpCooldown[row.id] > 0 || row.remaining === 0) return;
+          this.$set(this.myTotpLoading, row.id, true);
+          // 复用 /offline/refresh：与兑换页相同的每 CDK 每日次数 + 10 秒冷却限制
+          axios.post(BASE_URL + '/offline/refresh', { cdk: row.cdk_code }, { headers: this.authHeaders() })
+            .then(res => {
+              const body = res.data || {};
+              if (body.code === 0) {
+                this.$set(this.myTotpMap, row.id, (body.data && body.data.totp_code) || '');
+                if (body.data && body.data.remaining !== undefined && body.data.remaining !== null) row.remaining = body.data.remaining;
+                this.startMyCooldown(row.id, (body.data && body.data.cooldown) || 10);
+              } else {
+                this.showMessage(body.message || '刷新失败');
+                if (body.data && body.data.cooldown) this.startMyCooldown(row.id, body.data.cooldown);
+                if (body.data && body.data.remaining === 0) row.remaining = 0;
+              }
+            })
+            .catch(() => this.showMessage('网络错误，请稍后重试'))
+            .finally(() => { this.$set(this.myTotpLoading, row.id, false); });
+        },
+        startMyCooldown(id, sec) {
+          const seconds = Math.max(1, parseInt(sec, 10) || 10);
+          this.$set(this.myTotpCooldown, id, seconds);
+          if (this.myCooldownTimer) return;
+          this.myCooldownTimer = setInterval(() => {
+            let any = false;
+            Object.keys(this.myTotpCooldown).forEach(k => {
+              if (this.myTotpCooldown[k] > 0) { this.$set(this.myTotpCooldown, k, this.myTotpCooldown[k] - 1); any = true; }
+            });
+            if (!any) { clearInterval(this.myCooldownTimer); this.myCooldownTimer = null; }
+          }, 1000);
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>

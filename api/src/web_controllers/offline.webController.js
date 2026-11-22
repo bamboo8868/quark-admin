@@ -4,6 +4,23 @@ import { log } from '../utils/logger.js';
 import { getRedis } from '../config/redis.js';
 import { offlineAccountService } from '../services/offline.service.js';
 import { settingService } from '../services/config.service.js';
+import { verifyAccessToken } from '../utils/jwt.js';
+
+/**
+ * Extract and verify the optional web member token from the Authorization header.
+ * Returns { memberId, username } or null (guest). Redemption stays public.
+ */
+function getWebUser(request) {
+    const authHeader = request.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
+    try {
+        const decoded = verifyAccessToken(authHeader.substring(7));
+        if (decoded.type !== 'web') return null;
+        return { memberId: decoded.memberId, username: decoded.username };
+    } catch {
+        return null;
+    }
+}
 
 /**
  * Generate a TOTP code from an account's shared secret, safe against errors
@@ -141,6 +158,7 @@ export const offlineWebController = {
      */
     redeem: async (request, reply) => {
         const now = new Date();
+        const user = getWebUser(request);
         const { cdk: cdkCode } = request.body || {};
         if (!cdkCode || !cdkCode.trim()) {
             return { code: 10001, message: '请输入兑换码', data: null };
@@ -178,6 +196,23 @@ export const offlineWebController = {
             }
             const game = await db('offline_games').where('id', cdk.game_id).first();
             const version = await db('offline_game_version').where('id', cdk.version_id).first();
+
+            // Logged-in member re-entering an unbound CDK claims it; an existing
+            // binding is never overwritten (first claim wins).
+            let memberUsername = '';
+            if (user) {
+                if (!cdk.member_id) {
+                    await db('offline_cdk').where('id', cdk.id).update({
+                        member_id: user.memberId,
+                        used_by: user.username,
+                        updated_at: now
+                    });
+                    memberUsername = user.username;
+                } else if (cdk.member_id === user.memberId) {
+                    memberUsername = user.username;
+                }
+            }
+
             return {
                 code: 0,
                 message: '提取成功',
@@ -188,7 +223,8 @@ export const offlineWebController = {
                     game_name: game?.name || '',
                     version_name: version?.name || '',
                     expire_time: formatDate(offlineExpireDate(cdk.used_at)),
-                    remaining: await remainingToday(cdk.id, resolveDailyLimit(game))
+                    remaining: await remainingToday(cdk.id, resolveDailyLimit(game)),
+                    member_username: memberUsername
                 }
             };
         }
@@ -226,11 +262,13 @@ export const offlineWebController = {
             }
         }
 
-        // Mark CDK as used and bind the account (permanent)
+        // Mark CDK as used and bind the account (permanent); when a member is
+        // logged in, also bind the CDK to that member account.
         await db('offline_cdk').where('id', cdk.id).update({
             status: 1,
             account_id: account.id,
-            used_by: 'web',
+            member_id: user ? user.memberId : null,
+            used_by: user ? user.username : 'web',
             used_at: now,
             updated_at: now
         });
@@ -249,7 +287,7 @@ export const offlineWebController = {
             cdk_code: cdk.cdk_code,
             account: account.account,
             action: 'redeem',
-            username: 'web',
+            username: user ? user.username : 'web',
             ip: request.ip || ''
         });
 
@@ -265,9 +303,63 @@ export const offlineWebController = {
                 game_name: game?.name || '',
                 version_name: version?.name || '',
                 expire_time: formatDate(offlineExpireDate(now)),
-                remaining: await remainingToday(cdk.id, resolveDailyLimit(game))
+                remaining: await remainingToday(cdk.id, resolveDailyLimit(game)),
+                member_username: user ? user.username : ''
             }
         };
+    },
+
+    /**
+     * List the logged-in member's redeemed CDKs with their bound accounts
+     * POST /web/offline/my-cdks
+     * Auth: member token required. Verification codes are NOT included here;
+     * the client fetches them via /offline/refresh (same per-CDK limits).
+     */
+    myCdks: async (request, reply) => {
+        const user = getWebUser(request);
+        if (!user) {
+            return reply.code(401).send({ code: 401, message: '请先登录', data: null });
+        }
+
+        const now = new Date();
+        const cdks = await db('offline_cdk')
+            .where('member_id', user.memberId)
+            .where('status', 1)
+            .orderBy('used_at', 'desc');
+        if (cdks.length === 0) {
+            return { code: 0, message: '操作成功', data: { list: [] } };
+        }
+
+        // Bulk-load related games / versions / accounts to avoid N+1 queries
+        const gameIds = [...new Set(cdks.map(c => c.game_id))];
+        const versionIds = [...new Set(cdks.map(c => c.version_id))];
+        const accountIds = [...new Set(cdks.map(c => c.account_id).filter(Boolean))];
+        const games = await db('offline_games').whereIn('id', gameIds);
+        const versions = await db('offline_game_version').whereIn('id', versionIds);
+        const accounts = accountIds.length ? await db('offline_game_account').whereIn('id', accountIds) : [];
+        const gameMap = {}; games.forEach(g => { gameMap[g.id] = g; });
+        const versionMap = {}; versions.forEach(v => { versionMap[v.id] = v; });
+        const accountMap = {}; accounts.forEach(a => { accountMap[a.id] = a; });
+
+        const list = [];
+        for (const cdk of cdks) {
+            const game = gameMap[cdk.game_id];
+            const account = accountMap[cdk.account_id];
+            const expire = offlineExpireDate(cdk.used_at);
+            list.push({
+                id: cdk.id,
+                cdk_code: cdk.cdk_code,
+                game_name: game?.name || '',
+                version_name: versionMap[cdk.version_id]?.name || '',
+                account: account?.account || '',
+                password: account?.password || '',
+                used_at: formatDate(cdk.used_at),
+                expire_time: formatDate(expire),
+                expired: expire < now,
+                remaining: await remainingToday(cdk.id, resolveDailyLimit(game))
+            });
+        }
+        return { code: 0, message: '操作成功', data: { list } };
     },
 
     /**

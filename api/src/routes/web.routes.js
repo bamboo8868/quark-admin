@@ -61,6 +61,7 @@ export async function webRoutes(app) {
 
   // ==================== Offline CDK (no auth required) ====================
   app.post('/web/offline/redeem', offlineWebController.redeem);
+  app.post('/web/offline/my-cdks', offlineWebController.myCdks);
   app.post('/web/offline/refresh', offlineWebController.refresh);
   app.post('/web/offline/logout', offlineWebController.logout);
 

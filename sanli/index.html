@@ -278,7 +278,8 @@
       mask-image: linear-gradient(90deg, transparent, #000 20px, #000 calc(100% - 20px), transparent);
     }
     .announce-track {
-      display: inline-flex;
+      display: flex;
+      width: max-content;
       align-items: center;
       height: 100%;
       white-space: nowrap;
@@ -368,6 +369,54 @@
       white-space: nowrap;
     }
 
+    /* ---------- Navbar user / auth ---------- */
+    .nav-right { margin-left: auto; display: flex; align-items: center; flex-shrink: 0; }
+    .user-wrap { position: relative; }
+    .user-badge { display: flex; align-items: center; gap: 8px; padding: 5px 14px 5px 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--glass-2); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s; }
+    .user-badge:hover { background: rgba(255, 255, 255, 0.14); }
+    .user-badge .u-avatar { width: 26px; height: 26px; border-radius: 50%; background: #fff; color: #0A0A0C; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+    .user-badge .u-name { max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .user-badge .u-caret { font-size: 10px; color: var(--muted); }
+    .menu-backdrop { position: fixed; inset: 0; z-index: 140; }
+    .user-menu { position: absolute; right: 0; top: calc(100% + 10px); z-index: 150; min-width: 220px; padding: 10px; background: #141C2E; border: 1px solid var(--glass-2); border-radius: 12px; box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.85); animation: menuIn .16s ease; }
+    @keyframes menuIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+    .user-menu .um-row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 10px; font-size: 12px; font-weight: 500; }
+    .user-menu .um-row span:first-child { color: var(--muted); }
+    .user-menu .um-row span:last-child { color: var(--text); font-weight: 600; }
+    .user-menu .um-divider { height: 1px; background: var(--glass-2); margin: 6px 4px; }
+    .user-menu .um-logout { width: 100%; padding: 9px 10px; border: none; border-radius: 8px; background: rgba(248, 113, 113, 0.12); color: var(--danger); font-size: 12px; font-weight: 600; cursor: pointer; }
+    .user-menu .um-logout:hover { background: rgba(248, 113, 113, 0.2); }
+    .btn-login { height: 36px; padding: 0 18px; border: none; border-radius: 8px; background: #fff; color: #0A0A0C; font-size: 13px; font-weight: 600; cursor: pointer; transition: filter .15s; }
+    .btn-login:hover { filter: brightness(0.92); }
+
+    /* ---------- Auth modal ---------- */
+    .modal-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .modal-dialog { position: relative; width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; background: linear-gradient(135deg, #1C2740 0%, #141C2E 52%, #0D1119 100%); box-shadow: inset 0 0 0 1px var(--glass), 0 30px 60px -20px rgba(0, 0, 0, 0.9); border-radius: 16px; padding: 26px 22px; animation: menuIn .2s ease; }
+    .modal-close { position: absolute; top: 12px; right: 12px; width: 30px; height: 30px; border: none; background: rgba(255, 255, 255, 0.08); border-radius: 8px; color: var(--muted-2); font-size: 17px; cursor: pointer; }
+    .modal-close:hover { background: rgba(255, 255, 255, 0.16); color: var(--text); }
+    .modal-head { text-align: center; margin-bottom: 18px; }
+    .modal-head h3 { font-size: 19px; font-weight: 600; color: var(--text); }
+    .modal-head p { margin-top: 6px; font-size: 12.5px; color: var(--muted); }
+    .auth-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .auth-tabs .tab { flex: 1; height: 38px; border: 1px solid var(--glass-2); background: var(--field-bg); border-radius: 9px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; }
+    .auth-tabs .tab.active { background: rgba(255, 255, 255, 0.14); border-color: rgba(255, 255, 255, 0.4); color: var(--text); }
+    .form-group { margin-bottom: 14px; }
+    .form-label { display: block; font-size: 12.5px; font-weight: 500; color: var(--muted); margin-bottom: 6px; }
+    .form-input { width: 100%; height: 42px; border: 1px solid var(--glass-2); border-radius: 9px; padding: 0 14px; font-size: 14px; color: var(--text); outline: none; background: var(--field-bg); transition: border-color .15s, box-shadow .15s; }
+    .form-input::placeholder { color: #6f6f7a; }
+    .form-input:focus { border-color: rgba(255, 255, 255, 0.32); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06); }
+    .pwd-wrap { position: relative; }
+    .pwd-wrap .form-input { padding-right: 60px; }
+    .pwd-toggle { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: none; background: transparent; color: var(--muted-2); font-size: 12px; font-weight: 600; cursor: pointer; }
+    .pwd-toggle:hover { color: var(--text); }
+    .btn-submit { width: 100%; height: 46px; border: none; border-radius: 10px; background: #fff; color: #0A0A0C; font-size: 15px; font-weight: 600; letter-spacing: 2px; cursor: pointer; transition: filter .15s; }
+    .btn-submit:hover { filter: brightness(0.94); }
+    .btn-submit:disabled { opacity: .6; cursor: not-allowed; }
+    .form-note { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; font-size: 12px; color: var(--muted); }
+    .form-note.center { justify-content: center; }
+    .link-btn { border: none; background: transparent; color: #9cc4ff; font-size: 12px; font-weight: 600; cursor: pointer; padding: 0; }
+    .link-btn:hover { text-decoration: underline; }
+
     /* ---------- Footer ---------- */
     .footer {
       text-align: center;
@@ -379,11 +428,22 @@
 
     /* ---------- Responsive ---------- */
     @media (max-width: 560px) {
-      .navbar { padding: 0 16px; }
+      .navbar { height: 56px; padding: 0 12px; gap: 6px; }
+      .navbar .logo-chip { font-size: 14px; padding: 4px 10px; }
+      .navbar .nav-link { font-size: 13px; padding: 5px 6px; }
+      .navbar .nav-link.active::after { left: 6px; right: 6px; }
+      .user-badge { padding: 3px 10px 3px 4px; gap: 6px; font-size: 12px; }
+      .user-badge .u-avatar { width: 22px; height: 22px; font-size: 12px; }
+      .user-badge .u-name { max-width: 64px; }
+      .btn-login { height: 32px; padding: 0 12px; font-size: 12px; }
       .page { padding-top: 40px; }
       .result-grid { grid-template-columns: 76px 1fr; }
       .announce-bar { padding: 8px 12px; }
       .qa-answer-inner { padding-left: 14px; }
+    }
+    @media (max-width: 380px) {
+      .navbar { gap: 4px; }
+      .user-badge .u-name { display: none; }
     }
   </style>
 </head>
@@ -396,13 +456,32 @@
     <div class="vignette"></div>
   </div>
 
+  <div id="app" v-cloak>
   <!-- Navbar -->
   <div class="navbar">
     <div class="logo-chip">阿克曼电玩</div>
     <a class="nav-link active" href="./index.html">游戏兑换</a>
+    <a class="nav-link" href="./my.html">我的兑换</a>
+    <div class="nav-right">
+      <div class="user-wrap" v-if="user">
+        <div class="menu-backdrop" v-if="userMenuOpen" @click="userMenuOpen = false"></div>
+        <div class="user-badge" @click="userMenuOpen = !userMenuOpen">
+          <span class="u-avatar">{{ (user.nickname || user.username || '?').charAt(0) }}</span>
+          <span class="u-name">{{ user.nickname || user.username }}</span>
+          <span class="u-caret">▼</span>
+        </div>
+        <div class="user-menu" v-if="userMenuOpen">
+          <div class="um-row"><span>会员等级</span><span>{{ levelName }}</span></div>
+          <div class="um-row"><span>到期时间</span><span>{{ expireText }}</span></div>
+          <div class="um-divider"></div>
+          <button class="um-logout" @click="logout">退出登录</button>
+        </div>
+      </div>
+      <button class="btn-login" v-else @click="openAuthModal('login')">登录 / 注册</button>
+    </div>
   </div>
 
-  <div class="page" id="app">
+  <div class="page">
     <!-- Announcement marquee -->
     <div class="announce-bar" v-if="announcements.length">
       <div class="announce-tag">
@@ -413,8 +492,8 @@
         </svg>
         <span>公告</span>
       </div>
-      <div class="announce-viewport">
-        <div class="announce-track" :class="{ scrolling: announcements.length > 1 }" :style="{ animationDuration: announceDuration }">
+      <div class="announce-viewport" ref="announceViewport">
+        <div class="announce-track" ref="announceTrack" :class="{ scrolling: announceScrolling }" :style="{ animationDuration: announceDuration }">
           <span class="announce-item" v-for="(item, idx) in announceLoop" :key="'ann-' + idx">{{ item.content }}</span>
         </div>
       </div>
@@ -429,7 +508,8 @@
       <input id="cdk" class="code-input" type="text" v-model.trim="cdk" placeholder="输入兑换码，例如：ZBK2VK49MG"
         autocomplete="off" @keyup.enter="redeem" :disabled="loading">
       <button class="btn-primary" @click="redeem" :disabled="loading">{{ loading ? '兑换中…' : '立即兑换' }}</button>
-      <div class="hint">输入兑换码后点击兑换</div>
+      <div class="hint" v-if="user">当前登录：{{ user.nickname || user.username }}，兑换将自动绑定该会员账号</div>
+      <div class="hint" v-else>输入兑换码后点击兑换，<button type="button" class="link-btn" @click="openAuthModal('login')">登录</button> 后可绑定会员账号</div>
     </div>
 
     <!-- Result card -->
@@ -515,16 +595,76 @@
     </div>
   </div>
 
+  <!-- Auth Modal -->
+  <div class="modal-overlay" v-if="authModalOpen" @click.self="closeAuthModal">
+    <div class="modal-dialog">
+      <button class="modal-close" @click="closeAuthModal" aria-label="关闭">×</button>
+      <div class="modal-head">
+        <h3>{{ authModalTitle }}</h3>
+        <p>{{ authModalSubtitle }}</p>
+      </div>
+      <div class="auth-tabs" v-if="authMode !== 'forgot'">
+        <button class="tab" :class="{ active: authMode === 'login' }" @click="authMode = 'login'">登录</button>
+        <button class="tab" :class="{ active: authMode === 'register' }" @click="authMode = 'register'">注册</button>
+      </div>
+      <form v-show="authMode === 'login'" @submit.prevent="doLogin">
+        <div class="form-group"><label class="form-label">用户名</label><input class="form-input" v-model.trim="loginForm.username" placeholder="请输入用户名" autocomplete="username"></div>
+        <div class="form-group"><label class="form-label">密码</label>
+          <div class="pwd-wrap"><input class="form-input" :type="pwdVisibleLogin ? 'text' : 'password'" v-model="loginForm.password" placeholder="请输入密码" autocomplete="current-password"><button type="button" class="pwd-toggle" @click="pwdVisibleLogin = !pwdVisibleLogin">{{ pwdVisibleLogin ? '隐藏' : '显示' }}</button></div>
+        </div>
+        <button class="btn-submit" type="submit" :disabled="authLoading">{{ authLoading ? '登录中…' : '登 录' }}</button>
+        <div class="form-note"><span>还没有账号？点击「注册」</span><button type="button" class="link-btn" @click="openForgot">忘记密码？</button></div>
+      </form>
+      <form v-show="authMode === 'register'" @submit.prevent="doRegister">
+        <div class="form-group"><label class="form-label">用户名</label><input class="form-input" v-model.trim="registerForm.username" placeholder="3-30 个字符" autocomplete="username"></div>
+        <div class="form-group"><label class="form-label">邮箱</label><input class="form-input" type="email" v-model.trim="registerForm.email" placeholder="用于找回密码" autocomplete="email"></div>
+        <div class="form-group"><label class="form-label">密码</label>
+          <div class="pwd-wrap"><input class="form-input" :type="pwdVisibleReg ? 'text' : 'password'" v-model="registerForm.password" placeholder="至少 6 位" autocomplete="new-password"><button type="button" class="pwd-toggle" @click="pwdVisibleReg = !pwdVisibleReg">{{ pwdVisibleReg ? '隐藏' : '显示' }}</button></div>
+        </div>
+        <div class="form-group"><label class="form-label">确认密码</label>
+          <div class="pwd-wrap"><input class="form-input" :type="pwdVisibleConfirm ? 'text' : 'password'" v-model="registerForm.confirm" placeholder="再次输入密码" autocomplete="new-password"><button type="button" class="pwd-toggle" @click="pwdVisibleConfirm = !pwdVisibleConfirm">{{ pwdVisibleConfirm ? '隐藏' : '显示' }}</button></div>
+        </div>
+        <button class="btn-submit" type="submit" :disabled="authLoading">{{ authLoading ? '注册中…' : '注 册' }}</button>
+        <div class="form-note center"><span>已有账号？</span><button type="button" class="link-btn" @click="authMode = 'login'">去登录</button></div>
+      </form>
+      <form v-show="authMode === 'forgot'" @submit.prevent="doResetPassword">
+        <div class="form-group"><label class="form-label">用户名</label><input class="form-input" v-model.trim="forgotForm.username" placeholder="请输入注册用户名"></div>
+        <div class="form-group"><label class="form-label">注册邮箱</label><input class="form-input" type="email" v-model.trim="forgotForm.email" placeholder="请输入注册邮箱"></div>
+        <div class="form-group"><label class="form-label">新密码</label>
+          <div class="pwd-wrap"><input class="form-input" :type="pwdVisibleForgot ? 'text' : 'password'" v-model="forgotForm.newPassword" placeholder="至少 6 位"><button type="button" class="pwd-toggle" @click="pwdVisibleForgot = !pwdVisibleForgot">{{ pwdVisibleForgot ? '隐藏' : '显示' }}</button></div>
+        </div>
+        <button class="btn-submit" type="submit" :disabled="authLoading">{{ authLoading ? '提交中…' : '重置密码' }}</button>
+        <div class="form-note center"><button type="button" class="link-btn" @click="authMode = 'login'">返回登录</button></div>
+      </form>
+    </div>
+  </div>
+  </div>
+
   <script src="./static/js/vue.min.js"></script>
   <script src="./static/js/axios.min.js"></script>
   <script>
     // ===== 接口请求地址配置：所有请求统一前缀，切换后端域名 / 环境只需改这里 =====
     var BASE_URL = window.BASE_URL || 'http://127.0.0.1:3000/api/web';  // 本地联调默认值；生产同源部署可改为 '/api/web'
 
+    // ===== 会员登录会话存储键（与其他站点隔离） =====
+    var TOKEN_KEY = 'sanli_member_access_token';
+    var USER_KEY = 'sanli_member_user_info';
+    var LAST_USER_KEY = 'sanli_member_last_username';
+
     new Vue({
       el: '#app',
       data: {
         cdk: '',
+        token: '',
+        user: null,
+        userMenuOpen: false,
+        authModalOpen: false,
+        authMode: 'login',
+        authLoading: false,
+        loginForm: { username: '', password: '' },
+        registerForm: { username: '', email: '', password: '', confirm: '' },
+        forgotForm: { username: '', email: '', newPassword: '' },
+        pwdVisibleLogin: false, pwdVisibleReg: false, pwdVisibleConfirm: false, pwdVisibleForgot: false,
         loading: false,
         result: null,
         copiedField: null,
@@ -533,35 +673,189 @@
         alert: { show: false, text: '', type: 'error' },
         alertTimer: null,
         announcements: [],
+        announceScrolling: false,
         qas: [],
         openQa: null
       },
       computed: {
         announceLoop() {
-          return this.announcements.length > 1
-            ? this.announcements.concat(this.announcements)
-            : this.announcements;
+          // 内容固定复制两份，配合 translateX(-50%) 实现无缝循环（单条长公告也滚动）
+          return this.announcements.concat(this.announcements);
         },
         announceDuration() {
           return Math.max(12, this.announcements.length * 6) + 's';
+        },
+        levelName() {
+          const l = this.user ? Number(this.user.member_level || 0) : 0;
+          return l >= 2 ? '高级会员' : (l === 1 ? '会员' : '游客');
+        },
+        expireText() {
+          if (!this.user || !this.user.member_expire_at) return '永久有效';
+          const d = new Date(this.user.member_expire_at);
+          if (isNaN(d.getTime())) return String(this.user.member_expire_at);
+          const p = n => (n < 10 ? '0' + n : '' + n);
+          return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+        },
+        authModalTitle() {
+          return this.authMode === 'register' ? '创建会员账号' : (this.authMode === 'forgot' ? '找回密码' : '欢迎回来');
+        },
+        authModalSubtitle() {
+          return this.authMode === 'register' ? '注册即可将兑换码绑定到会员账号' : (this.authMode === 'forgot' ? '通过用户名和邮箱重置密码' : '登录您的会员账号');
         }
       },
       mounted() {
+        this.readSession();
+        if (this.token) {
+          this.fetchMe();
+        } else {
+          try { const lu = localStorage.getItem(LAST_USER_KEY); if (lu) this.loginForm.username = lu; } catch (e) {}
+        }
         this.fetchAnnouncements();
         this.fetchQas();
+        this._resizeHandler = () => this.measureAnnounce();
+        window.addEventListener('resize', this._resizeHandler);
+        this._escHandler = (e) => { if (e.key === 'Escape' && this.authModalOpen) this.closeAuthModal(); };
+        document.addEventListener('keydown', this._escHandler);
       },
       beforeDestroy() {
         if (this.cooldownTimer) clearInterval(this.cooldownTimer);
+        if (this._resizeHandler) window.removeEventListener('resize', this._resizeHandler);
+        if (this._escHandler) document.removeEventListener('keydown', this._escHandler);
+        document.body.style.overflow = '';
       },
       methods: {
+        // ===== 会员会话 =====
+        authHeaders() {
+          return this.token ? { Authorization: 'Bearer ' + this.token } : {};
+        },
+        readSession() {
+          try {
+            this.token = localStorage.getItem(TOKEN_KEY) || '';
+            const raw = localStorage.getItem(USER_KEY);
+            this.user = raw ? JSON.parse(raw) : null;
+          } catch (e) { this.token = ''; this.user = null; }
+        },
+        persistSession(token, user) {
+          this.token = token || this.token;
+          if (user) this.user = Object.assign({}, this.user || {}, user);
+          try {
+            if (this.token) localStorage.setItem(TOKEN_KEY, this.token);
+            if (this.user) localStorage.setItem(USER_KEY, JSON.stringify(this.user));
+          } catch (e) {}
+        },
+        logout() {
+          this.token = ''; this.user = null; this.userMenuOpen = false;
+          try { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY); } catch (e) {}
+          this.showMessage('已退出登录', 'success');
+        },
+        fetchMe() {
+          if (!this.token) return;
+          axios.post(BASE_URL + '/membership/my-info', {}, { headers: this.authHeaders() })
+            .then(res => { if (res.data.code === 0 && res.data.data) this.persistSession(this.token, res.data.data); })
+            .catch(err => { if (err.response && err.response.status === 401) this.logout(); });
+        },
+        openAuthModal(mode) {
+          this.authMode = mode || 'login';
+          this.authModalOpen = true;
+          document.body.style.overflow = 'hidden';
+        },
+        closeAuthModal() {
+          this.authModalOpen = false;
+          document.body.style.overflow = '';
+        },
+        openForgot() {
+          this.forgotForm.username = this.loginForm.username;
+          this.authMode = 'forgot';
+        },
+        doLogin() {
+          if (!this.loginForm.username || !this.loginForm.password) { this.showMessage('请输入用户名和密码'); return; }
+          this.authLoading = true;
+          axios.post(BASE_URL + '/auth/login', { username: this.loginForm.username, password: this.loginForm.password })
+            .then(res => {
+              if (res.data.code === 0 && res.data.data) {
+                const d = res.data.data;
+                this.persistSession(d.accessToken, d);
+                try { localStorage.setItem(LAST_USER_KEY, this.loginForm.username); } catch (e) {}
+                this.loginForm.password = '';
+                this.closeAuthModal();
+                this.showMessage('登录成功，欢迎回来！', 'success');
+                this.fetchMe();
+              } else {
+                this.showMessage(res.data.message || '登录失败');
+              }
+            })
+            .catch(() => this.showMessage('网络错误，请稍后重试'))
+            .finally(() => { this.authLoading = false; });
+        },
+        doRegister() {
+          const f = this.registerForm;
+          const uname = (f.username || '').trim();
+          if (!uname || !f.email || !f.password) { this.showMessage('请填写完整注册信息'); return; }
+          if (uname.length < 3 || uname.length > 30) { this.showMessage('用户名长度需在 3-30 个字符之间'); return; }
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) { this.showMessage('邮箱格式不正确'); return; }
+          if (f.password.length < 6) { this.showMessage('密码至少 6 位'); return; }
+          if (f.password !== f.confirm) { this.showMessage('两次输入的密码不一致'); return; }
+          this.authLoading = true;
+          axios.post(BASE_URL + '/auth/register', { username: uname, email: f.email, password: f.password })
+            .then(res => {
+              if (res.data.code === 0) {
+                const d = res.data.data;
+                this.registerForm = { username: '', email: '', password: '', confirm: '' };
+                if (d && d.accessToken) {
+                  this.persistSession(d.accessToken, d);
+                  try { localStorage.setItem(LAST_USER_KEY, uname); } catch (e) {}
+                  this.closeAuthModal();
+                  this.showMessage('注册成功，已自动登录', 'success');
+                  this.fetchMe();
+                } else {
+                  this.showMessage('注册成功，请登录', 'success');
+                  this.loginForm.username = uname;
+                  this.authMode = 'login';
+                }
+              } else {
+                this.showMessage(res.data.message || '注册失败');
+              }
+            })
+            .catch(() => this.showMessage('网络错误，请稍后重试'))
+            .finally(() => { this.authLoading = false; });
+        },
+        doResetPassword() {
+          const f = this.forgotForm;
+          if (!f.username || !f.email || !f.newPassword) { this.showMessage('请填写完整信息'); return; }
+          if (f.newPassword.length < 6) { this.showMessage('新密码至少 6 位'); return; }
+          this.authLoading = true;
+          axios.post(BASE_URL + '/auth/reset-password', { username: f.username, email: f.email, newPassword: f.newPassword })
+            .then(res => {
+              if (res.data.code === 0) {
+                this.showMessage('密码重置成功，请登录', 'success');
+                this.loginForm.username = f.username;
+                this.forgotForm = { username: '', email: '', newPassword: '' };
+                this.authMode = 'login';
+              } else {
+                this.showMessage(res.data.message || '重置失败');
+              }
+            })
+            .catch(() => this.showMessage('网络错误，请稍后重试'))
+            .finally(() => { this.authLoading = false; });
+        },
         fetchAnnouncements() {
           axios.get(BASE_URL + '/config/announcements', { params: { type: 'offline' } })
             .then(res => {
               if (res.data.code === 0 && Array.isArray(res.data.data)) {
                 this.announcements = res.data.data.filter(it => it && it.content);
+                this.measureAnnounce();
               }
             })
             .catch(() => {});
+        },
+        measureAnnounce() {
+          // 轨道内容为两份相同副本：单份宽度超出可视区才滚动，否则静态展示
+          this.$nextTick(() => {
+            const track = this.$refs.announceTrack;
+            const vp = this.$refs.announceViewport;
+            if (!track || !vp || !this.announcements.length) { this.announceScrolling = false; return; }
+            this.announceScrolling = track.offsetWidth / 2 > vp.clientWidth;
+          });
         },
         fetchQas() {
           axios.get(BASE_URL + '/config/qas', { params: { type: 'offline' } })
@@ -610,11 +904,12 @@
         redeem() {
           if (!this.cdk) { this.showMessage('请输入兑换码'); return; }
           this.loading = true;
-          axios.post(BASE_URL + '/offline/redeem', { cdk: this.cdk })
+          axios.post(BASE_URL + '/offline/redeem', { cdk: this.cdk }, { headers: this.authHeaders() })
             .then(res => {
               if (res.data.code === 0) {
                 this.result = res.data.data;
-                this.showMessage('兑换成功', 'success');
+                const bound = res.data.data && res.data.data.member_username;
+                this.showMessage(bound ? '兑换成功，已绑定会员账号：' + bound : '兑换成功', 'success');
               } else {
                 this.showMessage(res.data.message || '兑换失败');
               }
