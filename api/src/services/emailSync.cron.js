@@ -84,7 +84,7 @@ async function syncAccount(account) {
             vendor: 'Mozilla'
         },
         // logger: false,
-        emitLogs: false
+        // emitLogs: false
     });
 
     try {
