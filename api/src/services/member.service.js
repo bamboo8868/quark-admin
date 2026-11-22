@@ -54,10 +54,10 @@ export const memberService = {
       data.password = await bcrypt.hash(data.password, 10);
     }
 
-    // Check email uniqueness if changing
+    // Check email uniqueness if changing (id from route params is a string, normalize before comparing)
     if (data.email) {
       const existingEmail = await memberModel.findByEmail(data.email);
-      if (existingEmail && existingEmail.id !== id) {
+      if (existingEmail && Number(existingEmail.id) !== Number(id)) {
         throw new Error('邮箱已被其他用户使用');
       }
     }
