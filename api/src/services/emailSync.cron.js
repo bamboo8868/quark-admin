@@ -83,8 +83,8 @@ async function syncAccount(account) {
             version: '115.0',
             vendor: 'Mozilla'
         },
-        // logger: false,
-        // emitLogs: false
+        logger: false,
+        emitLogs: false
     });
 
     try {
@@ -95,8 +95,6 @@ async function syncAccount(account) {
             // Fetch the most recent emails (last 50 by default)
             let tenMinAgo = new Date(Date.now() - 600000);
             const messageIds = await client.search({ since: tenMinAgo }, { uid: true });
-		log.info(`${account.id} `);
-		console.log(messageIds);
             if (messageIds.length === 0 || messageIds === false) {
                 log.info(`[emailSync] Account ${account.id} (${account.username}): inbox empty`);
                 return;
